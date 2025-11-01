@@ -491,6 +491,7 @@
     "recap": {
       "table": {
         "name": "Name",
+        "birthYear": "Year",
         "club": "Club",
         "addedBy": "Added by",
         "actions": "Actions",
