@@ -17,6 +17,7 @@ type CompetitorRow = {
   lastname: string;
   firstname: string;
   gender: string;
+  birthdate?: string | null;
   points: Record<string, string | number | null>;
   codexNumbers: string[];
   skiclub: string;
@@ -54,9 +55,16 @@ export function CompetitorCard({
         {/* Ligne 1: Nom + Actions */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base text-slate-800 truncate">
-              {competitor.lastname} {competitor.firstname}
-            </h3>
+            <div className="flex items-baseline gap-2">
+              <h3 className="font-semibold text-base text-slate-800 truncate">
+                {competitor.lastname} {competitor.firstname}
+              </h3>
+              {competitor.birthdate && (
+                <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
+                  ({new Date(competitor.birthdate).getFullYear()})
+                </span>
+              )}
+            </div>
             <p className="text-sm text-slate-600 truncate">{competitor.skiclub}</p>
             {competitor.addedByEmail && (
               <p className="text-xs text-slate-500 truncate mt-1">

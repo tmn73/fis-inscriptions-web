@@ -78,6 +78,7 @@ type CompetitorRow = {
   lastname: string;
   firstname: string;
   gender: string;
+  birthdate?: string | null;
   points: Record<string, string | number | null>;
   codexNumbers: string[];
   skiclub: string;
@@ -456,6 +457,16 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
         header: () => tTable("name"),
         cell: (info) =>
           `${info.row.original.lastname} ${info.row.original.firstname} `,
+      }),
+      // Birth year column
+      columnHelper.accessor((row) => row.birthdate, {
+        id: "birthyear",
+        header: () => tTable("birthYear"),
+        cell: (info) => {
+          const birthdate = info.getValue();
+          return birthdate ? new Date(birthdate as string).getFullYear() : "";
+        },
+        enableSorting: true,
       }),
       // Static skiclub column
       columnHelper.accessor((row) => row.skiclub, {
