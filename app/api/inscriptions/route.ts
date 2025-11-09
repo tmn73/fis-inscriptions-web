@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     const newInscription = body.data;
 
     // Validate that codex doesn't already exist (server-side validation to prevent race conditions)
-    const eventData = newInscription.eventData as Competition;
-    const competitions = eventData?.competitions;
+    const eventDataForValidation = newInscription.eventData as Competition;
+    const competitions = eventDataForValidation?.competitions;
 
     if (Array.isArray(competitions)) {
       for (const competition of competitions) {
