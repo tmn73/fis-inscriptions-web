@@ -54,7 +54,7 @@ export const InscriptionDetails = ({
 
   const {data: inscription, isLoading, error} = useInscription(id);
   const {user} = useUser();
-  const {data: creatorEmail} = useUserEmail(inscription?.createdBy);
+  const {data: creatorEmail, isLoading: isLoadingCreatorEmail} = useUserEmail(inscription?.createdBy);
 
   const permissionToEdit = usePermissionToEdit(inscription, "actionsBtn", null);
 
@@ -217,9 +217,9 @@ export const InscriptionDetails = ({
             </div>
           </div>
           {/* Creator and Date Info */}
-          {inscription.createdBy && inscription.createdAt && (
+          {inscription.createdBy && inscription.createdAt && !isLoadingCreatorEmail && (
             <p className="text-xs text-slate-400 mt-2 text-right">
-              {tCreator("text", {email: creatorEmail ?? inscription.createdBy ?? tCreator("unknown"), date: new Date(inscription.createdAt).toLocaleDateString("fr-FR")})}
+              {tCreator("text", {email: creatorEmail ?? tCreator("unknown"), date: new Date(inscription.createdAt).toLocaleDateString("fr-FR")})}
             </p>
           )}
         </div>
