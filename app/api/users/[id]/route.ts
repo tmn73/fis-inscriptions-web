@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export const GET = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // Remove auth check - allow public access to user email for creator display
     const { id } = await params;
     const client = await clerkClient();
     const user = await client.users.getUser(id);
-    
+
     const email = user.emailAddresses?.[0]?.emailAddress || user.username || id;
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       email,
       firstName: user.firstName,
-      lastName: user.lastName 
+      lastName: user.lastName
     });
   } catch (error) {
     console.error("Error fetching user:", error);
