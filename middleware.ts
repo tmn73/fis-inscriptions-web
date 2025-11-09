@@ -15,6 +15,7 @@ const publicApiPrefixes = [
   "/api/inscriptions",
   "/api/competitors/with-inscriptions",
   "/api/competitors",
+  "/api/users", // Allow public access to user info for creator display
 ];
 
 // Fonction pour savoir si une page d'inscription individuelle est publique
