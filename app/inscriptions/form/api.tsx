@@ -29,7 +29,14 @@ export const useCreateInscription = () => {
         body: JSON.stringify(inscription),
       });
       if (!response.ok) {
-        throw new Error("Erreur lors de l'enregistrement de l'inscription");
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(
+          errorData.message || "Erreur lors de l'enregistrement de l'inscription"
+        ) as Error & { errorCode?: string; inscriptionId?: number; codex?: string };
+        error.errorCode = errorData.error;
+        error.inscriptionId = errorData.inscriptionId;
+        error.codex = errorData.codex;
+        throw error;
       }
       return response.json();
     },

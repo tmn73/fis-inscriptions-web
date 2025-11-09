@@ -30,6 +30,10 @@ export const InscriptionFormWrapper = () => {
   });
   const [codexInput, setCodexInput] = useState("");
   const [searchedCodex, setSearchedCodex] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<{
+    message: string;
+    inscriptionId?: number;
+  } | null>(null);
   const {
     data: eventUntyped,
     isLoading,
@@ -38,10 +42,10 @@ export const InscriptionFormWrapper = () => {
   const {createInscription} = useCreateInscription();
 
   const event = eventUntyped as Competition | null | undefined;
-  
+
   const {data: codexCheck} = useCodexCheck(
-    searchedCodex ?? "", 
-    undefined, 
+    searchedCodex ?? "",
+    undefined,
     event?.seasonCode ? String(event.seasonCode) : undefined
   );
 
@@ -53,6 +57,9 @@ export const InscriptionFormWrapper = () => {
   const onSubmit = async () => {
     if (!event || isTrainingEvent || !user || (codexCheck !== undefined && codexCheck.exists))
       return;
+
+    // Clear any previous server errors
+    setServerError(null);
 
     const eventDataForDb = JSON.parse(JSON.stringify(event));
 
@@ -84,9 +91,26 @@ export const InscriptionFormWrapper = () => {
       eventData: eventDataForDb,
       createdBy,
     };
-    const returningInscription: {inscription: Inscription} =
-      await createInscription.mutateAsync(newInscription);
-    router.push(`/inscriptions/${returningInscription.inscription.id}`);
+
+    try {
+      const returningInscription: {inscription: Inscription} =
+        await createInscription.mutateAsync(newInscription);
+      router.push(`/inscriptions/${returningInscription.inscription.id}`);
+    } catch (err) {
+      // Handle duplicate codex error from server
+      const error = err as Error & { errorCode?: string; inscriptionId?: number };
+      if (error.errorCode === "DUPLICATE_CODEX" && error.inscriptionId) {
+        setServerError({
+          message: error.message,
+          inscriptionId: error.inscriptionId,
+        });
+      } else {
+        // Generic error
+        setServerError({
+          message: error.message || "Erreur lors de la création de l'inscription",
+        });
+      }
+    }
   };
 
   return (
@@ -191,6 +215,28 @@ export const InscriptionFormWrapper = () => {
               ? "Codex non trouvé."
               : "Erreur lors de la récupération de l'événement."}
           </p>
+        )}
+
+        {serverError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-6 max-w-2xl mx-auto">
+            <p className="font-semibold">Erreur lors de la création</p>
+            <p className="mt-1">
+              {serverError.message}
+              {serverError.inscriptionId && (
+                <>
+                  {" "}
+                  <a
+                    href={`/inscriptions/${serverError.inscriptionId}`}
+                    className="underline text-blue-600 hover:text-blue-800"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Voir l&apos;inscription existante
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
         )}
 
         {event && !isTrainingEvent && codexCheck !== undefined && !codexCheck?.exists && (

@@ -6,6 +6,8 @@ import {Resend} from "resend";
 import {clerkClient} from "@clerk/clerk-sdk-node";
 import {isNull, eq} from "drizzle-orm";
 import {getUserOrganizationCode} from "@/app/lib/getUserOrganization";
+import {checkDuplicateCodex} from "@/app/lib/checkDuplicateCodex";
+import type {Competition} from "@/app/lib/checkDuplicateCodex";
 
 // Define the schema for the request body (matching the form schema)
 const inscriptionSchema = z.object({
@@ -27,6 +29,33 @@ export async function POST(request: Request) {
     }
 
     const newInscription = body.data;
+
+    // Validate that codex doesn't already exist (server-side validation to prevent race conditions)
+    const eventData = newInscription.eventData as Competition;
+    const competitions = eventData?.competitions;
+
+    if (Array.isArray(competitions)) {
+      for (const competition of competitions) {
+        if (competition.codex && competition.seasonCode) {
+          const duplicateCheck = await checkDuplicateCodex(
+            competition.codex,
+            competition.seasonCode
+          );
+
+          if (duplicateCheck.exists) {
+            return NextResponse.json(
+              {
+                error: "DUPLICATE_CODEX",
+                message: "Ce codex est déjà présent dans une inscription existante",
+                inscriptionId: duplicateCheck.inscriptionId,
+                codex: competition.codex,
+              },
+              { status: 409 }
+            );
+          }
+        }
+      }
+    }
 
     // Get organization config dynamically
     const organizationCode = await getUserOrganizationCode();
