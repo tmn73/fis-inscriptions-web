@@ -116,7 +116,7 @@ export function InscriptionsTable() {
   const tCommon = useTranslations("common");
 
   const [sorting, setSorting] = useState<SortingState>([
-    {id: "startDate", desc: true},
+    {id: "startDate", desc: false},
   ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {id: "status", value: "open"},
