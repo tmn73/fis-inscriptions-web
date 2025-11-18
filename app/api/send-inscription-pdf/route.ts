@@ -180,9 +180,10 @@ export async function POST(request: Request) {
     }
 
     // Update inscription status based on gender
+    const currentTime = new Date();
+    const updateData: any = {};
+
     try {
-      const currentTime = new Date();
-      const updateData: any = {};
 
       if (gender === "M") {
         updateData.menStatus = "email_sent";
