@@ -198,15 +198,15 @@ export async function POST(request: Request) {
 
       // Get current inscription to check if both genders are sent
       const currentInscription = inscription[0];
-      
-      // If this is a mixed event and we're sending for a specific gender,
-      // check if after this update, both genders will be sent
+
+      // If this is a gendered event, check if we should update the global status
       if (gender && (gender === "M" || gender === "W")) {
         const otherGenderStatus = gender === "M" ? currentInscription.womenStatus : currentInscription.menStatus;
-        
-        // After this update, check if both genders will be email_sent
-        // (the current gender will be set to email_sent, so we only need to check the other)
-        if (otherGenderStatus === "email_sent") {
+
+        // Update global status if:
+        // 1. Both genders have been sent (otherGenderStatus === "email_sent"), OR
+        // 2. This is a single-gender event (otherGenderStatus is null/undefined)
+        if (otherGenderStatus === "email_sent" || !otherGenderStatus) {
           updateData.status = "email_sent";
           updateData.emailSentAt = currentTime;
         }
@@ -216,8 +216,20 @@ export async function POST(request: Request) {
         .update(inscriptions)
         .set(updateData)
         .where(eq(inscriptions.id, Number(inscriptionId)));
-    } catch {
-      // Don't fail the request if status update fails, email was sent successfully
+    } catch (statusError: unknown) {
+      // Log the error but don't fail the request since email was sent successfully
+      console.error("Failed to update inscription status after sending email:", {
+        inscriptionId,
+        gender,
+        error: statusError instanceof Error ? statusError.message : String(statusError),
+        updateData
+      });
+      // Return warning to client so they know status wasn't updated
+      return NextResponse.json({
+        message: "Email sent successfully, but status update failed. Please refresh the page or update status manually.",
+        emailId: data?.id,
+        warning: "Status update failed"
+      }, {status: 207}); // 207 Multi-Status indicates partial success
     }
 
     return NextResponse.json({
