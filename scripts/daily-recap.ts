@@ -454,10 +454,11 @@ const main = async () => {
           // Calcul manuel plus fiable des jours restants
           const eventDate = new Date(evt.event_start_date);
           const deadlineDate = new Date(eventDate);
-          deadlineDate.setDate(eventDate.getDate() - 3); // J-3
+          // Use UTC methods to avoid timezone-related bugs
+          deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
           const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          deadlineDate.setHours(0, 0, 0, 0);
+          today.setUTCHours(0, 0, 0, 0);
+          deadlineDate.setUTCHours(0, 0, 0, 0);
           const diffTime = deadlineDate.getTime() - today.getTime();
           const daysUntilDeadline = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           

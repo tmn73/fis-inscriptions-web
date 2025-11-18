@@ -270,10 +270,11 @@ export function InscriptionsTable() {
       accessorFn: (row) => {
         const eventDate = new Date(row.eventData.startDate);
         const deadlineDate = new Date(eventDate);
-        deadlineDate.setDate(eventDate.getDate() - 3); // J-3
+        // Use UTC methods to avoid timezone-related bugs
+        deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        deadlineDate.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
+        deadlineDate.setUTCHours(0, 0, 0, 0);
         const diffTime = deadlineDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
@@ -281,10 +282,11 @@ export function InscriptionsTable() {
       cell: ({row}) => {
         const eventDate = new Date(row.original.eventData.startDate);
         const deadlineDate = new Date(eventDate);
-        deadlineDate.setDate(eventDate.getDate() - 3); // J-3
+        // Use UTC methods to avoid timezone-related bugs
+        deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        deadlineDate.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
+        deadlineDate.setUTCHours(0, 0, 0, 0);
         const diffTime = deadlineDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
