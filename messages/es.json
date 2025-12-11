@@ -202,7 +202,8 @@
       "open": "Abierta",
       "validated": "Validada",
       "email_sent": "Email enviado",
-      "cancelled": "Carrera cancelada"
+      "cancelled": "Carrera cancelada",
+      "not_concerned": "No concernido"
     },
     "gender": {
       "M": "Hombres",
@@ -454,7 +455,8 @@
         "open": "En curso (abierto)",
         "validated": "Cerrado (validado)",
         "email_sent": "Email enviado",
-        "cancelled": "Carrera cancelada"
+        "cancelled": "Carrera cancelada",
+        "not_concerned": "No concernido"
       },
       "errors": {
         "statusChange": "Error al cambiar el estado",

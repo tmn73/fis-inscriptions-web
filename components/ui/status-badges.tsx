@@ -16,6 +16,7 @@ const getStatusInfo = (status: Status | null) => {
     validated: { label: "Validée", className: "bg-blue-100 text-blue-800 border-blue-200" },
     email_sent: { label: "Envoyée", className: "bg-orange-100 text-orange-800 border-orange-200" },
     cancelled: { label: "Annulée", className: "bg-red-100 text-red-800 border-red-200" },
+    not_concerned: { label: "N/C", className: "bg-gray-100 text-gray-500 border-gray-200" },
   };
 
   if (!status) {

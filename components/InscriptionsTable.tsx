@@ -45,6 +45,7 @@ import {
   getSeasonsFromInscriptions,
 } from "@/app/lib/dates";
 import {StatusBadges} from "@/components/ui/status-badges";
+import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
 
 // Composant pour afficher le nombre de compétiteurs pour une inscription
 const CompetitorCountCell = ({inscriptionId}: {inscriptionId: number}) => {
@@ -531,7 +532,9 @@ export function InscriptionsTable() {
       },
       filterFn: (row, id, value) => {
         if (!value) return true;
-        return row.original.status === value;
+        // Utilise le statut effectif qui prend en compte les genres "not_concerned"
+        const effectiveStatus = getEffectiveStatusForFilter(row.original);
+        return effectiveStatus === value;
       },
     },
     {

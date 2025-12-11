@@ -198,7 +198,8 @@
       "open": "Open",
       "validated": "Validated",
       "email_sent": "Email sent",
-      "cancelled": "Race cancelled"
+      "cancelled": "Race cancelled",
+      "not_concerned": "Not concerned"
     },
     "gender": {
       "M": "Men",
@@ -450,7 +451,8 @@
         "open": "In progress (open)",
         "validated": "Closed (validated)",
         "email_sent": "Email sent",
-        "cancelled": "Race cancelled"
+        "cancelled": "Race cancelled",
+        "not_concerned": "Not concerned"
       },
       "errors": {
         "statusChange": "Error changing status",

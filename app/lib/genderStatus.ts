@@ -54,6 +54,48 @@ export const isMixedEvent = (eventData: any): boolean => {
   if (!eventData?.genderCodes || !Array.isArray(eventData.genderCodes)) {
     return false;
   }
-  
+
   return eventData.genderCodes.includes("M") && eventData.genderCodes.includes("W");
+};
+
+/**
+ * Détermine le statut effectif d'une inscription pour le filtrage.
+ * Pour les courses mixtes, si un genre est "not_concerned", on ne considère que l'autre genre.
+ * Retourne le statut le plus "ouvert" parmi les genres concernés.
+ */
+export const getEffectiveStatusForFilter = (inscription: Inscription): Status | null => {
+  const isEventMixed = isMixedEvent(inscription.eventData);
+
+  if (!isEventMixed) {
+    // Événement non-mixte : utilise le statut global
+    return inscription.status;
+  }
+
+  // Événement mixte : vérifie les statuts par genre
+  const menStatus = inscription.menStatus || inscription.status;
+  const womenStatus = inscription.womenStatus || inscription.status;
+
+  const menNotConcerned = menStatus === "not_concerned";
+  const womenNotConcerned = womenStatus === "not_concerned";
+
+  // Si les deux sont "not_concerned", on considère l'inscription comme terminée
+  if (menNotConcerned && womenNotConcerned) {
+    return "not_concerned";
+  }
+
+  // Si un seul est "not_concerned", on utilise le statut de l'autre
+  if (menNotConcerned) {
+    return womenStatus;
+  }
+  if (womenNotConcerned) {
+    return menStatus;
+  }
+
+  // Si aucun n'est "not_concerned", priorité au statut "open" si l'un des deux est "open"
+  if (menStatus === "open" || womenStatus === "open") {
+    return "open";
+  }
+
+  // Sinon, retourne le statut global
+  return inscription.status;
 };

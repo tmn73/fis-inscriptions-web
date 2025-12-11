@@ -198,7 +198,8 @@
       "open": "Ouverte",
       "validated": "Validée",
       "email_sent": "Email envoyé",
-      "cancelled": "Course annulée"
+      "cancelled": "Course annulée",
+      "not_concerned": "Non concerné"
     },
     "gender": {
       "M": "Hommes",
@@ -450,7 +451,8 @@
         "open": "En cours (ouvert)",
         "validated": "Clôturé (validé)",
         "email_sent": "Email envoyé",
-        "cancelled": "Course annulée"
+        "cancelled": "Course annulée",
+        "not_concerned": "Non concerné"
       },
       "errors": {
         "statusChange": "Erreur lors du changement de statut",

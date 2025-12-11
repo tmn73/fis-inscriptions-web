@@ -66,7 +66,7 @@ export function InscriptionActionsMenu({
       status,
       scope,
     }: {
-      status: "open" | "validated" | "email_sent" | "cancelled";
+      status: "open" | "validated" | "email_sent" | "cancelled" | "not_concerned";
       scope?: "global" | "men" | "women" | "both";
     }) => {
       const res = await fetch(`/api/inscriptions/${inscription.id}/status`, {
@@ -131,7 +131,7 @@ export function InscriptionActionsMenu({
       return;
     }
     statusMutation.mutate({
-      status: selectedStatus as "open" | "validated" | "email_sent" | "cancelled",
+      status: selectedStatus as "open" | "validated" | "email_sent" | "cancelled" | "not_concerned",
       scope: selectedStatusScope,
     });
     setStatusDialogOpen(false);
@@ -360,6 +360,9 @@ export function InscriptionActionsMenu({
                   </SelectItem>
                   <SelectItem value="cancelled" className="cursor-pointer">
                     {tStatus("cancelled")}
+                  </SelectItem>
+                  <SelectItem value="not_concerned" className="cursor-pointer">
+                    {tStatus("not_concerned")}
                   </SelectItem>
                 </SelectContent>
               </Select>

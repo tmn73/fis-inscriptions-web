@@ -15,6 +15,7 @@ export const inscriptionStatus = inscriptionsSchema.enum("status", [
   "validated",
   "email_sent",
   "cancelled",
+  "not_concerned",
 ]);
 
 export const inscriptions = inscriptionsSchema.table("inscriptions", {
