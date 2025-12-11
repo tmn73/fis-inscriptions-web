@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, {useCallback} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {
   ColumnDef,
@@ -48,8 +48,16 @@ import {StatusBadges} from "@/components/ui/status-badges";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
 import {MultiSelect} from "@/components/ui/multi-select";
 
-// Composant pour afficher le nombre de compétiteurs pour une inscription
-const CompetitorCountCell = ({inscriptionId}: {inscriptionId: number}) => {
+// Composant pour afficher le nombre de compétiteurs pour une inscription par genre
+const CompetitorCountCell = ({
+  inscriptionId,
+  gender,
+  hasGender,
+}: {
+  inscriptionId: number;
+  gender: "M" | "W";
+  hasGender: boolean;
+}) => {
   const {data, isLoading, isError} = useQuery({
     queryKey: ["inscription-competitors-all", inscriptionId],
     queryFn: async () => {
@@ -60,11 +68,60 @@ const CompetitorCountCell = ({inscriptionId}: {inscriptionId: number}) => {
         throw new Error("Erreur lors du chargement des compétiteurs");
       return res.json();
     },
+    enabled: hasGender,
   });
-  if (isLoading)
-    return <Loader2 className="w-4 h-4 animate-spin inline-block" />;
-  if (isError) return <span>-</span>;
-  return <span>{Array.isArray(data) ? data.length : "-"}</span>;
+
+  // Si l'événement n'a pas ce genre, afficher un indicateur visuel clair (rougeâtre)
+  if (!hasGender) {
+    return (
+      <div className="flex items-center justify-center">
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-50 text-rose-400 text-[10px] font-medium border border-rose-200">
+          N/A
+        </span>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center">
+        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (isError || !Array.isArray(data)) {
+    return (
+      <div className="flex items-center justify-center">
+        <span className="text-gray-300 text-sm">—</span>
+      </div>
+    );
+  }
+
+  const count = data.filter((c: {gender?: string}) => c.gender === gender).length;
+
+  // Style visuel distinct selon qu'il y a des athlètes ou non
+  if (count === 0) {
+    return (
+      <div className="flex items-center justify-center">
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-400 text-sm font-medium border border-dashed border-gray-300">
+          0
+        </span>
+      </div>
+    );
+  }
+
+  const bgColor = gender === "M" ? "bg-blue-50" : "bg-purple-50";
+  const textColor = gender === "M" ? "text-blue-900" : "text-purple-700";
+  const borderColor = gender === "M" ? "border-blue-200" : "border-purple-200";
+
+  return (
+    <div className="flex items-center justify-center">
+      <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full ${bgColor} ${textColor} text-sm font-bold border ${borderColor}`}>
+        {count}
+      </span>
+    </div>
+  );
 };
 
 // Composant pour afficher le drapeau et le code pays
@@ -222,6 +279,36 @@ export function InscriptionsTable() {
   const seasonOptions = useMemo(() => {
     return getSeasonsFromInscriptions(stableData);
   }, [stableData]);
+
+  // Memoized filter options for MultiSelect components
+  const disciplineFilterOptions = useMemo(() =>
+    disciplineOptions.map((d) => ({
+      value: d,
+      label: d,
+      className: colorBadgePerDiscipline[d],
+    })), [disciplineOptions]);
+
+  const raceLevelFilterOptions = useMemo(() =>
+    raceLevelOptions.map((r) => ({
+      value: r,
+      label: r,
+      className: colorBadgePerRaceLevel[r],
+    })), [raceLevelOptions]);
+
+  const statusFilterOptions = useMemo(() => [
+    {value: "open", label: tStatus("open")},
+    {value: "validated", label: tStatus("validated")},
+    {value: "email_sent", label: tStatus("email_sent")},
+    {value: "cancelled", label: tStatus("cancelled")},
+    {value: "not_concerned", label: tStatus("not_concerned")},
+  ], [tStatus]);
+
+  const sexFilterOptions = useMemo(() =>
+    sexOptions.map((s) => ({
+      value: s,
+      label: s === "M" ? tGender("male") : tGender("female"),
+      className: colorBadgePerGender[s],
+    })), [sexOptions, tGender]);
 
   const columns: ColumnDef<Inscription>[] = [
     {
@@ -540,33 +627,8 @@ export function InscriptionsTable() {
     },
     {
       id: "sex",
-      header: tHeaders("sex"),
       enableColumnFilter: true,
       accessorFn: (row) => row,
-      cell: ({row}) => {
-        // On force l'ordre M puis W
-        const sexes = ["M", "W"].filter((sex) =>
-          (row.original.eventData.competitions ?? []).some(
-            (c: CompetitionItem) => c.genderCode === sex
-          )
-        );
-        return (
-          <div className="flex gap-1">
-            {sexes.map((sex: string) => (
-              <Badge
-                key={sex}
-                variant="outline"
-                className={`${
-                  colorBadgePerGender[sex === "M" ? "M" : "W"] || ""
-                } text-white`}
-                data-testid={`badge-sex-${sex}`}
-              >
-                {sex}
-              </Badge>
-            ))}
-          </div>
-        );
-      },
       filterFn: (row, id, filterValue) => {
         if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true;
         return Array.isArray(row.original.eventData.competitions)
@@ -577,9 +639,50 @@ export function InscriptionsTable() {
       },
     },
     {
-      id: "competitorCount",
-      header: tHeaders("competitorCount"),
-      cell: ({row}) => <CompetitorCountCell inscriptionId={row.original.id} />,
+      id: "competitorCountMen",
+      header: () => (
+        <div className="flex items-center justify-center">
+          <span className={`${colorBadgePerGender["M"]} text-white text-xs font-bold px-2 py-0.5 rounded`}>
+            M
+          </span>
+        </div>
+      ),
+      cell: ({row}) => {
+        const genderCodes = row.original.eventData?.genderCodes || [];
+        const hasM = genderCodes.includes("M");
+        return (
+          <div className="text-center">
+            <CompetitorCountCell
+              inscriptionId={row.original.id}
+              gender="M"
+              hasGender={hasM}
+            />
+          </div>
+        );
+      },
+    },
+    {
+      id: "competitorCountWomen",
+      header: () => (
+        <div className="flex items-center justify-center">
+          <span className={`${colorBadgePerGender["W"]} text-white text-xs font-bold px-2 py-0.5 rounded`}>
+            W
+          </span>
+        </div>
+      ),
+      cell: ({row}) => {
+        const genderCodes = row.original.eventData?.genderCodes || [];
+        const hasW = genderCodes.includes("W");
+        return (
+          <div className="text-center">
+            <CompetitorCountCell
+              inscriptionId={row.original.id}
+              gender="W"
+              hasGender={hasW}
+            />
+          </div>
+        );
+      },
     },
     {
       id: "season",
@@ -614,6 +717,9 @@ export function InscriptionsTable() {
     state: {
       sorting,
       columnFilters,
+      columnVisibility: {
+        sex: false, // Cacher la colonne sex mais garder le filtre fonctionnel
+      },
     },
     enableColumnFilters: true,
   });
@@ -621,6 +727,29 @@ export function InscriptionsTable() {
   const dateValue = String(
     table.getColumn("startDate")?.getFilterValue() ?? ""
   );
+
+  // Memoized filter change callbacks
+  const handleDisciplineChange = useCallback((values: string[]) => {
+    table.getColumn("discipline")?.setFilterValue(values.length > 0 ? values : undefined);
+  }, [table]);
+
+  const handleRaceLevelChange = useCallback((values: string[]) => {
+    table.getColumn("raceLevel")?.setFilterValue(values.length > 0 ? values : undefined);
+  }, [table]);
+
+  const handleStatusChange = useCallback((values: string[]) => {
+    table.getColumn("status")?.setFilterValue(values.length > 0 ? values : undefined);
+  }, [table]);
+
+  const handleSexChange = useCallback((values: string[]) => {
+    table.getColumn("sex")?.setFilterValue(values.length > 0 ? values : undefined);
+  }, [table]);
+
+  // Memoized filter values
+  const disciplineFilterValue = (table.getColumn("discipline")?.getFilterValue() as string[]) ?? [];
+  const raceLevelFilterValue = (table.getColumn("raceLevel")?.getFilterValue() as string[]) ?? [];
+  const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string[]) ?? [];
+  const sexFilterValue = (table.getColumn("sex")?.getFilterValue() as string[]) ?? [];
 
   if (isLoading) {
     return (
@@ -844,10 +973,7 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("discipline")}
-              {(() => {
-                const val = table.getColumn("discipline")?.getFilterValue() as string[] | undefined;
-                return val && val.length > 0 && val.length < disciplineOptions.length;
-              })() && (
+              {disciplineFilterValue.length > 0 && disciplineFilterValue.length < disciplineOptions.length && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
@@ -856,15 +982,9 @@ export function InscriptionsTable() {
             </label>
             <MultiSelect
               id="filter-discipline"
-              options={disciplineOptions.map((d) => ({
-                value: d,
-                label: d,
-                className: colorBadgePerDiscipline[d],
-              }))}
-              selected={(table.getColumn("discipline")?.getFilterValue() as string[]) ?? []}
-              onChange={(values) =>
-                table.getColumn("discipline")?.setFilterValue(values.length > 0 ? values : undefined)
-              }
+              options={disciplineFilterOptions}
+              selected={disciplineFilterValue}
+              onChange={handleDisciplineChange}
               allLabel={tFilters("allDisciplines")}
               className="w-full md:w-[140px]"
             />
@@ -875,10 +995,7 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("raceLevel")}
-              {(() => {
-                const val = table.getColumn("raceLevel")?.getFilterValue() as string[] | undefined;
-                return val && val.length > 0 && val.length < raceLevelOptions.length;
-              })() && (
+              {raceLevelFilterValue.length > 0 && raceLevelFilterValue.length < raceLevelOptions.length && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
@@ -887,15 +1004,9 @@ export function InscriptionsTable() {
             </label>
             <MultiSelect
               id="filter-racelevel"
-              options={raceLevelOptions.map((r) => ({
-                value: r,
-                label: r,
-                className: colorBadgePerRaceLevel[r],
-              }))}
-              selected={(table.getColumn("raceLevel")?.getFilterValue() as string[]) ?? []}
-              onChange={(values) =>
-                table.getColumn("raceLevel")?.setFilterValue(values.length > 0 ? values : undefined)
-              }
+              options={raceLevelFilterOptions}
+              selected={raceLevelFilterValue}
+              onChange={handleRaceLevelChange}
               allLabel={tFilters("allRaceLevels")}
               className="w-full md:w-[140px]"
             />
@@ -906,10 +1017,7 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("status")}
-              {(() => {
-                const val = table.getColumn("status")?.getFilterValue() as string[] | undefined;
-                return val && val.length > 0 && val.length < 5;
-              })() && (
+              {statusFilterValue.length > 0 && statusFilterValue.length < 5 && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
@@ -918,17 +1026,9 @@ export function InscriptionsTable() {
             </label>
             <MultiSelect
               id="filter-status"
-              options={[
-                {value: "open", label: tStatus("open")},
-                {value: "validated", label: tStatus("validated")},
-                {value: "email_sent", label: tStatus("email_sent")},
-                {value: "cancelled", label: tStatus("cancelled")},
-                {value: "not_concerned", label: tStatus("not_concerned")},
-              ]}
-              selected={(table.getColumn("status")?.getFilterValue() as string[]) ?? []}
-              onChange={(values) =>
-                table.getColumn("status")?.setFilterValue(values.length > 0 ? values : undefined)
-              }
+              options={statusFilterOptions}
+              selected={statusFilterValue}
+              onChange={handleStatusChange}
               allLabel={tFilters("allStatuses")}
               className="w-full md:w-[140px]"
             />
@@ -939,10 +1039,7 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("sex")}
-              {(() => {
-                const val = table.getColumn("sex")?.getFilterValue() as string[] | undefined;
-                return val && val.length > 0 && val.length < sexOptions.length;
-              })() && (
+              {sexFilterValue.length > 0 && sexFilterValue.length < sexOptions.length && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
@@ -951,15 +1048,9 @@ export function InscriptionsTable() {
             </label>
             <MultiSelect
               id="filter-sex"
-              options={sexOptions.map((s) => ({
-                value: s,
-                label: s === "M" ? tGender("male") : tGender("female"),
-                className: colorBadgePerGender[s],
-              }))}
-              selected={(table.getColumn("sex")?.getFilterValue() as string[]) ?? []}
-              onChange={(values) =>
-                table.getColumn("sex")?.setFilterValue(values.length > 0 ? values : undefined)
-              }
+              options={sexFilterOptions}
+              selected={sexFilterValue}
+              onChange={handleSexChange}
               allLabel={tFilters("allGenders")}
               className="w-full md:w-[140px]"
             />

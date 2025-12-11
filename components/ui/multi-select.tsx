@@ -22,7 +22,7 @@ interface MultiSelectProps {
   id?: string;
 }
 
-export function MultiSelect({
+function MultiSelectInner({
   options,
   selected,
   onChange,
@@ -32,28 +32,28 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
-  const handleToggle = (value: string) => {
+  const handleToggle = React.useCallback((value: string) => {
     if (selected.includes(value)) {
       onChange(selected.filter((v) => v !== value));
     } else {
       onChange([...selected, value]);
     }
-  };
+  }, [selected, onChange]);
 
-  const handleClear = (e: React.MouseEvent) => {
+  const handleClear = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onChange([]);
-  };
+  }, [onChange]);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = React.useCallback(() => {
     if (selected.length === options.length) {
       onChange([]);
     } else {
       onChange(options.map((o) => o.value));
     }
-  };
+  }, [selected.length, options, onChange]);
 
-  const displayValue = () => {
+  const displayValue = React.useMemo(() => {
     if (selected.length === 0) {
       return <span className="text-muted-foreground">{allLabel}</span>;
     }
@@ -71,7 +71,7 @@ export function MultiSelect({
         </span>
       </div>
     );
-  };
+  }, [selected, options, allLabel]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -86,7 +86,7 @@ export function MultiSelect({
             className
           )}
         >
-          <span className="truncate">{displayValue()}</span>
+          <span className="truncate">{displayValue}</span>
           <div className="flex items-center gap-1">
             {selected.length > 0 && selected.length < options.length && (
               <X
@@ -161,3 +161,5 @@ export function MultiSelect({
     </Popover>
   );
 }
+
+export const MultiSelect = React.memo(MultiSelectInner);

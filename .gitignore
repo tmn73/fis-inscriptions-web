@@ -56,3 +56,4 @@ public/workbox-*.js.map
 
 
 /db_backups
+.env*.local
