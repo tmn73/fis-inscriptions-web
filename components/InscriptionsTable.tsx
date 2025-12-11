@@ -46,6 +46,7 @@ import {
 } from "@/app/lib/dates";
 import {StatusBadges} from "@/components/ui/status-badges";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
+import {MultiSelect} from "@/components/ui/multi-select";
 
 // Composant pour afficher le nombre de compétiteurs pour une inscription
 const CompetitorCountCell = ({inscriptionId}: {inscriptionId: number}) => {
@@ -120,7 +121,7 @@ export function InscriptionsTable() {
     {id: "startDate", desc: false},
   ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    {id: "status", value: "open"},
+    {id: "status", value: ["open"]},
     {id: "season", value: getCurrentSeason()},
   ]);
 
@@ -465,10 +466,10 @@ export function InscriptionsTable() {
         );
       },
       filterFn: (row, id, filterValue) => {
-        if (!filterValue) return true;
+        if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true;
         return Array.isArray(row.original.eventData.competitions)
           ? row.original.eventData.competitions.some(
-              (c: CompetitionItem) => c.eventCode === filterValue
+              (c: CompetitionItem) => filterValue.includes(c.eventCode)
             )
           : true;
       },
@@ -501,10 +502,10 @@ export function InscriptionsTable() {
         );
       },
       filterFn: (row, id, filterValue) => {
-        if (!filterValue) return true;
+        if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true;
         return Array.isArray(row.original.eventData.competitions)
           ? row.original.eventData.competitions.some(
-              (c: CompetitionItem) => c.categoryCode === filterValue
+              (c: CompetitionItem) => filterValue.includes(c.categoryCode)
             )
           : true;
       },
@@ -531,10 +532,10 @@ export function InscriptionsTable() {
         );
       },
       filterFn: (row, id, value) => {
-        if (!value) return true;
+        if (!value || !Array.isArray(value) || value.length === 0) return true;
         // Utilise le statut effectif qui prend en compte les genres "not_concerned"
         const effectiveStatus = getEffectiveStatusForFilter(row.original);
-        return effectiveStatus === value;
+        return effectiveStatus ? value.includes(effectiveStatus) : false;
       },
     },
     {
@@ -567,10 +568,10 @@ export function InscriptionsTable() {
         );
       },
       filterFn: (row, id, filterValue) => {
-        if (!filterValue || filterValue === "all") return true;
+        if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true;
         return Array.isArray(row.original.eventData.competitions)
           ? row.original.eventData.competitions.some(
-              (c: CompetitionItem) => c.genderCode === filterValue
+              (c: CompetitionItem) => filterValue.includes(c.genderCode)
             )
           : true;
       },
@@ -843,38 +844,30 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("discipline")}
-              {!!table.getColumn("discipline")?.getFilterValue() && (
+              {(() => {
+                const val = table.getColumn("discipline")?.getFilterValue() as string[] | undefined;
+                return val && val.length > 0 && val.length < disciplineOptions.length;
+              })() && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
             </label>
-            <Select
-              value={String(
-                table.getColumn("discipline")?.getFilterValue() ?? "all"
-              )}
-              onValueChange={(value) =>
-                table
-                  .getColumn("discipline")
-                  ?.setFilterValue(value === "all" ? undefined : value)
+            <MultiSelect
+              id="filter-discipline"
+              options={disciplineOptions.map((d) => ({
+                value: d,
+                label: d,
+                className: colorBadgePerDiscipline[d],
+              }))}
+              selected={(table.getColumn("discipline")?.getFilterValue() as string[]) ?? []}
+              onChange={(values) =>
+                table.getColumn("discipline")?.setFilterValue(values.length > 0 ? values : undefined)
               }
-            >
-              <SelectTrigger
-                id="filter-discipline"
-                className="w-full md:w-[140px] cursor-pointer"
-              >
-                <SelectValue placeholder={tFilters("discipline")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{tFilters("allDisciplines")}</SelectItem>
-                {disciplineOptions.map((discipline) => (
-                  <SelectItem key={discipline} value={discipline}>
-                    {discipline}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              allLabel={tFilters("allDisciplines")}
+              className="w-full md:w-[140px]"
+            />
           </div>
           <div className="flex flex-col gap-1 w-full md:w-[140px]">
             <label
@@ -882,38 +875,30 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("raceLevel")}
-              {!!table.getColumn("raceLevel")?.getFilterValue() && (
+              {(() => {
+                const val = table.getColumn("raceLevel")?.getFilterValue() as string[] | undefined;
+                return val && val.length > 0 && val.length < raceLevelOptions.length;
+              })() && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
             </label>
-            <Select
-              value={String(
-                table.getColumn("raceLevel")?.getFilterValue() ?? "all"
-              )}
-              onValueChange={(value) =>
-                table
-                  .getColumn("raceLevel")
-                  ?.setFilterValue(value === "all" ? undefined : value)
+            <MultiSelect
+              id="filter-racelevel"
+              options={raceLevelOptions.map((r) => ({
+                value: r,
+                label: r,
+                className: colorBadgePerRaceLevel[r],
+              }))}
+              selected={(table.getColumn("raceLevel")?.getFilterValue() as string[]) ?? []}
+              onChange={(values) =>
+                table.getColumn("raceLevel")?.setFilterValue(values.length > 0 ? values : undefined)
               }
-            >
-              <SelectTrigger
-                id="filter-racelevel"
-                className="w-full md:w-[140px] cursor-pointer"
-              >
-                <SelectValue placeholder={tFilters("raceLevel")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{tFilters("allRaceLevels")}</SelectItem>
-                {raceLevelOptions.map((raceLevel) => (
-                  <SelectItem key={raceLevel} value={raceLevel}>
-                    {raceLevel}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              allLabel={tFilters("allRaceLevels")}
+              className="w-full md:w-[140px]"
+            />
           </div>
           <div className="flex flex-col gap-1 w-full md:w-[140px]">
             <label
@@ -921,39 +906,32 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("status")}
-              {!!table.getColumn("status")?.getFilterValue() && (
+              {(() => {
+                const val = table.getColumn("status")?.getFilterValue() as string[] | undefined;
+                return val && val.length > 0 && val.length < 5;
+              })() && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
             </label>
-            <Select
-              value={
-                table.getColumn("status")?.getFilterValue() === undefined
-                  ? "all"
-                  : String(table.getColumn("status")?.getFilterValue())
+            <MultiSelect
+              id="filter-status"
+              options={[
+                {value: "open", label: tStatus("open")},
+                {value: "validated", label: tStatus("validated")},
+                {value: "email_sent", label: tStatus("email_sent")},
+                {value: "cancelled", label: tStatus("cancelled")},
+                {value: "not_concerned", label: tStatus("not_concerned")},
+              ]}
+              selected={(table.getColumn("status")?.getFilterValue() as string[]) ?? []}
+              onChange={(values) =>
+                table.getColumn("status")?.setFilterValue(values.length > 0 ? values : undefined)
               }
-              onValueChange={(value) =>
-                table
-                  .getColumn("status")
-                  ?.setFilterValue(value === "all" ? undefined : value)
-              }
-            >
-              <SelectTrigger
-                id="filter-status"
-                className="w-full md:w-[140px] cursor-pointer"
-              >
-                <SelectValue placeholder={tFilters("status")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{tFilters("allStatuses")}</SelectItem>
-                <SelectItem value="open">{tStatus("open")}</SelectItem>
-                <SelectItem value="validated">{tStatus("validated")}</SelectItem>
-                <SelectItem value="email_sent">{tStatus("email_sent")}</SelectItem>
-                <SelectItem value="cancelled">{tStatus("cancelled")}</SelectItem>
-              </SelectContent>
-            </Select>
+              allLabel={tFilters("allStatuses")}
+              className="w-full md:w-[140px]"
+            />
           </div>
           <div className="flex flex-col gap-1 w-full md:w-[140px]">
             <label
@@ -961,36 +939,30 @@ export function InscriptionsTable() {
               className="font-semibold text-sm flex items-center gap-2"
             >
               {tFilters("sex")}
-              {!!table.getColumn("sex")?.getFilterValue() && (
+              {(() => {
+                const val = table.getColumn("sex")?.getFilterValue() as string[] | undefined;
+                return val && val.length > 0 && val.length < sexOptions.length;
+              })() && (
                 <span
                   className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
             </label>
-            <Select
-              value={String(table.getColumn("sex")?.getFilterValue() ?? "all")}
-              onValueChange={(value) =>
-                table
-                  .getColumn("sex")
-                  ?.setFilterValue(value === "all" ? undefined : value)
+            <MultiSelect
+              id="filter-sex"
+              options={sexOptions.map((s) => ({
+                value: s,
+                label: s === "M" ? tGender("male") : tGender("female"),
+                className: colorBadgePerGender[s],
+              }))}
+              selected={(table.getColumn("sex")?.getFilterValue() as string[]) ?? []}
+              onChange={(values) =>
+                table.getColumn("sex")?.setFilterValue(values.length > 0 ? values : undefined)
               }
-            >
-              <SelectTrigger
-                id="filter-sex"
-                className="w-full md:w-[140px] cursor-pointer"
-              >
-                <SelectValue placeholder={tFilters("sex")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{tFilters("allGenders")}</SelectItem>
-                {sexOptions.map((sex) => (
-                  <SelectItem key={sex} value={sex}>
-                    {sex === "M" ? tGender("male") : tGender("female")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              allLabel={tFilters("allGenders")}
+              className="w-full md:w-[140px]"
+            />
           </div>
         </div>
       </div>
