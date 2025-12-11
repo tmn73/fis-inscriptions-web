@@ -167,6 +167,12 @@
         "competitorCount": "Nb compétiteurs",
         "season": "Saison"
       },
+      "presets": {
+        "nextRaces": "Prochaines courses",
+        "sent": "Emails envoyés récemment",
+        "toValidate": "À valider",
+        "all": "Tout voir"
+      },
       "filters": {
         "season": "Saison",
         "date": "Date",

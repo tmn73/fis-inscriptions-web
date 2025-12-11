@@ -167,6 +167,12 @@
         "competitorCount": "Nb competitors",
         "season": "Season"
       },
+      "presets": {
+        "nextRaces": "Next Races",
+        "sent": "Recently Sent Emails",
+        "toValidate": "To Validate",
+        "all": "View All"
+      },
       "filters": {
         "season": "Season",
         "date": "Date",

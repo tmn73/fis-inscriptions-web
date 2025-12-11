@@ -48,6 +48,36 @@ import {StatusBadges} from "@/components/ui/status-badges";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
 import {MultiSelect} from "@/components/ui/multi-select";
 
+// Filter presets configuration
+type FilterPreset = {
+  id: string;
+  statusFilter: string[];
+  sortDesc: boolean;
+};
+
+const FILTER_PRESETS: FilterPreset[] = [
+  {
+    id: "nextRaces",
+    statusFilter: ["open"],
+    sortDesc: false, // Ascending - closest dates first
+  },
+  {
+    id: "sent",
+    statusFilter: ["email_sent"],
+    sortDesc: true, // Descending - most recent first
+  },
+  {
+    id: "toValidate",
+    statusFilter: ["validated"],
+    sortDesc: false, // Ascending - closest dates first
+  },
+  {
+    id: "all",
+    statusFilter: [],
+    sortDesc: false, // Ascending by default
+  },
+];
+
 // Composant pour afficher le nombre de compétiteurs pour une inscription par genre
 const CompetitorCountCell = ({
   inscriptionId,
@@ -173,7 +203,9 @@ export function InscriptionsTable() {
   const tStatus = useTranslations("inscriptions.status");
   const tGender = useTranslations("inscriptions.gender");
   const tCommon = useTranslations("common");
+  const tPresets = useTranslations("inscriptions.table.presets");
 
+  const [activePreset, setActivePreset] = useState<string>("nextRaces");
   const [sorting, setSorting] = useState<SortingState>([
     {id: "startDate", desc: false},
   ]);
@@ -181,6 +213,24 @@ export function InscriptionsTable() {
     {id: "status", value: ["open"]},
     {id: "season", value: getCurrentSeason()},
   ]);
+
+  // Apply a filter preset
+  const applyPreset = useCallback((presetId: string) => {
+    const preset = FILTER_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+
+    setActivePreset(presetId);
+    setSorting([{id: "startDate", desc: preset.sortDesc}]);
+
+    // Update status filter
+    setColumnFilters((prev) => {
+      const newFilters = prev.filter((f) => f.id !== "status");
+      if (preset.statusFilter.length > 0) {
+        newFilters.push({id: "status", value: preset.statusFilter});
+      }
+      return newFilters;
+    });
+  }, []);
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -761,6 +811,25 @@ export function InscriptionsTable() {
 
   return (
     <>
+      {/* Filter presets */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {FILTER_PRESETS.map((preset) => (
+          <Button
+            key={preset.id}
+            variant={activePreset === preset.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => applyPreset(preset.id)}
+            className={`cursor-pointer ${
+              activePreset === preset.id
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "hover:bg-gray-100"
+            }`}
+          >
+            {tPresets(preset.id)}
+          </Button>
+        ))}
+      </div>
+
       {/* Bouton toggle pour les filtres sur mobile */}
       <div className="md:hidden mb-4">
         <Button

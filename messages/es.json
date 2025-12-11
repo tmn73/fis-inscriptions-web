@@ -171,6 +171,12 @@
         "competitorCount": "Nº competidores",
         "season": "Temporada"
       },
+      "presets": {
+        "nextRaces": "Próximas carreras",
+        "sent": "Emails enviados recientemente",
+        "toValidate": "Por validar",
+        "all": "Ver todo"
+      },
       "filters": {
         "season": "Temporada",
         "date": "Fecha",
