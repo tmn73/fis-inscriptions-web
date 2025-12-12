@@ -13,7 +13,7 @@ import {parseLocalDate} from "@/app/lib/dates";
 import {useCountryInfo} from "@/hooks/useCountryInfo";
 import Image from "next/image";
 import {Button} from "@/components/ui/button";
-import React, {useState} from "react";
+import {useState} from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,6 @@ import {EventDetails} from "@/components/EventDetails";
 import Link from "next/link";
 import {ContactModal} from "./ContactModal";
 import {useUser} from "@clerk/nextjs";
-import {useUserEmail} from "@/hooks/useUserEmail";
 import {StatusBadges} from "@/components/ui/status-badges";
 import {useTranslations} from "next-intl";
 
@@ -36,11 +35,9 @@ export const InscriptionDetails = ({
   id,
 }: InscriptionDetailsProps) => {
   const t = useTranslations("inscriptionDetail.details");
-  const tCreator = useTranslations("inscriptionDetail.details.creator");
 
   const {data: inscription, isLoading, error} = useInscription(id);
   const {user} = useUser();
-  const {data: creatorEmail, isLoading: isLoadingCreatorEmail} = useUserEmail(inscription?.createdBy);
 
   const permissionToEdit = usePermissionToEdit(inscription, "actionsBtn", null);
 
@@ -74,94 +71,86 @@ export const InscriptionDetails = ({
   const firstCodex = inscription.eventData?.competitions?.[0]?.codex;
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="w-full bg-white border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 py-4 md:py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <Link href="/" className="shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="cursor-pointer bg-transparent hover:bg-slate-100 text-slate-500"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg md:text-xl font-semibold text-slate-800 truncate">
-                    {inscription.eventData.place}
-                  </h1>
-                  {countryCode && countryCode !== "Non renseigné" && flagUrl && (
-                    <Image
-                      src={flagUrl}
-                      alt={countryLabel}
-                      width={20}
-                      height={14}
-                      className="inline-block h-3.5 w-5 object-cover border border-gray-200 rounded-sm shrink-0"
-                    />
-                  )}
-                  <StatusBadges inscription={inscription} />
-                </div>
-                <div className="flex items-center gap-4 text-sm text-slate-500 mt-0.5">
-                  <span className="flex items-center gap-1.5">
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    {parseLocalDate(inscription.eventData.startDate)?.toLocaleDateString("fr-FR")}
-                    {" - "}
-                    {parseLocalDate(inscription.eventData.endDate)?.toLocaleDateString("fr-FR")}
-                  </span>
-                  {inscription.createdBy && inscription.createdAt && !isLoadingCreatorEmail && (
-                    <span className="text-xs text-slate-400 hidden md:inline">
-                      {tCreator("text", {email: creatorEmail ?? tCreator("unknown"), date: new Date(inscription.createdAt).toLocaleDateString("fr-FR")})}
-                    </span>
-                  )}
-                </div>
+    <header className="w-full bg-white border-b border-slate-200">
+      <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Back + Title */}
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/" className="shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 cursor-pointer text-slate-400 hover:text-slate-600"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base md:text-lg font-semibold text-slate-800 truncate">
+                  {inscription.eventData.place}
+                </h1>
+                {countryCode && countryCode !== "Non renseigné" && flagUrl && (
+                  <Image
+                    src={flagUrl}
+                    alt={countryLabel}
+                    width={18}
+                    height={12}
+                    className="inline-block h-3 w-4.5 object-cover border border-gray-200 rounded-sm shrink-0"
+                  />
+                )}
+                <StatusBadges inscription={inscription} />
+              </div>
+              <div className="flex items-center gap-1 text-xs text-slate-500">
+                <CalendarIcon className="h-3 w-3" />
+                <span>
+                  {parseLocalDate(inscription.eventData.startDate)?.toLocaleDateString("fr-FR")}
+                  {" - "}
+                  {parseLocalDate(inscription.eventData.endDate)?.toLocaleDateString("fr-FR")}
+                </span>
               </div>
             </div>
-            <div className="flex flex-row flex-wrap items-center gap-2 shrink-0">
-              {firstCodex !== undefined && (
-                <Dialog
-                  open={isEventDetailsModalOpen}
-                  onOpenChange={setIsEventDetailsModalOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="cursor-pointer bg-white hover:bg-slate-50 text-slate-600 border-slate-200"
-                    >
-                      <InfoIcon className="h-4 w-4 md:mr-1.5" />
-                      <span className="hidden md:inline">{t("eventDetails")}</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[95vw] md:w-11/12 !max-w-none max-h-[90vh] overflow-y-auto">
-                    <DialogTitle className="text-lg md:text-xl">
-                      {t("eventDetailsFull")}
-                    </DialogTitle>
-                    <div className="mt-4">
-                      <EventDetails
-                        codex={firstCodex}
-                        inscriptionId={Number(inscription.id)}
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-              {user && (
-                <ContactModal inscriptionId={id} />
-              )}
-              {permissionToEdit && inscription && (
-                <InscriptionActionsMenu
-                  inscription={inscription}
-                  readonly={!permissionToEdit}
-                />
-              )}
-            </div>
+          </div>
+
+          {/* Right: Action buttons */}
+          <div className="flex items-center gap-1 shrink-0">
+            {firstCodex !== undefined && (
+              <Dialog
+                open={isEventDetailsModalOpen}
+                onOpenChange={setIsEventDetailsModalOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 cursor-pointer text-slate-500 hover:text-slate-700"
+                  >
+                    <InfoIcon className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] md:w-11/12 !max-w-none max-h-[90vh] overflow-y-auto">
+                  <DialogTitle className="text-lg md:text-xl">
+                    {t("eventDetailsFull")}
+                  </DialogTitle>
+                  <div className="mt-4">
+                    <EventDetails
+                      codex={firstCodex}
+                      inscriptionId={Number(inscription.id)}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            {user && <ContactModal inscriptionId={id} />}
+            {permissionToEdit && inscription && (
+              <InscriptionActionsMenu
+                inscription={inscription}
+                readonly={!permissionToEdit}
+              />
+            )}
           </div>
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
   );
 };

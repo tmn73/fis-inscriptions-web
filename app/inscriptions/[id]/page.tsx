@@ -64,65 +64,60 @@ export default function InscriptionPage({params: paramsPromise}: PageProps) {
       <InscriptionDetails id={params.id} />
       <div className="bg-white px-0 py-3 md:py-4 mt-4 md:mt-6">
         <Tabs defaultValue="recap" className="w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2 px-3 md:px-4">
-            <TabsList className="inline-flex flex-wrap bg-slate-100 rounded-md border border-slate-200 shadow-sm p-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 px-3 md:px-4">
+            <TabsList className="inline-flex bg-slate-100 rounded-lg p-0.5">
               <TabsTrigger
                 value="recap"
-                className="px-4 md:px-7 py-2 text-sm md:text-base font-bold transition-colors duration-150 border-none rounded-l-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-300 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:shadow-none cursor-pointer"
+                className="px-3 md:px-6 py-1.5 text-xs md:text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-500 cursor-pointer"
               >
-                <span className="md:hidden">{t("tabs.recap")}</span>
-                <span className="hidden md:inline">{t("tabs.recapFull")}</span>
+                {t("tabs.recap")}
               </TabsTrigger>
               <TabsTrigger
                 value="details_competitors"
-                className="px-4 md:px-7 py-2 text-sm md:text-base font-bold transition-colors duration-150 border-none data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-300 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:shadow-none cursor-pointer"
+                className="px-3 md:px-6 py-1.5 text-xs md:text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-500 cursor-pointer"
               >
-                <span className="md:hidden">{t("tabs.codex")}</span>
-                <span className="hidden md:inline">{t("tabs.codexFull")}</span>
+                {t("tabs.codex")}
               </TabsTrigger>
               <TabsTrigger
                 value="coaches"
-                className="px-4 md:px-7 py-2 text-sm md:text-base font-bold transition-colors duration-150 border-none rounded-r-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-300 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:shadow-none cursor-pointer"
+                className="px-3 md:px-6 py-1.5 text-xs md:text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-500 cursor-pointer"
               >
-                <span className="md:hidden">{t("tabs.coaches")}</span>
-                <span className="hidden md:inline">{t("tabs.coachesFull")}</span>
+                {t("tabs.coaches")}
               </TabsTrigger>
             </TabsList>
 
             {/* Gender Filter - compact version */}
             {isMixedEvent && (
-              <div className="flex items-center gap-1 bg-slate-100 rounded-md p-1 border border-slate-200">
+              <div className="inline-flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5 self-start sm:self-auto">
                 <button
                   onClick={() => setGenderFilter("both")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all cursor-pointer ${
+                  className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     genderFilter === "both"
                       ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      : "text-slate-500"
                   }`}
                 >
                   {t("details.genderFilter.all")}
                 </button>
                 <button
                   onClick={() => setGenderFilter("M")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all cursor-pointer ${
+                  className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     genderFilter === "M"
                       ? "bg-blue-500 text-white shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      : "text-slate-500"
                   }`}
                 >
-                  <span className="sm:hidden">{t("details.genderFilter.menShort")}</span>
-                  <span className="hidden sm:inline">{t("details.genderFilter.men")}</span>
+                  M
                 </button>
                 <button
                   onClick={() => setGenderFilter("W")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all cursor-pointer ${
+                  className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     genderFilter === "W"
                       ? "bg-pink-500 text-white shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      : "text-slate-500"
                   }`}
                 >
-                  <span className="sm:hidden">{t("details.genderFilter.womenShort")}</span>
-                  <span className="hidden sm:inline">{t("details.genderFilter.women")}</span>
+                  W
                 </button>
               </div>
             )}
