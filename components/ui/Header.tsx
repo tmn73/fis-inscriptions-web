@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PlusCircle, Snowflake, Users, Settings, Menu, ChevronDown } from "lucide-react";
+import { PlusCircle, Snowflake, Users, Settings, Menu, ChevronDown, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 import { Button } from "./button";
@@ -37,7 +37,7 @@ export const Header = () => {
 
   return (
     <header className="relative z-10 py-4 md:py-6">
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex-shrink-0 min-w-0 group">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
@@ -58,7 +58,7 @@ export const Header = () => {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           {/* Mobile: New request button (always visible when signed in) */}
           <SignedIn>
             <Link href="/inscriptions/new" className="md:hidden">
@@ -71,6 +71,12 @@ export const Header = () => {
 
           {/* Desktop navigation (lg+) */}
           <nav className="hidden lg:flex items-center gap-1">
+            <Link href="/competitors">
+              <Button variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10">
+                <UserCheck className="mr-2 h-4 w-4" />
+                {tNav("competitors")}
+              </Button>
+            </Link>
             <SignedIn>
               <Link href="/inscriptions/new">
                 <Button className="bg-white/95 text-blue-600 hover:bg-white shadow-lg shadow-black/10 font-semibold">
@@ -99,6 +105,12 @@ export const Header = () => {
 
           {/* Tablet navigation (md to lg) */}
           <nav className="hidden md:flex lg:hidden items-center gap-1">
+            <Link href="/competitors">
+              <Button size="sm" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10">
+                <UserCheck className="mr-1.5 h-4 w-4" />
+                {tNav("competitors")}
+              </Button>
+            </Link>
             <SignedIn>
               <Link href="/inscriptions/new">
                 <Button size="sm" className="bg-white/95 text-blue-600 hover:bg-white shadow-lg shadow-black/10 font-semibold">
@@ -155,41 +167,45 @@ export const Header = () => {
             </Link>
           )}
 
-          {/* Mobile admin menu (< md, only if admin) */}
-          <SignedIn>
-            {(showAdminItems || showSuperAdminItems) && (
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button size="sm" variant="ghost" className="md:hidden text-white/90 hover:text-white hover:bg-white/10 h-9 w-9 p-0">
-                    <Menu className="h-5 w-5" />
+          {/* Mobile menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm" variant="ghost" className="md:hidden text-white/90 hover:text-white hover:bg-white/10 h-9 w-9 p-0">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px]">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-2 mt-6">
+                <Link href="/competitors" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start hover:bg-accent">
+                    <UserCheck className="mr-2 h-4 w-4" />
+                    {tNav("competitors")}
                   </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[280px]">
-                  <SheetHeader>
-                    <SheetTitle>Admin</SheetTitle>
-                  </SheetHeader>
-                  <nav className="flex flex-col gap-2 mt-6">
-                    {showAdminItems && (
-                      <Link href="/users" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start hover:bg-accent">
-                          <Users className="mr-2 h-4 w-4" />
-                          {tNav("users")}
-                        </Button>
-                      </Link>
-                    )}
-                    {showSuperAdminItems && (
-                      <Link href="/admin/organization" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start hover:bg-accent">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Config
-                        </Button>
-                      </Link>
-                    )}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-            )}
-          </SignedIn>
+                </Link>
+                <SignedIn>
+                  {showAdminItems && (
+                    <Link href="/users" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start hover:bg-accent">
+                        <Users className="mr-2 h-4 w-4" />
+                        {tNav("users")}
+                      </Button>
+                    </Link>
+                  )}
+                  {showSuperAdminItems && (
+                    <Link href="/admin/organization" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start hover:bg-accent">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Config
+                      </Button>
+                    </Link>
+                  )}
+                </SignedIn>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

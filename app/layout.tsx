@@ -81,10 +81,8 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             <Providers>
               <div className="min-h-screen bg-slate-50 pb-10">
-                {/* Subtle background pattern */}
-                <div className="fixed inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none" />
                 {/* Header avec effet de neige et montagnes */}
-                <div className="relative text-white overflow-hidden">
+                <div className="relative text-white overflow-x-clip">
                   {/* Gradient background with depth */}
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#60a5fa]" />
 

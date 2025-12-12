@@ -3,7 +3,7 @@
 import {useQuery} from "@tanstack/react-query";
 import {Inscription} from "@/app/types";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
-import {AlertTriangle, Clock, CheckCircle2, Send, Calendar, List} from "lucide-react";
+import {AlertTriangle, Clock, Send, Calendar, List} from "lucide-react";
 import {useTranslations} from "next-intl";
 
 type StatCardProps = {
@@ -145,12 +145,6 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
     return diffDays > 1 && diffDays <= 7;
   }).length;
 
-  // To validate
-  const toValidateCount = inscriptions.filter((insc) => {
-    const status = getEffectiveStatusForFilter(insc);
-    return status === "validated";
-  }).length;
-
   // Sent this week
   const sentThisWeekCount = inscriptions.filter((insc) => {
     const status = getEffectiveStatusForFilter(insc);
@@ -176,6 +170,15 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       <StatCard
+        icon={<Calendar className="w-4 h-4" />}
+        value={allOpenCount}
+        label={t("allOpen")}
+        description={t("allOpenDesc")}
+        color="info"
+        onClick={() => onFilterChange?.("nextRaces")}
+        active={activeFilter === "nextRaces"}
+      />
+      <StatCard
         icon={<AlertTriangle className="w-4 h-4" />}
         value={urgentCount}
         label={t("urgent")}
@@ -194,15 +197,6 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
         active={activeFilter === "thisWeek"}
       />
       <StatCard
-        icon={<CheckCircle2 className="w-4 h-4" />}
-        value={toValidateCount}
-        label={t("toValidate")}
-        description={t("toValidateDesc")}
-        color="info"
-        onClick={() => onFilterChange?.("toValidate")}
-        active={activeFilter === "toValidate"}
-      />
-      <StatCard
         icon={<Send className="w-4 h-4" />}
         value={sentThisWeekCount}
         label={t("sentRecently")}
@@ -210,15 +204,6 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
         color="success"
         onClick={() => onFilterChange?.("sent")}
         active={activeFilter === "sent"}
-      />
-      <StatCard
-        icon={<Calendar className="w-4 h-4" />}
-        value={allOpenCount}
-        label={t("allOpen")}
-        description={t("allOpenDesc")}
-        color="neutral"
-        onClick={() => onFilterChange?.("nextRaces")}
-        active={activeFilter === "nextRaces"}
       />
       <StatCard
         icon={<List className="w-4 h-4" />}
