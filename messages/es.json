@@ -1,4 +1,24 @@
 {
+  "dashboard": {
+    "stats": {
+      "urgent": "urgentes",
+      "urgentDesc": "Inscripciones para hoy o mañana (D-0/D-1)",
+      "thisWeek": "esta semana",
+      "thisWeekDesc": "Fecha límite en los próximos 7 días",
+      "toValidate": "por validar",
+      "toValidateDesc": "Esperando validación antes del envío",
+      "sentRecently": "enviadas",
+      "sentRecentlyDesc": "Emails enviados en los últimos 7 días",
+      "allOpen": "abiertas",
+      "allOpenDesc": "Todas las inscripciones sin procesar",
+      "all": "todas",
+      "allDesc": "Todas las inscripciones (más recientes primero)"
+    },
+    "search": {
+      "placeholder": "Buscar carrera, estación, país...",
+      "shortcut": "/"
+    }
+  },
   "common": {
     "actions": {
       "details": "Detalles",

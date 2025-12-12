@@ -1,4 +1,24 @@
 {
+  "dashboard": {
+    "stats": {
+      "urgent": "urgent",
+      "urgentDesc": "Registrations due today or tomorrow (D-0/D-1)",
+      "thisWeek": "this week",
+      "thisWeekDesc": "Deadline within the next 7 days",
+      "toValidate": "to validate",
+      "toValidateDesc": "Waiting for validation before sending",
+      "sentRecently": "sent",
+      "sentRecentlyDesc": "Emails sent in the last 7 days",
+      "allOpen": "open",
+      "allOpenDesc": "All unprocessed registrations",
+      "all": "all",
+      "allDesc": "All registrations (most recent first)"
+    },
+    "search": {
+      "placeholder": "Search race, resort, country...",
+      "shortcut": "/"
+    }
+  },
   "common": {
     "actions": {
       "details": "Details",

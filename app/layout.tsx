@@ -79,53 +79,69 @@ export default async function RootLayout({
       >
         <ConditionalClerkProvider>
           <NextIntlClientProvider messages={messages}>
-            <div className="min-h-screen bg-gradient-to-b from-[#e0f0ff] to-white pb-10">
-              {/* Header avec effet de neige */}
-              <div className="relative bg-[#3d7cf2] text-white">
-                <div className="absolute inset-0 overflow-hidden">
-                  {Array.from({length: 50}).map((_, i) => {
-                    const initialOpacity = Math.random() * 0.5 + 0.5;
-                    const scale = Math.random() * 0.6 + 0.4;
-                    const duration = Math.random() * 10 + 10;
-                    const delay = Math.random() * -20;
-                    const xAmplitude =
-                      (Math.random() * 90 + 30) *
-                      (Math.random() > 0.5 ? 1 : -1); // entre -120px et 120px
-                    const rotation =
-                      (Math.random() * 540 + 180) *
-                      (Math.random() > 0.5 ? 1 : -1); // entre -720deg et 720deg
+            <Providers>
+              <div className="min-h-screen bg-slate-50 pb-10">
+                {/* Subtle background pattern */}
+                <div className="fixed inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none" />
+                {/* Header avec effet de neige et montagnes */}
+                <div className="relative text-white overflow-hidden">
+                  {/* Gradient background with depth */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#60a5fa]" />
 
-                    return (
-                      <Snowflake
-                        key={i}
-                        className="absolute text-white animate-snowfall"
-                        style={
-                          {
-                            top: "-10%",
-                            left: `${Math.random() * 100}%`,
-                            "--opacity": initialOpacity,
-                            "--scale": scale,
-                            opacity: initialOpacity,
-                            transform: `scale(${scale})`,
-                            animationDuration: `${duration}s`,
-                            animationDelay: `${delay}s`,
-                            "--x-amplitude": `${xAmplitude}px`,
-                            "--rotation": `${rotation}deg`,
-                          } as React.CSSProperties
-                        }
-                      />
-                    );
-                  })}
+                  {/* Subtle radial glow */}
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15)_0%,transparent_60%)]" />
+
+                  {/* Snowflakes */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {Array.from({length: 35}).map((_, i) => {
+                      const initialOpacity = Math.random() * 0.4 + 0.2;
+                      const scale = Math.random() * 0.5 + 0.3;
+                      const duration = Math.random() * 12 + 12;
+                      const delay = Math.random() * -20;
+                      const xAmplitude =
+                        (Math.random() * 60 + 20) *
+                        (Math.random() > 0.5 ? 1 : -1);
+                      const rotation =
+                        (Math.random() * 360 + 180) *
+                        (Math.random() > 0.5 ? 1 : -1);
+
+                      return (
+                        <Snowflake
+                          key={i}
+                          className="absolute text-white/80 animate-snowfall"
+                          style={
+                            {
+                              top: "-10%",
+                              left: `${Math.random() * 100}%`,
+                              "--opacity": initialOpacity,
+                              "--scale": scale,
+                              opacity: initialOpacity,
+                              transform: `scale(${scale})`,
+                              animationDuration: `${duration}s`,
+                              animationDelay: `${delay}s`,
+                              "--x-amplitude": `${xAmplitude}px`,
+                              "--rotation": `${rotation}deg`,
+                            } as React.CSSProperties
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+
+                  {/* Header content */}
+                  <div className="relative z-10">
+                    <Header />
+                  </div>
+
                 </div>
-                <Header />
-              </div>
-              <div className="flex justify-center py-8 px-4">
-                <div className="w-full max-w-8xl">
-                  <Providers>{children}</Providers>
+                <div className="flex justify-center py-8 px-4">
+                  <div className="w-full max-w-8xl">
+                    {children}
+                  </div>
                 </div>
               </div>
-            </div>
-            <NetworkStatus />
+              <NetworkStatus />
+            </Providers>
           </NextIntlClientProvider>
         </ConditionalClerkProvider>
         <Analytics />

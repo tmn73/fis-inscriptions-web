@@ -1,4 +1,24 @@
 {
+  "dashboard": {
+    "stats": {
+      "urgent": "urgentes",
+      "urgentDesc": "Inscriptions à traiter aujourd'hui ou demain (J-0/J-1)",
+      "thisWeek": "cette semaine",
+      "thisWeekDesc": "Deadline dans les 7 prochains jours",
+      "toValidate": "à valider",
+      "toValidateDesc": "En attente de validation avant envoi",
+      "sentRecently": "envoyés récemment",
+      "sentRecentlyDesc": "Emails envoyés ces 7 derniers jours",
+      "allOpen": "ouvertes",
+      "allOpenDesc": "Toutes les inscriptions non traitées",
+      "all": "toutes",
+      "allDesc": "Toutes les inscriptions (récentes en premier)"
+    },
+    "search": {
+      "placeholder": "Rechercher course, station, pays...",
+      "shortcut": "/"
+    }
+  },
   "common": {
     "actions": {
       "details": "Détails",

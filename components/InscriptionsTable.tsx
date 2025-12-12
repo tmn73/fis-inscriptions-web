@@ -1,5 +1,5 @@
 "use client";
-import React, {useCallback} from "react";
+import React, {useCallback, useEffect} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {
   ColumnDef,
@@ -53,9 +53,22 @@ type FilterPreset = {
   id: string;
   statusFilter: string[];
   sortDesc: boolean;
+  urgencyFilter?: "urgent" | "thisWeek"; // For deadline-based filtering
 };
 
 const FILTER_PRESETS: FilterPreset[] = [
+  {
+    id: "urgent",
+    statusFilter: ["open"],
+    sortDesc: false,
+    urgencyFilter: "urgent", // D-0, D-1
+  },
+  {
+    id: "thisWeek",
+    statusFilter: ["open"],
+    sortDesc: false,
+    urgencyFilter: "thisWeek", // D-2 to D-7
+  },
   {
     id: "nextRaces",
     statusFilter: ["open"],
@@ -74,7 +87,7 @@ const FILTER_PRESETS: FilterPreset[] = [
   {
     id: "all",
     statusFilter: [],
-    sortDesc: false, // Ascending by default
+    sortDesc: true, // Descending - most recent first
   },
 ];
 
@@ -196,7 +209,11 @@ const CountrySelectItem = ({countryCode}: {countryCode: string}) => {
   );
 };
 
-export function InscriptionsTable() {
+type InscriptionsTableProps = {
+  externalFilter?: string;
+};
+
+export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
   const t = useTranslations("inscriptions.table");
   const tHeaders = useTranslations("inscriptions.table.headers");
   const tFilters = useTranslations("inscriptions.table.filters");
@@ -205,7 +222,8 @@ export function InscriptionsTable() {
   const tCommon = useTranslations("common");
   const tPresets = useTranslations("inscriptions.table.presets");
 
-  const [activePreset, setActivePreset] = useState<string>("nextRaces");
+  const [activePreset, setActivePreset] = useState<string>(externalFilter || "nextRaces");
+  const [urgencyFilter, setUrgencyFilter] = useState<"urgent" | "thisWeek" | undefined>(undefined);
   const [sorting, setSorting] = useState<SortingState>([
     {id: "startDate", desc: false},
   ]);
@@ -221,6 +239,7 @@ export function InscriptionsTable() {
 
     setActivePreset(presetId);
     setSorting([{id: "startDate", desc: preset.sortDesc}]);
+    setUrgencyFilter(preset.urgencyFilter);
 
     // Update status filter
     setColumnFilters((prev) => {
@@ -232,6 +251,13 @@ export function InscriptionsTable() {
     });
   }, []);
 
+  // Sync with external filter
+  useEffect(() => {
+    if (externalFilter && externalFilter !== activePreset) {
+      applyPreset(externalFilter);
+    }
+  }, [externalFilter, activePreset, applyPreset]);
+
   const [showFilters, setShowFilters] = useState(false);
 
   const {data, isLoading} = useQuery<Inscription[]>({
@@ -239,8 +265,40 @@ export function InscriptionsTable() {
     queryFn: () => fetch("/api/inscriptions").then((res) => res.json()),
   });
 
+  // Helper to calculate deadline days
+  const getDeadlineDays = useCallback((inscription: Inscription) => {
+    const eventDate = new Date(inscription.eventData.startDate);
+    const deadlineDate = new Date(eventDate);
+    deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    deadlineDate.setUTCHours(0, 0, 0, 0);
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }, []);
+
+  // Apply urgency filter to data
+  const filteredByUrgency = useMemo(() => {
+    if (!data) return [];
+    if (!urgencyFilter) return data;
+
+    return data.filter((insc) => {
+      const status = getEffectiveStatusForFilter(insc);
+      if (status !== "open") return false;
+
+      const diffDays = getDeadlineDays(insc);
+
+      if (urgencyFilter === "urgent") {
+        return diffDays >= 0 && diffDays <= 1; // D-0, D-1
+      } else if (urgencyFilter === "thisWeek") {
+        return diffDays > 1 && diffDays <= 7; // D-2 to D-7
+      }
+      return true;
+    });
+  }, [data, urgencyFilter, getDeadlineDays]);
+
   // Mémoïsation forte pour éviter les recalculs infinis
-  const stableData = useMemo(() => data ?? [], [data]);
+  const stableData = useMemo(() => filteredByUrgency ?? [], [filteredByUrgency]);
 
   // Génération dynamique des options de filtres à partir de stableData
   const locationOptions = useMemo(() => {
@@ -809,59 +867,66 @@ export function InscriptionsTable() {
     );
   }
 
+  // Filter presets to show (exclude urgency filters as they're in QuickStatsBar)
+  const visiblePresets = FILTER_PRESETS.filter(p => !p.urgencyFilter);
+
   return (
     <>
-      {/* Filter presets */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {FILTER_PRESETS.map((preset) => (
-          <Button
-            key={preset.id}
-            variant={activePreset === preset.id ? "default" : "outline"}
-            size="sm"
-            onClick={() => applyPreset(preset.id)}
-            className={`cursor-pointer ${
-              activePreset === preset.id
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "hover:bg-gray-100"
-            }`}
+      {/* Filter presets - only show when not controlled externally */}
+      {!externalFilter && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {visiblePresets.map((preset) => (
+            <Button
+              key={preset.id}
+              variant={activePreset === preset.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => applyPreset(preset.id)}
+              className={`cursor-pointer ${
+                activePreset === preset.id
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              {tPresets(preset.id)}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Table container with integrated filters */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {/* Filters bar - part of the table card */}
+        <div className="border-b border-slate-100 px-4 py-3">
+          {/* Mobile toggle */}
+          <div className="md:hidden mb-3">
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <span>{tCommon("actions.filters")}</span>
+              {showFilters ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          <div
+            className={`${showFilters ? "block" : "hidden md:block"}`}
           >
-            {tPresets(preset.id)}
-          </Button>
-        ))}
-      </div>
-
-      {/* Bouton toggle pour les filtres sur mobile */}
-      <div className="md:hidden mb-4">
-        <Button
-          onClick={() => setShowFilters(!showFilters)}
-          variant="outline"
-          className="w-full flex items-center justify-between"
-        >
-          <span>{tCommon("actions.filters")}</span>
-          {showFilters ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
-      {/* Barre de filtres */}
-      <div
-        className={`mb-6 p-4 bg-white/80 rounded-lg shadow border ${
-          showFilters || "md:block"
-        } ${showFilters ? "block" : "hidden md:block"}`}
-      >
-        <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-6 md:justify-start md:items-center">
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-x-3 md:gap-y-2 md:items-end">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-season"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("season")}
               {!!table.getColumn("season")?.getFilterValue() && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -878,7 +943,7 @@ export function InscriptionsTable() {
             >
               <SelectTrigger
                 id="filter-season"
-                className="w-full md:w-[140px] cursor-pointer"
+                className="w-full cursor-pointer h-9 text-sm"
               >
                 <SelectValue placeholder={tFilters("season")} />
               </SelectTrigger>
@@ -892,15 +957,15 @@ export function InscriptionsTable() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-date"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("date")}
               {dateValue && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -915,18 +980,18 @@ export function InscriptionsTable() {
                 }
               }}
               placeholder={tFilters("datePlaceholder")}
-              className="w-full md:w-[140px]"
+              className="w-full h-9 text-sm"
             />
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-station"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("station")}
               {!!table.getColumn("location")?.getFilterValue() && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -943,7 +1008,7 @@ export function InscriptionsTable() {
             >
               <SelectTrigger
                 id="filter-station"
-                className="w-full md:w-[140px] cursor-pointer"
+                className="w-full cursor-pointer h-9 text-sm"
               >
                 <SelectValue placeholder={tFilters("station")} />
               </SelectTrigger>
@@ -957,15 +1022,15 @@ export function InscriptionsTable() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-country"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("country")}
               {!!table.getColumn("country")?.getFilterValue() && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -982,7 +1047,7 @@ export function InscriptionsTable() {
             >
               <SelectTrigger
                 id="filter-country"
-                className="w-full md:w-[140px] cursor-pointer"
+                className="w-full cursor-pointer h-9 text-sm"
               >
                 <SelectValue placeholder={tFilters("country")} />
               </SelectTrigger>
@@ -997,15 +1062,15 @@ export function InscriptionsTable() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-codex"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("codex")}
               {!!table.getColumn("codex")?.getFilterValue() && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -1022,7 +1087,7 @@ export function InscriptionsTable() {
             >
               <SelectTrigger
                 id="filter-codex"
-                className="w-full md:w-[140px] cursor-pointer"
+                className="w-full cursor-pointer h-9 text-sm"
               >
                 <SelectValue placeholder={tFilters("codex")} />
               </SelectTrigger>
@@ -1036,15 +1101,15 @@ export function InscriptionsTable() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-discipline"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("discipline")}
               {disciplineFilterValue.length > 0 && disciplineFilterValue.length < disciplineOptions.length && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -1055,18 +1120,18 @@ export function InscriptionsTable() {
               selected={disciplineFilterValue}
               onChange={handleDisciplineChange}
               allLabel={tFilters("allDisciplines")}
-              className="w-full md:w-[140px]"
+              className="w-full h-9 text-sm"
             />
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-racelevel"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("raceLevel")}
               {raceLevelFilterValue.length > 0 && raceLevelFilterValue.length < raceLevelOptions.length && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -1077,18 +1142,18 @@ export function InscriptionsTable() {
               selected={raceLevelFilterValue}
               onChange={handleRaceLevelChange}
               allLabel={tFilters("allRaceLevels")}
-              className="w-full md:w-[140px]"
+              className="w-full h-9 text-sm"
             />
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-status"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("status")}
               {statusFilterValue.length > 0 && statusFilterValue.length < 5 && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -1099,18 +1164,18 @@ export function InscriptionsTable() {
               selected={statusFilterValue}
               onChange={handleStatusChange}
               allLabel={tFilters("allStatuses")}
-              className="w-full md:w-[140px]"
+              className="w-full h-9 text-sm"
             />
           </div>
-          <div className="flex flex-col gap-1 w-full md:w-[140px]">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="filter-sex"
-              className="font-semibold text-sm flex items-center gap-2"
+              className="font-medium text-xs text-slate-500 flex items-center gap-1.5"
             >
               {tFilters("sex")}
               {sexFilterValue.length > 0 && sexFilterValue.length < sexOptions.length && (
                 <span
-                  className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                  className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"
                   title={tFilters("activeFilter")}
                 ></span>
               )}
@@ -1121,13 +1186,15 @@ export function InscriptionsTable() {
               selected={sexFilterValue}
               onChange={handleSexChange}
               allLabel={tFilters("allGenders")}
-              className="w-full md:w-[140px]"
+              className="w-full h-9 text-sm"
             />
           </div>
+            </div>
+          </div>
         </div>
-      </div>
-      {/* Vue desktop - tableau */}
-      <div className="hidden md:block rounded-md border bg-white px-4">
+
+        {/* Vue desktop - tableau */}
+        <div className="hidden md:block">
         <Table className="w-full">
           <TableHeader className="w-full">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -1158,30 +1225,42 @@ export function InscriptionsTable() {
           </TableHeader>
           <TableBody className="w-full">
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  data-testid={`row-inscription-${row.id}`}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={
-                        cell.column.id === "actions" ||
-                        cell.column.id === "status"
-                          ? "whitespace-nowrap px-2 text-sm"
-                          : "whitespace-nowrap px-2 text-sm"
-                      }
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                // Calculate urgency for row styling
+                const deadlineDays = getDeadlineDays(row.original);
+                const status = getEffectiveStatusForFilter(row.original);
+                const isUrgent = status === "open" && deadlineDays >= 0 && deadlineDays <= 1;
+                const isThisWeek = status === "open" && deadlineDays > 1 && deadlineDays <= 7;
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    data-testid={`row-inscription-${row.id}`}
+                    className={`
+                      ${isUrgent ? "bg-red-50/70 border-l-4 border-l-red-500" : ""}
+                      ${isThisWeek ? "bg-amber-50/50 border-l-4 border-l-amber-400" : ""}
+                    `}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={
+                          cell.column.id === "actions" ||
+                          cell.column.id === "status"
+                            ? "whitespace-nowrap px-2 text-sm"
+                            : "whitespace-nowrap px-2 text-sm"
+                        }
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -1194,21 +1273,22 @@ export function InscriptionsTable() {
             )}
           </TableBody>
         </Table>
-      </div>
+        </div>
 
-      {/* Vue mobile - cartes */}
-      <div className="md:hidden space-y-4">
-        {table.getRowModel().rows?.length ? (
-          table
-            .getRowModel()
-            .rows.map((row) => (
-              <InscriptionCard key={row.id} inscription={row.original} />
-            ))
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            {tCommon("noResults")}
-          </div>
-        )}
+        {/* Vue mobile - cartes */}
+        <div className="md:hidden p-4 space-y-4">
+          {table.getRowModel().rows?.length ? (
+            table
+              .getRowModel()
+              .rows.map((row) => (
+                <InscriptionCard key={row.id} inscription={row.original} />
+              ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {tCommon("noResults")}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
