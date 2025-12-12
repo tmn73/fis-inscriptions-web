@@ -125,7 +125,7 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
   return (
     <>
       {/* Select mobile */}
-      <div className="md:hidden mt-6">
+      <div className="md:hidden mt-6 px-3">
         <Select
           value={currentOrDefaultActiveCodex?.toString()}
           onValueChange={(value) => setActiveCodex(Number(value))}
@@ -195,27 +195,40 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
             ))}
           </TabsList>
         </div>
-        <div className="flex justify-end mb-4">
-          {permissionToEdit &&
-          inscription?.status === "open" &&
-          currentOrDefaultActiveCodex ? (
-            <AddCompetitorModal
-              inscriptionId={inscriptionId}
-              defaultCodex={currentOrDefaultActiveCodex} // Use the derived active codex
-              gender={modalGender}
-              codexData={filteredAndSortedCompetitions} // Pass the filtered list, should be CompetitionItem[]
-            />
-          ) : !permissionToEdit ? (
-            <div className="text-sm text-slate-500 bg-slate-100 border border-slate-200 rounded px-4 py-2">
-              Vous n&apos;avez pas les droits pour ajouter des compétiteurs sur
-              cet évènement.
-            </div>
-          ) : inscription?.status !== "open" ? (
-            <div className="text-sm text-slate-500 bg-slate-100 border border-slate-200 rounded px-4 py-2">
-              L&apos;inscription / désincription n&apos;est possible que lorsque
-              l&apos;inscription est <b>ouverte</b>.
-            </div>
-          ) : null}
+        <div className="flex justify-between items-center mt-4 mb-4 flex-wrap gap-3 px-3 md:px-4">
+          {currentOrDefaultActiveCodex &&
+            filteredAndSortedCompetitions.length > 0 && (
+              <TotalInscriptionsInfo
+                inscriptionId={inscriptionId}
+                codexNumber={currentOrDefaultActiveCodex}
+                discipline={
+                  filteredAndSortedCompetitions.find(
+                    (c) => c.codex === currentOrDefaultActiveCodex
+                  )?.eventCode || filteredAndSortedCompetitions[0].eventCode
+                }
+                genderFilter={genderFilter}
+              />
+            )}
+          <div className="flex-shrink-0">
+            {permissionToEdit &&
+            inscription?.status === "open" &&
+            currentOrDefaultActiveCodex ? (
+              <AddCompetitorModal
+                inscriptionId={inscriptionId}
+                defaultCodex={currentOrDefaultActiveCodex} // Use the derived active codex
+                gender={modalGender}
+                codexData={filteredAndSortedCompetitions} // Pass the filtered list, should be CompetitionItem[]
+              />
+            ) : !permissionToEdit ? (
+              <div className="text-xs text-slate-400 italic">
+                Vous n&apos;avez pas les droits pour ajouter des compétiteurs.
+              </div>
+            ) : inscription?.status !== "open" ? (
+              <div className="text-xs text-slate-400 italic">
+                Inscription fermée.
+              </div>
+            ) : null}
+          </div>
         </div>
         {filteredAndSortedCompetitions.map((competition) => (
           <TabsContent
@@ -234,6 +247,21 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
 
       {/* Contenu mobile - affiché seulement pour le codex sélectionné */}
       <div className="md:hidden">
+        {currentOrDefaultActiveCodex &&
+          filteredAndSortedCompetitions.length > 0 && (
+            <div className="mt-4 mb-4 px-3">
+              <TotalInscriptionsInfo
+                inscriptionId={inscriptionId}
+                codexNumber={currentOrDefaultActiveCodex}
+                discipline={
+                  filteredAndSortedCompetitions.find(
+                    (c) => c.codex === currentOrDefaultActiveCodex
+                  )?.eventCode || filteredAndSortedCompetitions[0].eventCode
+                }
+                genderFilter={genderFilter}
+              />
+            </div>
+          )}
         {currentOrDefaultActiveCodex && (
           <Competitors
             inscriptionId={inscriptionId}
@@ -247,19 +275,6 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
           />
         )}
       </div>
-      {currentOrDefaultActiveCodex &&
-        filteredAndSortedCompetitions.length > 0 && (
-          <TotalInscriptionsInfo
-            inscriptionId={inscriptionId}
-            codexNumber={currentOrDefaultActiveCodex}
-            discipline={
-              filteredAndSortedCompetitions.find(
-                (c) => c.codex === currentOrDefaultActiveCodex
-              )?.eventCode || filteredAndSortedCompetitions[0].eventCode // Fallback safely
-            }
-            genderFilter={genderFilter}
-          />
-        )}
     </>
   );
 }
@@ -292,15 +307,15 @@ const TotalInscriptionsInfo = ({
   }, [data, genderFilter]);
 
   return (
-    <div className="text-xl text-center text-slate-500 mt-8 mb-2 border-t border-slate-200 pt-2">
-      Nombre total d&apos;inscriptions sur ce codex :{" "}
-      <b>
+    <div className="flex items-center gap-2 text-sm text-slate-500">
+      <span>Inscriptions sur ce codex :</span>
+      <span className="font-semibold text-slate-700 tabular-nums">
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin inline-block" />
+          <Loader2 className="w-3 h-3 animate-spin inline-block" />
         ) : (
           filteredData?.length ?? 0
         )}
-      </b>
+      </span>
     </div>
   );
 };

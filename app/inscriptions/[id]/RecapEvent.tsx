@@ -22,11 +22,7 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import {Badge} from "@/components/ui/badge";
-import {
-  colorBadgePerDiscipline,
-  colorBadgePerGender,
-  colorBadgePerRaceLevel,
-} from "@/app/lib/colorMappers";
+import {colorBadgePerDiscipline} from "@/app/lib/colorMappers";
 import AddCompetitorModal from "./AddCompetitorModal";
 import {usePermissionToEdit} from "./usePermissionToEdit";
 import {
@@ -519,44 +515,30 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                 }).length;
 
                 return (
-                  <div className="flex flex-col items-center justify-center min-w-[120px] select-none">
-                    <div
-                      className="flex items-center gap-1 cursor-pointer"
-                      onClick={() =>
-                        column.toggleSorting(column.getIsSorted() === "asc")
-                      }
-                    >
-                      <span>{competition.codex}</span>
+                  <div
+                    className="flex flex-col items-center justify-center min-w-[80px] select-none cursor-pointer"
+                    onClick={() =>
+                      column.toggleSorting(column.getIsSorted() === "asc")
+                    }
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-slate-700">{competition.codex}</span>
                       <Badge
-                        className={`text-xs px-2 py-1 ${
+                        className={`text-xs px-1.5 py-0.5 ${
                           colorBadgePerDiscipline[competition.eventCode] || ""
                         }`}
                       >
                         {competition.eventCode}
                       </Badge>
-                      <Badge
-                        className={`text-xs px-2 py-1 text-white ${
-                          colorBadgePerGender[competition.genderCode] || ""
-                        }`}
-                      >
+                      <span className={`text-xs font-medium ${
+                        competition.genderCode === "M" ? "text-blue-600" : "text-pink-600"
+                      }`}>
                         {competition.genderCode}
-                      </Badge>
-                      <Badge
-                        className={`text-xs px-2 py-1 ${
-                          colorBadgePerRaceLevel[competition.categoryCode] ||
-                          "bg-gray-300"
-                        }`}
-                      >
-                        {competition.categoryCode}
-                      </Badge>
-                      {column.getIsSorted() === "asc" && (
-                        <span className="ml-1">↑</span>
-                      )}
-                      {column.getIsSorted() === "desc" && (
-                        <span className="ml-1">↓</span>
-                      )}
+                      </span>
+                      {column.getIsSorted() === "asc" && <span>↑</span>}
+                      {column.getIsSorted() === "desc" && <span>↓</span>}
                     </div>
-                    <div className="text-xs text-slate-600 mt-1">
+                    <div className="text-xs text-slate-400">
                       ({countForThisCodex} {tTable("registered")})
                     </div>
                   </div>
@@ -565,8 +547,8 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
               cell: (info) => {
                 const value = info.getValue();
                 return (
-                  <div className="text-center min-w-[120px]">
-                    {value} {/* Simply render the value from accessor */}
+                  <div className="text-center min-w-[80px]">
+                    {value}
                   </div>
                 );
               },
@@ -604,29 +586,31 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
         cell: (info) => <span>{info.getValue() || "-"}</span>,
         enableSorting: false,
       }),
-      // Action column for managing registrations
-      columnHelper.display({
-        id: "actions",
-        header: () => tTable("actions"),
-        cell: (info) => {
-          const competitor = info.row.original;
-          if (!permissionToEdit) return null;
-
-          return (
-            <CompetitorRegistrationDialog
-              competitor={competitor}
-              isOpen={openDialog === competitor.competitorid}
-              onOpenChange={(open) =>
-                setOpenDialog(open ? competitor.competitorid : null)
-              }
-              inscriptionId={inscriptionId}
-              allEventCodexes={inscription?.eventData?.competitions || []}
-              inscriptionStatus={inscription?.status || ""}
-              onUpdate={handleUpdateCompetitor}
-            />
-          );
-        },
-      }),
+      // Action column for managing registrations - only if user has permission
+      ...(permissionToEdit
+        ? [
+            columnHelper.display({
+              id: "actions",
+              header: () => tTable("actions"),
+              cell: (info) => {
+                const competitor = info.row.original;
+                return (
+                  <CompetitorRegistrationDialog
+                    competitor={competitor}
+                    isOpen={openDialog === competitor.competitorid}
+                    onOpenChange={(open) =>
+                      setOpenDialog(open ? competitor.competitorid : null)
+                    }
+                    inscriptionId={inscriptionId}
+                    allEventCodexes={inscription?.eventData?.competitions || []}
+                    inscriptionStatus={inscription?.status || ""}
+                    onUpdate={handleUpdateCompetitor}
+                  />
+                );
+              },
+            }),
+          ]
+        : []),
     ],
     [
       columnHelper,
@@ -707,7 +691,11 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 md:gap-4 mb-4 justify-end">
+      <div className="flex items-center gap-2 md:gap-4 mb-4 justify-between flex-wrap px-3 md:px-4">
+        <TotalInscriptionsInfo
+          filteredCount={filteredCompetitors.length}
+          genderFilter={genderFilter}
+        />
         <div className="flex gap-1 md:gap-2 items-center flex-wrap">
           {permissionToEdit && inscription?.status === "open" ? (
             genderFilter === "W" ? (
@@ -789,11 +777,11 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
               </>
             )
           ) : !permissionToEdit ? (
-            <div className="text-sm text-slate-500 bg-slate-100 border border-slate-200 rounded px-4 py-2">
+            <div className="text-xs text-slate-400 italic">
               {tPermissions("noPermission")}
             </div>
           ) : (
-            <div className="text-sm text-slate-500 bg-slate-100 border border-slate-200 rounded px-4 py-2" dangerouslySetInnerHTML={{__html: tPermissions("closedInscription")}} />
+            <div className="text-xs text-slate-400 italic" dangerouslySetInnerHTML={{__html: tPermissions("closedInscription")}} />
           )}
         </div>
       </div>
@@ -831,16 +819,23 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
 
             return (
               <React.Fragment key={group.value}>
-                <TableRow>
+                <TableRow className="border-none">
                   <TableCell
                     colSpan={table.getAllColumns().length}
-                    className="bg-slate-50 font-bold text-lg text-slate-700"
+                    className={`py-3 font-semibold text-sm uppercase tracking-wide border-l-4 ${
+                      group.value === "W"
+                        ? "bg-pink-50/50 text-pink-700 border-l-pink-400"
+                        : "bg-blue-50/50 text-blue-700 border-l-blue-400"
+                    }`}
                   >
-                    {group.label}
+                    {group.label} ({groupRows.length})
                   </TableCell>
                 </TableRow>
-                {groupRows.map((row) => (
-                  <TableRow key={row.id}>
+                {groupRows.map((row, index) => (
+                  <TableRow
+                    key={row.id}
+                    className={index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
@@ -894,11 +889,6 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
         })}
       </div>
 
-      <TotalInscriptionsInfo
-        filteredCount={filteredCompetitors.length}
-        genderFilter={genderFilter}
-      />
-
       {/* Dialog pour la gestion des inscriptions - mobile */}
       {openDialog && (
         <CompetitorRegistrationDialog
@@ -939,10 +929,9 @@ const TotalInscriptionsInfo: React.FC<TotalInscriptionsInfoProps> = ({
   const parts = text.split(String(filteredCount));
 
   return (
-    <div className="text-xl text-center text-slate-500 mt-8 mb-2 border-t border-slate-200 pt-2">
-      {parts[0]}
-      <b>{filteredCount}</b>
-      {parts[1]}
+    <div className="flex items-center gap-2 text-sm text-slate-500">
+      <span>{parts[0]?.trim()}</span>
+      <span className="font-semibold text-slate-700 tabular-nums">{filteredCount}</span>
     </div>
   );
 };
