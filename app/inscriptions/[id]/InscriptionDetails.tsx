@@ -99,7 +99,7 @@ export const InscriptionDetails = ({
                     className="inline-block h-3 w-4.5 object-cover border border-gray-200 rounded-sm shrink-0"
                   />
                 )}
-                <StatusBadges inscription={inscription} />
+                <StatusBadges inscription={inscription} layout="horizontal" />
               </div>
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <CalendarIcon className="h-3 w-3" />

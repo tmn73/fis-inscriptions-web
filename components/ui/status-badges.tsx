@@ -7,45 +7,148 @@ type StatusBadgesProps = {
   showEmailSent?: boolean;
   size?: "sm" | "md";
   className?: string;
-  showLabels?: boolean; // Afficher les labels "Hommes:", "Femmes:", etc.
+  showLabels?: boolean;
+  layout?: "vertical" | "horizontal";
 };
 
-const getStatusInfo = (status: Status | null) => {
-  const statusMap: Record<string, { label: string; className: string }> = {
-    open: { label: "Ouverte", className: "bg-green-100 text-green-800 border-green-200" },
-    validated: { label: "Validée", className: "bg-blue-100 text-blue-800 border-blue-200" },
-    email_sent: { label: "Envoyée", className: "bg-orange-100 text-orange-800 border-orange-200" },
-    cancelled: { label: "Annulée", className: "bg-red-100 text-red-800 border-red-200" },
-    not_concerned: { label: "N/C", className: "bg-gray-100 text-gray-500 border-gray-200" },
+type StatusConfig = {
+  label: string;
+  shortLabel: string;
+  bg: string;
+  text: string;
+  dot: string;
+};
+
+const getStatusConfig = (status: Status | null): StatusConfig => {
+  const statusMap: Record<string, StatusConfig> = {
+    open: {
+      label: "Ouverte",
+      shortLabel: "Ouv.",
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      dot: "bg-emerald-500"
+    },
+    validated: {
+      label: "Validée",
+      shortLabel: "Val.",
+      bg: "bg-sky-50",
+      text: "text-sky-700",
+      dot: "bg-sky-500"
+    },
+    email_sent: {
+      label: "Envoyée",
+      shortLabel: "Env.",
+      bg: "bg-amber-50",
+      text: "text-amber-700",
+      dot: "bg-amber-500"
+    },
+    cancelled: {
+      label: "Annulée",
+      shortLabel: "Ann.",
+      bg: "bg-rose-50",
+      text: "text-rose-700",
+      dot: "bg-rose-500"
+    },
+    not_concerned: {
+      label: "N/C",
+      shortLabel: "N/C",
+      bg: "bg-slate-50",
+      text: "text-slate-400",
+      dot: "bg-slate-300"
+    },
   };
 
   if (!status) {
-    return { label: "Non définie", className: "bg-gray-100 text-gray-800 border-gray-200" };
+    return {
+      label: "—",
+      shortLabel: "—",
+      bg: "bg-slate-50",
+      text: "text-slate-400",
+      dot: "bg-slate-300"
+    };
   }
 
-  return statusMap[status] || { label: "Inconnu", className: "bg-gray-100 text-gray-800 border-gray-200" };
+  return statusMap[status] || {
+    label: "—",
+    shortLabel: "—",
+    bg: "bg-slate-50",
+    text: "text-slate-400",
+    dot: "bg-slate-300"
+  };
 };
 
-const StatusBadge: React.FC<{
+// Single status badge for non-mixed events
+const SingleStatusBadge: React.FC<{
   status: Status | null;
-  label: string;
   size: "sm" | "md";
-  emailSentAt?: Date | null;
-  showEmailSent: boolean;
-  showLabel: boolean;
-}> = ({ status, label, size, showLabel }) => {
-  const { label: statusLabel, className } = getStatusInfo(status);
-  const sizeClasses = size === "sm" 
-    ? "px-2 py-0.5 text-xs" 
-    : "px-2 md:px-3 py-0.5 text-xs";
+}> = ({ status, size }) => {
+  const config = getStatusConfig(status);
+  const isSmall = size === "sm";
+
+  return (
+    <span
+      className={`
+        inline-flex items-center gap-1.5
+        ${isSmall ? "px-2 py-0.5" : "px-2.5 py-1"}
+        rounded-md font-medium
+        ${config.bg} ${config.text}
+        border border-current/10
+        ${isSmall ? "text-[11px]" : "text-xs"}
+        transition-colors duration-150
+      `}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+      {config.label}
+    </span>
+  );
+};
+
+// Compact gender status indicator for mixed events
+const GenderStatusIndicator: React.FC<{
+  gender: "M" | "W";
+  status: Status | null;
+}> = ({ gender, status }) => {
+  const config = getStatusConfig(status);
+
+  const genderConfig = {
+    M: {
+      label: "M",
+      bg: "bg-blue-900",
+      ring: "ring-blue-900/20"
+    },
+    W: {
+      label: "W",
+      bg: "bg-purple-500",
+      ring: "ring-purple-500/20"
+    },
+  };
+
+  const g = genderConfig[gender];
 
   return (
     <div className="flex items-center gap-1">
+      {/* Gender marker */}
       <span
-        className={`${sizeClasses} rounded-full font-semibold flex items-center border ${className}`}
-        style={{minHeight: "1.5rem", width: "fit-content"}}
+        className={`
+          w-4 h-4 text-[9px]
+          ${g.bg} text-white
+          rounded font-bold
+          flex items-center justify-center
+        `}
       >
-        {showLabel ? `${label}: ${statusLabel}` : statusLabel}
+        {g.label}
+      </span>
+      {/* Status indicator */}
+      <span
+        className={`
+          inline-flex items-center gap-1
+          px-1.5 py-0.5 text-[10px]
+          rounded font-medium
+          ${config.bg} ${config.text}
+        `}
+      >
+        <span className={`w-1 h-1 rounded-full ${config.dot}`} />
+        {config.label}
       </span>
     </div>
   );
@@ -53,74 +156,41 @@ const StatusBadge: React.FC<{
 
 export const StatusBadges: React.FC<StatusBadgesProps> = ({
   inscription,
-  showEmailSent = true,
   size = "md",
   className = "",
-  showLabels = true,
+  layout = "vertical",
 }) => {
   const isEventMixed = isMixedEvent(inscription.eventData);
 
   if (!isEventMixed) {
-    // Événement non-mixte : affichage sans label "Statut:"
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <StatusBadge
+      <div className={`flex items-center ${className}`}>
+        <SingleStatusBadge
           status={inscription.status}
-          label="Statut"
           size={size}
-          emailSentAt={inscription.emailSentAt}
-          showEmailSent={showEmailSent}
-          showLabel={false}
         />
       </div>
     );
   }
 
-  // Événement mixte : afficher les statuts par genre si différents
+  // Mixed event: always show both gender statuses
   const menStatus = getGenderStatus(inscription, "M");
   const womenStatus = getGenderStatus(inscription, "W");
 
-  const hasDifferentStatuses = 
-    menStatus.status !== womenStatus.status ||
-    menStatus.status !== inscription.status ||
-    womenStatus.status !== inscription.status;
+  const layoutClasses = layout === "horizontal"
+    ? "flex items-center gap-3"
+    : "flex flex-col gap-0.5";
 
-  if (!hasDifferentStatuses) {
-    // Tous les statuts sont identiques : affichage sans label "Statut:"
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <StatusBadge
-          status={inscription.status}
-          label="Statut"
-          size={size}
-          emailSentAt={inscription.emailSentAt}
-          showEmailSent={showEmailSent}
-          showLabel={false}
-        />
-      </div>
-    );
-  }
-
-  // Statuts différents : afficher par genre
   return (
-    <div className={`flex items-center gap-2 flex-wrap ${className}`}>
-      <StatusBadge
+    <div className={`${layoutClasses} ${className}`}>
+      <GenderStatusIndicator
+        gender="M"
         status={menStatus.status}
-        label="H"
-        size={size}
-        emailSentAt={menStatus.emailSentAt}
-        showEmailSent={showEmailSent}
-        showLabel={showLabels}
       />
-      <StatusBadge
+      <GenderStatusIndicator
+        gender="W"
         status={womenStatus.status}
-        label="F"
-        size={size}
-        emailSentAt={womenStatus.emailSentAt}
-        showEmailSent={showEmailSent}
-        showLabel={showLabels}
       />
-      {/* Pas de badge global si on affiche déjà les statuts par genre */}
     </div>
   );
 };

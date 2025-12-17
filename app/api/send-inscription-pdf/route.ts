@@ -204,10 +204,14 @@ export async function POST(request: Request) {
       if (gender && (gender === "M" || gender === "W")) {
         const otherGenderStatus = gender === "M" ? currentInscription.womenStatus : currentInscription.menStatus;
 
+        // Check if this is a mixed event (has both M and W)
+        const eventGenderCodes = currentInscription.eventData?.genderCodes || [];
+        const isMixedEvent = eventGenderCodes.includes("M") && eventGenderCodes.includes("W");
+
         // Update global status if:
         // 1. Both genders have been sent (otherGenderStatus === "email_sent"), OR
-        // 2. This is a single-gender event (otherGenderStatus is null/undefined)
-        if (otherGenderStatus === "email_sent" || !otherGenderStatus) {
+        // 2. This is a single-gender event (not mixed)
+        if (otherGenderStatus === "email_sent" || !isMixedEvent) {
           updateData.status = "email_sent";
           updateData.emailSentAt = currentTime;
         }
