@@ -599,10 +599,10 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       enableColumnFilter: true,
       accessorFn: (row) => row,
       cell: ({row}) => (
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-2 gap-1">
           {(row.original.eventData.competitions ?? []).map(
             (c: CompetitionItem, i: number) => (
-              <Badge key={`${c.codex}-${i}`} variant={"outline"}>
+              <Badge key={`${c.codex}-${i}`} variant={"outline"} className="text-center justify-center">
                 {c.codex}
               </Badge>
             )

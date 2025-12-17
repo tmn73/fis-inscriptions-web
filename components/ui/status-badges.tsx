@@ -5,7 +5,7 @@ import {getGenderStatus, isMixedEvent} from "@/app/lib/genderStatus";
 type StatusBadgesProps = {
   inscription: Inscription;
   showEmailSent?: boolean;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   className?: string;
   showLabels?: boolean;
   layout?: "vertical" | "horizontal";
@@ -80,24 +80,34 @@ const getStatusConfig = (status: Status | null): StatusConfig => {
 // Single status badge for non-mixed events
 const SingleStatusBadge: React.FC<{
   status: Status | null;
-  size: "sm" | "md";
+  size: "sm" | "md" | "lg";
 }> = ({ status, size }) => {
   const config = getStatusConfig(status);
-  const isSmall = size === "sm";
+
+  const sizeClasses = {
+    sm: "px-2 py-0.5 text-[11px]",
+    md: "px-2.5 py-1 text-xs",
+    lg: "px-3 py-1.5 text-sm",
+  };
+
+  const dotSizes = {
+    sm: "w-1.5 h-1.5",
+    md: "w-1.5 h-1.5",
+    lg: "w-2 h-2",
+  };
 
   return (
     <span
       className={`
         inline-flex items-center gap-1.5
-        ${isSmall ? "px-2 py-0.5" : "px-2.5 py-1"}
+        ${sizeClasses[size]}
         rounded-md font-medium
         ${config.bg} ${config.text}
         border border-current/10
-        ${isSmall ? "text-[11px]" : "text-xs"}
         transition-colors duration-150
       `}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+      <span className={`${dotSizes[size]} rounded-full ${config.dot}`} />
       {config.label}
     </span>
   );
@@ -107,30 +117,47 @@ const SingleStatusBadge: React.FC<{
 const GenderStatusIndicator: React.FC<{
   gender: "M" | "W";
   status: Status | null;
-}> = ({ gender, status }) => {
+  size: "sm" | "md" | "lg";
+}> = ({ gender, status, size }) => {
   const config = getStatusConfig(status);
 
   const genderConfig = {
     M: {
       label: "M",
       bg: "bg-blue-900",
-      ring: "ring-blue-900/20"
     },
     W: {
       label: "W",
       bg: "bg-purple-500",
-      ring: "ring-purple-500/20"
     },
   };
 
   const g = genderConfig[gender];
 
+  const markerSizes = {
+    sm: "w-5 h-5 text-[10px]",
+    md: "w-5 h-5 text-[10px]",
+    lg: "w-6 h-6 text-xs",
+  };
+
+  const statusSizes = {
+    sm: "px-2 py-0.5 text-[11px] gap-1",
+    md: "px-2 py-0.5 text-[11px] gap-1",
+    lg: "px-2.5 py-1 text-xs gap-1.5",
+  };
+
+  const dotSizes = {
+    sm: "w-1.5 h-1.5",
+    md: "w-1.5 h-1.5",
+    lg: "w-2 h-2",
+  };
+
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {/* Gender marker */}
       <span
         className={`
-          w-4 h-4 text-[9px]
+          ${markerSizes[size]}
           ${g.bg} text-white
           rounded font-bold
           flex items-center justify-center
@@ -141,13 +168,13 @@ const GenderStatusIndicator: React.FC<{
       {/* Status indicator */}
       <span
         className={`
-          inline-flex items-center gap-1
-          px-1.5 py-0.5 text-[10px]
+          inline-flex items-center
+          ${statusSizes[size]}
           rounded font-medium
           ${config.bg} ${config.text}
         `}
       >
-        <span className={`w-1 h-1 rounded-full ${config.dot}`} />
+        <span className={`${dotSizes[size]} rounded-full ${config.dot}`} />
         {config.label}
       </span>
     </div>
@@ -186,10 +213,12 @@ export const StatusBadges: React.FC<StatusBadgesProps> = ({
       <GenderStatusIndicator
         gender="M"
         status={menStatus.status}
+        size={size}
       />
       <GenderStatusIndicator
         gender="W"
         status={womenStatus.status}
+        size={size}
       />
     </div>
   );

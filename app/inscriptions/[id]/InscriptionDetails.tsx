@@ -94,12 +94,12 @@ export const InscriptionDetails = ({
                   <Image
                     src={flagUrl}
                     alt={countryLabel}
-                    width={18}
-                    height={12}
-                    className="inline-block h-3 w-4.5 object-cover border border-gray-200 rounded-sm shrink-0"
+                    width={28}
+                    height={20}
+                    className="inline-block h-5 w-7 object-cover border border-gray-200 rounded-sm shrink-0"
                   />
                 )}
-                <StatusBadges inscription={inscription} layout="horizontal" />
+                <StatusBadges inscription={inscription} layout="horizontal" size="lg" />
               </div>
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <CalendarIcon className="h-3 w-3" />
