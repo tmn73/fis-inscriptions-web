@@ -13,7 +13,6 @@ import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Loader2, Settings} from "lucide-react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -224,69 +223,16 @@ export const Competitors = ({
                 <TableCell>{c.addedByEmail || "-"}</TableCell>
                 {permissionToEdit && (
                   <TableCell>
-                    <Dialog
-                      open={openDialog === c.competitorid}
-                      onOpenChange={(o) =>
-                        setOpenDialog(o ? c.competitorid : null)
-                      }
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={t("manage.title")}
+                      className="cursor-pointer"
+                      disabled={inscription?.status !== "open"}
+                      onClick={() => setOpenDialog(c.competitorid)}
                     >
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title={t("manage.title")}
-                          className="cursor-pointer"
-                          disabled={inscription?.status !== "open"}
-                        >
-                          <Settings className="w-5 h-5 text-slate-500" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>
-                            {t("manage.modalTitle", {firstName: c.firstname || "", lastName: c.lastname || ""})}
-                          </DialogTitle>
-                          <DialogDescription className="mt-2">
-                            {t("manage.description")}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DesinscriptionCodexList
-                          inscriptionId={inscriptionId}
-                          competitorId={c.competitorid}
-                          selectedCodex={selectedCodex}
-                          setSelectedCodex={setSelectedCodex}
-                          allEventCodexes={
-                            inscription?.eventData?.competitions || []
-                          }
-                          genderFilterOfCompetitor={
-                            c.gender === null ? undefined : c.gender
-                          }
-                        />
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button variant="ghost" className="cursor-pointer">
-                              {t("manage.cancel")}
-                            </Button>
-                          </DialogClose>
-                          <Button
-                            onClick={() => {
-                              updateCompetitor({
-                                competitorId: c.competitorid,
-                                codexNumbers: selectedCodex,
-                              });
-                              setOpenDialog(null);
-                            }}
-                            disabled={updating}
-                            variant="default"
-                            className="cursor-pointer"
-                          >
-                            {updating
-                              ? t("manage.updating")
-                              : t("manage.update")}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                      <Settings className="w-5 h-5 text-slate-500" />
+                    </Button>
                   </TableCell>
                 )}
               </TableRow>
@@ -317,7 +263,7 @@ export const Competitors = ({
           ))}
       </div>
 
-      {/* Dialog pour la gestion des inscriptions - mobile */}
+      {/* Dialog partagé pour la gestion des inscriptions - mobile et desktop */}
       {openDialog && (
         <Dialog
           open={true}
@@ -325,14 +271,14 @@ export const Competitors = ({
         >
           <DialogContent className="w-[95vw] md:w-auto max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-base md:text-lg">
+              <DialogTitle>
                 {t("manage.modalTitle", {
                   firstName: competitors?.find(c => c.competitorid === openDialog)?.firstname || "",
                   lastName: competitors?.find(c => c.competitorid === openDialog)?.lastname || ""
                 })}
               </DialogTitle>
-              <DialogDescription className="mt-2 text-sm">
-                {t("manage.descriptionMobile")}
+              <DialogDescription className="mt-2">
+                {t("manage.description")}
               </DialogDescription>
             </DialogHeader>
             <DesinscriptionCodexList
@@ -446,16 +392,20 @@ function DesinscriptionCodexList({
     );
   }
 
+  const allCodexNumbers = relevantEventCodexes.map((e) => e.codex);
+  const allSelected = allCodexNumbers.length > 0 && allCodexNumbers.every((c) => selectedCodex.includes(c));
+  const noneSelected = selectedCodex.length === 0;
+
   return (
-    <div className="space-y-2">
-      <div className="mb-2 font-medium">
+    <div className="space-y-4">
+      <div className="font-medium">
         {t("selectCodex")}
       </div>
-      <div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto p-1">
+      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto p-2 border rounded-md bg-slate-50/50">
         {relevantEventCodexes.map((eventCodexItem) => (
           <label
             key={eventCodexItem.id || eventCodexItem.codex}
-            className="flex items-center gap-2 cursor-pointer p-2 border rounded-md hover:bg-slate-50 min-w-[120px]"
+            className="flex items-center gap-2 cursor-pointer p-2 bg-white border rounded-md hover:bg-slate-50 min-w-[120px]"
           >
             <Checkbox
               checked={selectedCodex.includes(eventCodexItem.codex)}
@@ -496,6 +446,29 @@ function DesinscriptionCodexList({
               )}
           </label>
         ))}
+      </div>
+      {/* Quick actions */}
+      <div className="flex gap-2 pt-2 border-t">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-xs cursor-pointer"
+          onClick={() => setSelectedCodex(allCodexNumbers)}
+          disabled={allSelected}
+        >
+          {t("selectAll")}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => setSelectedCodex([])}
+          disabled={noneSelected}
+        >
+          {t("deselectAll")}
+        </Button>
       </div>
     </div>
   );

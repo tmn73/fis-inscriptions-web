@@ -27,7 +27,6 @@ import AddCompetitorModal from "./AddCompetitorModal";
 import {usePermissionToEdit} from "./usePermissionToEdit";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -198,16 +197,20 @@ function DesinscriptionCodexList({
     );
   }
 
+  const allCodexNumbers = relevantEventCodexes.map((e) => e.codex);
+  const allSelected = allCodexNumbers.length > 0 && allCodexNumbers.every((c) => selectedCodex.includes(c));
+  const noneSelected = selectedCodex.length === 0;
+
   return (
-    <div className="space-y-2">
-      <div className="mb-2 font-medium">
+    <div className="space-y-4">
+      <div className="font-medium">
         {tManage("selectCodex")}
       </div>
-      <div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto p-1">
+      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto p-2 border rounded-md bg-slate-50/50">
         {relevantEventCodexes.map((eventCodexItem) => (
           <label
-            key={eventCodexItem.id || eventCodexItem.codex} // Use id if available, fallback to codex
-            className="flex items-center gap-2 cursor-pointer p-2 border rounded-md hover:bg-slate-50 min-w-[120px]"
+            key={eventCodexItem.id || eventCodexItem.codex}
+            className="flex items-center gap-2 cursor-pointer p-2 bg-white border rounded-md hover:bg-slate-50 min-w-[120px]"
           >
             <Checkbox
               checked={selectedCodex.includes(eventCodexItem.codex)}
@@ -249,11 +252,34 @@ function DesinscriptionCodexList({
           </label>
         ))}
       </div>
+      {/* Quick actions */}
+      <div className="flex gap-2 pt-2 border-t">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-xs cursor-pointer"
+          onClick={() => setSelectedCodex(allCodexNumbers)}
+          disabled={allSelected}
+        >
+          {tManage("selectAll")}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => setSelectedCodex([])}
+          disabled={noneSelected}
+        >
+          {tManage("deselectAll")}
+        </Button>
+      </div>
     </div>
   );
 }
 
-// Extract the dialog to a separate memoized component
+// Extract the dialog to a separate memoized component (without trigger - trigger is separate)
 const CompetitorRegistrationDialog = React.memo(
   ({
     competitor,
@@ -261,7 +287,6 @@ const CompetitorRegistrationDialog = React.memo(
     onOpenChange,
     inscriptionId,
     allEventCodexes,
-    inscriptionStatus,
     onUpdate,
   }: {
     competitor: CompetitorRow;
@@ -269,7 +294,6 @@ const CompetitorRegistrationDialog = React.memo(
     onOpenChange: (open: boolean) => void;
     inscriptionId: string;
     allEventCodexes: CompetitionItem[];
-    inscriptionStatus: string;
     onUpdate: (competitorId: number, codexNumbers: number[]) => void;
   }) => {
     const tManage = useTranslations("inscriptionDetail.recap.manage");
@@ -284,19 +308,10 @@ const CompetitorRegistrationDialog = React.memo(
       setUpdating(false);
     }, [competitor.competitorid, onUpdate, onOpenChange, selectedCodex]);
 
+    if (!isOpen) return null;
+
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            title={tManage("title")}
-            className="cursor-pointer"
-            disabled={inscriptionStatus !== "open" || updating}
-          >
-            <Settings className="w-5 h-5 text-slate-500" />
-          </Button>
-        </DialogTrigger>
         <DialogContent className="w-[95vw] md:w-auto max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base md:text-lg">
@@ -595,17 +610,16 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
               cell: (info) => {
                 const competitor = info.row.original;
                 return (
-                  <CompetitorRegistrationDialog
-                    competitor={competitor}
-                    isOpen={openDialog === competitor.competitorid}
-                    onOpenChange={(open) =>
-                      setOpenDialog(open ? competitor.competitorid : null)
-                    }
-                    inscriptionId={inscriptionId}
-                    allEventCodexes={inscription?.eventData?.competitions || []}
-                    inscriptionStatus={inscription?.status || ""}
-                    onUpdate={handleUpdateCompetitor}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={tTable("actions")}
+                    className="cursor-pointer"
+                    disabled={inscription?.status !== "open"}
+                    onClick={() => setOpenDialog(competitor.competitorid)}
+                  >
+                    <Settings className="w-5 h-5 text-slate-500" />
+                  </Button>
                 );
               },
             }),
@@ -889,15 +903,14 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
         })}
       </div>
 
-      {/* Dialog pour la gestion des inscriptions - mobile */}
-      {openDialog && (
+      {/* Dialog partagé pour la gestion des inscriptions - mobile et desktop */}
+      {openDialog && filteredCompetitors.find(c => c.competitorid === openDialog) && (
         <CompetitorRegistrationDialog
           competitor={filteredCompetitors.find(c => c.competitorid === openDialog)!}
           isOpen={true}
           onOpenChange={(open) => setOpenDialog(open ? openDialog : null)}
           inscriptionId={inscriptionId}
           allEventCodexes={inscription?.eventData?.competitions || []}
-          inscriptionStatus={inscription?.status || ""}
           onUpdate={handleUpdateCompetitor}
         />
       )}

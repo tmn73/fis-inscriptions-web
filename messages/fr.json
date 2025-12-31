@@ -306,7 +306,9 @@
         "update": "Mettre à jour les inscriptions",
         "loadingInfo": "Chargement des informations d'inscription...",
         "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
-        "selectCodex": "Sélectionnez les codex pour l'inscription :"
+        "selectCodex": "Sélectionnez les codex pour l'inscription :",
+        "selectAll": "Tout sélectionner",
+        "deselectAll": "Tout retirer"
       }
     },
     "coaches": {
@@ -553,7 +555,9 @@
         "update": "Mettre à jour les inscriptions",
         "updating": "Mise à jour...",
         "loadingInfo": "Chargement des informations d'inscription...",
-        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement."
+        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
+        "selectAll": "Tout sélectionner",
+        "deselectAll": "Tout retirer"
       },
       "totals": {
         "all": "Nombre total d'inscriptions : {count}",

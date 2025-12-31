@@ -291,12 +291,10 @@ const main = async () => {
       ${Object.values(deletedEventsById)
         .map((evts) => {
           const evt = evts[0];
-          const email = userIdToEmail[evt.created_by] || evt.created_by;
           const startDate = format(new Date(evt.event_start_date), 'dd/MM/yyyy');
           const endDate = format(new Date(evt.event_end_date), 'dd/MM/yyyy');
           return `<div style='margin-bottom:16px;'>
-            <span style="color:#dc2626;font-weight:bold;">${evt.event_location} (${startDate} → ${endDate})</span><br>
-            <span style='color:#6b7280;'>Supprimé par ${email}</span>
+            <span style="color:#dc2626;font-weight:bold;">${evt.event_location} (${startDate} → ${endDate})</span>
           </div>`;
         })
         .join("")}
@@ -382,14 +380,13 @@ const main = async () => {
             <ul style='margin:8px 0 0 16px;padding:0;'>
               ${coachList
                 .map((coach) => {
-                  const email = userIdToEmail[coach.added_by] || coach.added_by;
                   const teamInfo = coach.team ? ` (${coach.team})` : "";
                   const startDate = format(new Date(coach.start_date), 'dd/MM/yyyy');
                   const endDate = format(new Date(coach.end_date), 'dd/MM/yyyy');
-                  const period = startDate === endDate 
-                    ? startDate 
+                  const period = startDate === endDate
+                    ? startDate
                     : `${startDate} → ${endDate}`;
-                  return `<li style='color:#dc2626;margin-bottom:4px;'>${coach.first_name} ${coach.last_name}${teamInfo} <span style='color:#16a34a;'>[${period}]</span> <span style='color:#6b7280;'>(supprimé par ${email})</span></li>`;
+                  return `<li style='color:#dc2626;margin-bottom:4px;'>${coach.first_name} ${coach.last_name}${teamInfo} <span style='color:#16a34a;'>[${period}]</span></li>`;
                 })
                 .join("")}
             </ul>
@@ -419,9 +416,7 @@ const main = async () => {
                     <ul style='margin:4px 0 0 16px;padding:0;'>
                       ${runners
                         .map((runner) => {
-                          const email =
-                            userIdToEmail[runner.added_by] || runner.added_by;
-                          return `<li style='color:#dc2626;'>${runner.firstname} ${runner.lastname} <span style='color:#6b7280;'>(supprimé par ${email})</span></li>`;
+                          return `<li style='color:#dc2626;'>${runner.firstname} ${runner.lastname}</li>`;
                         })
                         .join("")}
                     </ul>

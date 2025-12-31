@@ -306,7 +306,9 @@
         "update": "Update registrations",
         "loadingInfo": "Loading registration information...",
         "noCompatibleCodex": "No codex compatible with the competitor's gender for this event.",
-        "selectCodex": "Select codex for registration:"
+        "selectCodex": "Select codex for registration:",
+        "selectAll": "Select all",
+        "deselectAll": "Remove all"
       }
     },
     "coaches": {
@@ -553,7 +555,9 @@
         "update": "Update registrations",
         "updating": "Updating...",
         "loadingInfo": "Loading registration information...",
-        "noCompatibleCodex": "No codex compatible with the competitor's gender for this event."
+        "noCompatibleCodex": "No codex compatible with the competitor's gender for this event.",
+        "selectAll": "Select all",
+        "deselectAll": "Remove all"
       },
       "totals": {
         "all": "Total number of registrations: {count}",
