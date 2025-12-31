@@ -96,6 +96,21 @@ export const getEffectiveStatusForFilter = (inscription: Inscription): Status | 
     return "open";
   }
 
-  // Sinon, retourne le statut global
-  return inscription.status;
+  // Si les deux ont le même statut, retourne ce statut
+  if (menStatus === womenStatus) {
+    return menStatus;
+  }
+
+  // Pour des statuts différents, utilise une priorité:
+  // validated > email_sent > cancelled
+  const statusPriority: Record<Status, number> = {
+    open: 4,
+    validated: 3,
+    email_sent: 2,
+    cancelled: 1,
+    not_concerned: 0,
+  };
+
+  // Retourne le statut avec la plus haute priorité
+  return statusPriority[menStatus] >= statusPriority[womenStatus] ? menStatus : womenStatus;
 };
