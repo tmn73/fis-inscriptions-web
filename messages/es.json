@@ -244,9 +244,13 @@
     "notSpecified": "No especificado"
   },
   "competitorEventsTab": {
+    "title": "Competidores",
+    "subtitle": "Consulta las inscripciones por atleta",
+    "selectGenderPrompt": "Selecciona una categoría para comenzar",
+    "searchPlaceholder": "Buscar un competidor...",
     "gender": {
-      "male": "Hombre",
-      "female": "Mujer"
+      "male": "Hombres",
+      "female": "Mujeres"
     },
     "loading": {
       "competitors": "Cargando...",

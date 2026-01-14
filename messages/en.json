@@ -240,9 +240,13 @@
     "notSpecified": "Not specified"
   },
   "competitorEventsTab": {
+    "title": "Competitors",
+    "subtitle": "View inscriptions by athlete",
+    "selectGenderPrompt": "Select a category to start",
+    "searchPlaceholder": "Search for a competitor...",
     "gender": {
-      "male": "Male",
-      "female": "Female"
+      "male": "Men",
+      "female": "Women"
     },
     "loading": {
       "competitors": "Loading...",
