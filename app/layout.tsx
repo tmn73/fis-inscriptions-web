@@ -37,8 +37,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Inscriptions FIS Etranger",
   description: "Inscriptions FIS Etranger",
-  manifest: "/manifest.json",
-  themeColor: "#000000",
   viewport: "width=device-width, initial-scale=1",
   icons: {
     icon: [
