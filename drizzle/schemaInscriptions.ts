@@ -15,6 +15,7 @@ export const inscriptionStatus = inscriptionsSchema.enum("status", [
   "validated",
   "email_sent",
   "cancelled",
+  "refused",
   "not_concerned",
 ]);
 

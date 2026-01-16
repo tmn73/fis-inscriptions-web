@@ -49,6 +49,13 @@ const getStatusConfig = (status: Status | null): StatusConfig => {
       text: "text-rose-700",
       dot: "bg-rose-500"
     },
+    refused: {
+      label: "Refusé",
+      shortLabel: "Ref.",
+      bg: "bg-red-100",
+      text: "text-red-800",
+      dot: "bg-red-600"
+    },
     not_concerned: {
       label: "N/C",
       shortLabel: "N/C",

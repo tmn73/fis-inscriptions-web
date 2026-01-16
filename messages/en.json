@@ -225,6 +225,7 @@
       "validated": "Validated",
       "email_sent": "Email sent",
       "cancelled": "Race cancelled",
+      "refused": "Refused",
       "not_concerned": "Not concerned"
     },
     "gender": {
@@ -484,6 +485,7 @@
         "validated": "Closed (validated)",
         "email_sent": "Email sent",
         "cancelled": "Race cancelled",
+        "refused": "Refused",
         "not_concerned": "Not concerned"
       },
       "errors": {

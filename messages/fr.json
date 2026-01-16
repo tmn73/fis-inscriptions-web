@@ -225,6 +225,7 @@
       "validated": "Validée",
       "email_sent": "Email envoyé",
       "cancelled": "Course annulée",
+      "refused": "Refusé",
       "not_concerned": "Non concerné"
     },
     "gender": {
@@ -484,6 +485,7 @@
         "validated": "Clôturé (validé)",
         "email_sent": "Email envoyé",
         "cancelled": "Course annulée",
+        "refused": "Refusé",
         "not_concerned": "Non concerné"
       },
       "errors": {

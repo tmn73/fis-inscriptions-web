@@ -140,6 +140,14 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
                 value={competition.codex.toString()}
               >
                 <div className="flex items-center gap-2">
+                  {competition.date && (
+                    <span className="text-xs text-slate-500">
+                      {new Date(competition.date).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit"
+                      })}
+                    </span>
+                  )}
                   <span className="font-semibold">Codex {competition.codex}</span>
                   <Badge
                     className={`text-xs px-2 py-1 ${
@@ -174,23 +182,36 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
               <TabsTrigger
                 key={competition.codex}
                 value={competition.codex.toString()}
-                className="min-w-[140px] h-12 text-lg px-6 py-3 cursor-pointer border border-slate-200 rounded-md transition-all duration-150 font-semibold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-slate-300 data-[state=active]:text-black data-[state=active]:font-bold data-[state=active]:z-10 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:border-slate-200 data-[state=inactive]:shadow-none data-[state=inactive]:z-0"
+                className="min-w-[140px] h-auto py-2 px-6 cursor-pointer border border-slate-200 rounded-md transition-all duration-150 font-semibold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-slate-300 data-[state=active]:text-black data-[state=active]:font-bold data-[state=active]:z-10 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:border-slate-200 data-[state=inactive]:shadow-none data-[state=inactive]:z-0"
               >
-                Codex {competition.codex}
-                <Badge
-                  className={`ml-2 text-base px-3 py-1 ${
-                    colorBadgePerDiscipline[competition.eventCode] || ""
-                  }`}
-                >
-                  {competition.eventCode}
-                </Badge>
-                <Badge
-                  className={`ml-2 text-base px-3 py-1 ${
-                    colorBadgePerGender[competition.genderCode] || ""
-                  } text-white`}
-                >
-                  {competition.genderCode}
-                </Badge>
+                <div className="flex flex-col items-center gap-1">
+                  {competition.date && (
+                    <span className="text-xs text-slate-500 font-medium">
+                      {new Date(competition.date).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit"
+                      })}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg">Codex {competition.codex}</span>
+                    <Badge
+                      className={`text-base px-3 py-1 ${
+                        colorBadgePerDiscipline[competition.eventCode] || ""
+                      }`}
+                    >
+                      {competition.eventCode}
+                    </Badge>
+                    <Badge
+                      className={`text-base px-3 py-1 ${
+                        colorBadgePerGender[competition.genderCode] || ""
+                      } text-white`}
+                    >
+                      {competition.genderCode}
+                    </Badge>
+                  </div>
+                </div>
               </TabsTrigger>
             ))}
           </TabsList>

@@ -199,14 +199,14 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
       >
         <div className="flex items-stretch">
           {/* DATE BLOCK - Left side, prominent */}
-          <div className="flex-shrink-0 w-16 bg-slate-900 text-white flex flex-col items-center justify-center py-3">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+          <div className="flex-shrink-0 w-16 bg-slate-600 text-white flex flex-col items-center justify-center py-3">
+            <span className="text-[10px] uppercase tracking-wider text-slate-200 font-medium">
               {weekday}
             </span>
             <span className="text-3xl font-black leading-none tracking-tight">
               {day}
             </span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-200">
               {month}
             </span>
           </div>

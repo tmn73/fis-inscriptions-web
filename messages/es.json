@@ -229,6 +229,7 @@
       "validated": "Validada",
       "email_sent": "Email enviado",
       "cancelled": "Carrera cancelada",
+      "refused": "Rechazado",
       "not_concerned": "No concernido"
     },
     "gender": {
@@ -486,6 +487,7 @@
         "validated": "Cerrado (validado)",
         "email_sent": "Email enviado",
         "cancelled": "Carrera cancelada",
+        "refused": "Rechazado",
         "not_concerned": "No concernido"
       },
       "errors": {

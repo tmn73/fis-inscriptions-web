@@ -26,6 +26,8 @@ import {ContactModal} from "./ContactModal";
 import {useUser} from "@clerk/nextjs";
 import {StatusBadges} from "@/components/ui/status-badges";
 import {useTranslations} from "next-intl";
+import {Badge} from "@/components/ui/badge";
+import {colorBadgePerRaceLevel} from "@/app/lib/colorMappers";
 
 interface InscriptionDetailsProps {
   id: string;
@@ -45,6 +47,11 @@ export const InscriptionDetails = ({
     inscription?.eventData.placeNationCode ||
     inscription?.eventData.organiserNationCode;
   const {flagUrl, countryLabel} = useCountryInfo(countryCode);
+
+  // Get unique race levels from competitions
+  const raceLevels = [...new Set(
+    inscription?.eventData?.competitions?.map((c) => c.categoryCode).filter(Boolean) || []
+  )];
 
   const [isEventDetailsModalOpen, setIsEventDetailsModalOpen] = useState(false);
 
@@ -99,6 +106,16 @@ export const InscriptionDetails = ({
                     className="inline-block h-5 w-7 object-cover border border-gray-200 rounded-sm shrink-0"
                   />
                 )}
+                {raceLevels.length > 0 && raceLevels.map((level) => (
+                  <Badge
+                    key={level}
+                    className={`text-sm px-2 py-0.5 font-bold ${
+                      colorBadgePerRaceLevel[level] || "bg-slate-200 text-slate-600"
+                    }`}
+                  >
+                    {level}
+                  </Badge>
+                ))}
                 <StatusBadges inscription={inscription} layout="horizontal" size="lg" />
               </div>
               <div className="flex items-center gap-1 text-xs text-slate-500">

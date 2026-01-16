@@ -529,6 +529,17 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                   return c.gender === competition.genderCode;
                 }).length;
 
+                // Format date for display
+                const formatDate = (dateStr: string) => {
+                  if (!dateStr) return "";
+                  const date = new Date(dateStr);
+                  return date.toLocaleDateString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit"
+                  });
+                };
+
                 return (
                   <div
                     className="flex flex-col items-center justify-center min-w-[80px] select-none cursor-pointer"
@@ -536,6 +547,11 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
                   >
+                    {competition.date && (
+                      <div className="text-xs text-slate-500 font-medium mb-0.5">
+                        {formatDate(competition.date)}
+                      </div>
+                    )}
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-slate-700">{competition.codex}</span>
                       <Badge

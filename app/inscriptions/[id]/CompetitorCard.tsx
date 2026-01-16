@@ -118,6 +118,14 @@ export function CompetitorCard({
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {competition.date && (
+                    <span className="text-xs text-slate-500 font-medium">
+                      {new Date(competition.date).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit"
+                      })}
+                    </span>
+                  )}
                   <span className="font-mono text-sm font-medium">
                     {String(competition.codex).padStart(4, "0")}
                   </span>

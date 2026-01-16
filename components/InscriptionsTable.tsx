@@ -408,6 +408,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
     {value: "validated", label: tStatus("validated")},
     {value: "email_sent", label: tStatus("email_sent")},
     {value: "cancelled", label: tStatus("cancelled")},
+    {value: "refused", label: tStatus("refused")},
     {value: "not_concerned", label: tStatus("not_concerned")},
   ], [tStatus]);
 
