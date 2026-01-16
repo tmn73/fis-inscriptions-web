@@ -11,6 +11,8 @@
       "sentRecentlyDesc": "Emails enviados en los últimos 7 días",
       "allOpen": "abiertas",
       "allOpenDesc": "Todas las inscripciones sin procesar",
+      "refused": "rechazadas",
+      "refusedDesc": "Inscripciones rechazadas por el organizador",
       "all": "todas",
       "allDesc": "Todas las inscripciones (más recientes primero)"
     },

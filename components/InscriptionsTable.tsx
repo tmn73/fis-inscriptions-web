@@ -85,6 +85,11 @@ const FILTER_PRESETS: FilterPreset[] = [
     sortDesc: false, // Ascending - closest dates first
   },
   {
+    id: "refused",
+    statusFilter: ["refused"],
+    sortDesc: true, // Descending - most recent first
+  },
+  {
     id: "all",
     statusFilter: [],
     sortDesc: true, // Descending - most recent first

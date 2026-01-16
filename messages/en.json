@@ -11,6 +11,8 @@
       "sentRecentlyDesc": "Emails sent in the last 7 days",
       "allOpen": "open",
       "allOpenDesc": "All unprocessed registrations",
+      "refused": "refused",
+      "refusedDesc": "Registrations refused by the organizer",
       "all": "all",
       "allDesc": "All registrations (most recent first)"
     },

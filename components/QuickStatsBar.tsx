@@ -3,7 +3,7 @@
 import {useQuery} from "@tanstack/react-query";
 import {Inscription} from "@/app/types";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
-import {AlertTriangle, Clock, Send, Calendar, List} from "lucide-react";
+import {AlertTriangle, Clock, Send, Calendar, List, XCircle} from "lucide-react";
 import {useTranslations} from "next-intl";
 
 type StatCardProps = {
@@ -11,7 +11,7 @@ type StatCardProps = {
   value: number;
   label: string;
   description: string;
-  color: "urgent" | "warning" | "success" | "info" | "neutral";
+  color: "urgent" | "warning" | "success" | "info" | "neutral" | "danger";
   onClick?: () => void;
   active?: boolean;
 };
@@ -67,6 +67,16 @@ function StatCard({icon, value, label, description, color, onClick, active}: Sta
       activeIcon: "text-slate-500",
       value: "text-slate-700",
       activeValue: "text-slate-700",
+    },
+    danger: {
+      bg: "bg-white hover:bg-red-50/50",
+      activeBg: "bg-red-50/80",
+      border: "border-slate-200/60",
+      activeBorder: "border-red-300",
+      icon: "text-red-400",
+      activeIcon: "text-red-500",
+      value: "text-slate-700",
+      activeValue: "text-red-600",
     },
   };
 
@@ -167,6 +177,12 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
     return status === "open";
   }).length;
 
+  // Refused
+  const refusedCount = inscriptions.filter((insc) => {
+    const status = getEffectiveStatusForFilter(insc);
+    return status === "refused";
+  }).length;
+
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       <StatCard
@@ -204,6 +220,15 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
         color="success"
         onClick={() => onFilterChange?.("sent")}
         active={activeFilter === "sent"}
+      />
+      <StatCard
+        icon={<XCircle className="w-4 h-4" />}
+        value={refusedCount}
+        label={t("refused")}
+        description={t("refusedDesc")}
+        color="danger"
+        onClick={() => onFilterChange?.("refused")}
+        active={activeFilter === "refused"}
       />
       <StatCard
         icon={<List className="w-4 h-4" />}
