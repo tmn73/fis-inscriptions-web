@@ -28,6 +28,7 @@ import {StatusBadges} from "@/components/ui/status-badges";
 import {useTranslations} from "next-intl";
 import {Badge} from "@/components/ui/badge";
 import {colorBadgePerRaceLevel} from "@/app/lib/colorMappers";
+import {useUserEmail} from "@/hooks/useUserEmail";
 
 interface InscriptionDetailsProps {
   id: string;
@@ -40,6 +41,7 @@ export const InscriptionDetails = ({
 
   const {data: inscription, isLoading, error} = useInscription(id);
   const {user} = useUser();
+  const {data: creatorEmail} = useUserEmail(inscription?.createdBy);
 
   const permissionToEdit = usePermissionToEdit(inscription, "actionsBtn", null);
 
@@ -118,13 +120,24 @@ export const InscriptionDetails = ({
                 ))}
                 <StatusBadges inscription={inscription} layout="horizontal" size="lg" />
               </div>
-              <div className="flex items-center gap-1 text-xs text-slate-500">
-                <CalendarIcon className="h-3 w-3" />
-                <span>
+              <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap mt-1">
+                <span className="flex items-center gap-1.5">
+                  <CalendarIcon className="h-3 w-3" />
                   {parseLocalDate(inscription.eventData.startDate)?.toLocaleDateString("fr-FR")}
                   {" - "}
                   {parseLocalDate(inscription.eventData.endDate)?.toLocaleDateString("fr-FR")}
                 </span>
+                {inscription.createdAt && (
+                  <>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-400">
+                      {t("creator.text", {
+                        email: creatorEmail || t("creator.unknown"),
+                        date: new Date(inscription.createdAt).toLocaleDateString("fr-FR"),
+                      })}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
