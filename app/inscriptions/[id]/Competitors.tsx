@@ -242,7 +242,7 @@ export const Competitors = ({
       </div>
 
       {/* Vue mobile - cartes */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-1 pb-20">
         {(competitors || [])
           .sort((a, b) => {
             const aPoints = a.points;

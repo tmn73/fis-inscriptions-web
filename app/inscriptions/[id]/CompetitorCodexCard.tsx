@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, ChevronDown } from "lucide-react";
 import { InscriptionCompetitor } from "@/app/types";
 import { format } from "date-fns";
 
@@ -21,84 +20,112 @@ export function CompetitorCodexCard({
   inscriptionStatus,
   onManageRegistrations,
 }: CompetitorCodexCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const points =
+    competitor.points !== null && competitor.points !== undefined
+      ? competitor.points
+      : "-";
+
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        {/* Ligne 1: Nom + Actions */}
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base text-slate-800 truncate">
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      {/* Header - cliquable */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${
+          isExpanded ? "bg-slate-50" : "hover:bg-slate-50/50"
+        }`}
+      >
+        {/* Indicateur genre */}
+        <div
+          className={`w-1 h-6 rounded-full shrink-0 ${
+            competitor.gender === "M" ? "bg-blue-800" : "bg-purple-500"
+          }`}
+        />
+
+        {/* Infos principales */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold text-sm text-slate-800 truncate">
               {competitor.lastname} {competitor.firstname}
-            </h3>
-            <p className="text-sm text-slate-600 truncate">{competitor.skiclub}</p>
+            </span>
+            {competitor.birthdate && (
+              <span className="text-xs text-slate-400 tabular-nums">
+                ({new Date(competitor.birthdate).getFullYear()})
+              </span>
+            )}
           </div>
-          {permissionToEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              title="Gérer les inscriptions"
-              className="cursor-pointer ml-2 h-8 w-8 p-0"
-              disabled={inscriptionStatus !== "open"}
-              onClick={() => onManageRegistrations(competitor.competitorid)}
-            >
-              <Settings className="w-4 h-4 text-slate-500" />
-            </Button>
+          <p className="text-xs text-slate-500 truncate">{competitor.skiclub}</p>
+        </div>
+
+        {/* Points + chevron */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm font-medium text-slate-700 tabular-nums">
+            {points}
+          </span>
+          <ChevronDown
+            className={`w-4 h-4 text-slate-400 transition-transform duration-150 ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </div>
+      </button>
+
+      {/* Contenu déployable */}
+      {isExpanded && (
+        <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 text-xs">
+              <Badge
+                variant="outline"
+                className={`px-1.5 py-0.5 ${
+                  competitor.gender === "M"
+                    ? "bg-blue-100 text-blue-700 border-blue-300"
+                    : "bg-pink-100 text-pink-700 border-pink-300"
+                }`}
+              >
+                {competitor.gender === "M" ? "Homme" : "Femme"}
+              </Badge>
+              {competitor.birthdate && (
+                <span className="text-slate-500">
+                  Né(e) le {format(new Date(competitor.birthdate), "dd/MM/yyyy")}
+                </span>
+              )}
+            </div>
+            {permissionToEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                title="Gérer les inscriptions"
+                className="h-7 w-7 p-0"
+                disabled={inscriptionStatus !== "open"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onManageRegistrations(competitor.competitorid);
+                }}
+              >
+                <Settings className="w-4 h-4 text-slate-500" />
+              </Button>
+            )}
+          </div>
+
+          {/* Info ajout */}
+          {(competitor.addedByEmail || competitor.createdAt) && (
+            <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-400">
+              {competitor.addedByEmail && (
+                <span>par {competitor.addedByEmail}</span>
+              )}
+              {competitor.createdAt && (
+                <span>
+                  {competitor.addedByEmail ? " · " : ""}
+                  {format(new Date(competitor.createdAt), "dd/MM/yyyy")}
+                </span>
+              )}
+            </div>
           )}
         </div>
-
-        {/* Ligne 2: Informations */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Genre:</span>
-            <Badge
-              variant="outline"
-              className={`ml-1 text-xs px-1.5 py-0.5 ${
-                competitor.gender === "M" 
-                  ? "bg-blue-100 text-blue-700 border-blue-300" 
-                  : "bg-pink-100 text-pink-700 border-pink-300"
-              }`}
-            >
-              {competitor.gender === "M" ? "Homme" : "Femme"}
-            </Badge>
-          </div>
-          <div>
-            <span className="text-gray-600">Points:</span>
-            <span className="ml-1 font-medium">
-              {competitor.points !== null && competitor.points !== undefined 
-                ? competitor.points 
-                : "999"}
-            </span>
-          </div>
-        </div>
-
-        {/* Ligne 3: Dates */}
-        <div className="grid grid-cols-2 gap-4 text-sm mt-3">
-          <div>
-            <span className="text-gray-600">Né(e) le:</span>
-            <p className="text-xs text-slate-700">
-              {competitor.birthdate 
-                ? format(new Date(competitor.birthdate), "dd/MM/yyyy")
-                : "Non renseigné"}
-            </p>
-          </div>
-          <div>
-            <span className="text-gray-600">Ajouté le:</span>
-            <p className="text-xs text-slate-700">
-              {competitor.createdAt 
-                ? format(new Date(competitor.createdAt), "dd/MM/yyyy")
-                : "Non renseigné"}
-            </p>
-          </div>
-        </div>
-
-        {/* Ligne 4: Email si disponible */}
-        {competitor.addedByEmail && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <span className="text-gray-600 text-xs">Ajouté par:</span>
-            <p className="text-xs text-slate-600 truncate">{competitor.addedByEmail}</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
