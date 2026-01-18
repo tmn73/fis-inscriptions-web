@@ -884,22 +884,22 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
       </div>
 
       {/* Vue mobile - cartes */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-1 pb-20">
         {displayedGroups.map((group) => {
           const groupRows = sortedRows.filter(
             (row) => row.original.gender === group.value
           );
-          
+
           if (genderFilter !== "both" && group.value !== genderFilter) {
             return null;
           }
           if (groupRows.length === 0) return null;
 
           return (
-            <div key={group.value} className="space-y-3">
+            <div key={group.value} className="space-y-1">
               {/* En-tête de groupe */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <h3 className="font-bold text-base text-slate-700">{group.label}</h3>
+              <div className="bg-slate-100 px-2.5 py-1.5 rounded border border-slate-200">
+                <h3 className="font-semibold text-xs text-slate-600">{group.label}</h3>
               </div>
               
               {/* Cartes des compétiteurs */}
