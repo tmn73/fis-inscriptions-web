@@ -374,12 +374,18 @@ export const UpdateEventDataModal = ({
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate inscription detail
       queryClient.invalidateQueries({
         queryKey: ["inscriptions", inscription.id.toString()],
       });
+      // Invalidate all competitors list (displays event data)
       queryClient.invalidateQueries({
-        queryKey: ["inscription", inscription.id],
-      }); // If you have a specific query for one inscription
+        queryKey: ["inscription-competitors-all", inscription.id],
+      });
+      // Invalidate competitors by codex (partial match)
+      queryClient.invalidateQueries({
+        queryKey: ["inscription-competitors", inscription.id.toString()],
+      });
       onClose();
     },
     onError: (error: Error) => {

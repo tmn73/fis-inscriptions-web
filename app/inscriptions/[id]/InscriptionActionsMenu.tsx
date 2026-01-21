@@ -78,8 +78,13 @@ export function InscriptionActionsMenu({
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate inscription detail
       queryClient.invalidateQueries({
         queryKey: ["inscriptions", inscription.id.toString()],
+      });
+      // Invalidate inscriptions list (status filters, counts, etc.)
+      queryClient.invalidateQueries({
+        queryKey: ["inscriptions"],
       });
       setPopoverOpen(false);
     },
