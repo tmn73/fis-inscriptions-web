@@ -45,7 +45,7 @@ import {
   getSeasonsFromInscriptions,
 } from "@/app/lib/dates";
 import {StatusBadges} from "@/components/ui/status-badges";
-import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
+import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
 import {MultiSelect} from "@/components/ui/multi-select";
 
 // Filter presets configuration
@@ -493,17 +493,91 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         const diffTime = deadlineDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        // Si l'email a déjà été envoyé, on affiche une coche verte
-        if (row.original.status === "email_sent") {
+        const inscription = row.original;
+        const mixed = isMixedEvent(inscription.eventData);
+
+        // Helper: format a sent date
+        const formatSentDate = (date: Date | string | null | undefined) => {
+          if (!date) return null;
+          return format(new Date(date), "dd/MM/yyyy HH:mm");
+        };
+
+        // Helper: countdown badge
+        const countdownBadge = (days: number) => {
+          let badgeClass = "";
+          let text = "";
+          if (days < 0) {
+            badgeClass = "bg-gray-100 text-gray-800 border-gray-200";
+            text = t("reminder.past", {days: Math.abs(days)});
+          } else if (days === 0) {
+            badgeClass = "bg-red-100 text-red-800 border-red-200";
+            text = t("reminder.warning");
+          } else if (days === 1) {
+            badgeClass = "bg-orange-100 text-orange-800 border-orange-200";
+            text = "D-1";
+          } else if (days === 2) {
+            badgeClass = "bg-yellow-100 text-yellow-800 border-yellow-200";
+            text = "D-2";
+          } else {
+            badgeClass = "bg-green-100 text-green-800 border-green-200";
+            text = `D-${days}`;
+          }
+          return (
+            <Badge className={`${badgeClass} flex items-center gap-1`}>
+              <Mail className="w-3 h-3" />
+              {text}
+            </Badge>
+          );
+        };
+
+        if (mixed) {
+          const menInfo = getGenderStatus(inscription, "M");
+          const womenInfo = getGenderStatus(inscription, "W");
+
+          return (
+            <div className="flex flex-col gap-1">
+              {menInfo.status !== "not_concerned" && (
+                menInfo.status === "email_sent" && menInfo.emailSentAt ? (
+                  <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1 text-xs">
+                    <span className="w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center bg-blue-900 flex-shrink-0">M</span>
+                    ✓ {formatSentDate(menInfo.emailSentAt)}
+                  </Badge>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center bg-blue-900 flex-shrink-0">M</span>
+                    {countdownBadge(diffDays)}
+                  </div>
+                )
+              )}
+              {womenInfo.status !== "not_concerned" && (
+                womenInfo.status === "email_sent" && womenInfo.emailSentAt ? (
+                  <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1 text-xs">
+                    <span className="w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center bg-purple-500 flex-shrink-0">W</span>
+                    ✓ {formatSentDate(womenInfo.emailSentAt)}
+                  </Badge>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center bg-purple-500 flex-shrink-0">W</span>
+                    {countdownBadge(diffDays)}
+                  </div>
+                )
+              )}
+            </div>
+          );
+        }
+
+        // Non-mixed: show sent date or countdown
+        if (inscription.status === "email_sent") {
+          const sentDate = formatSentDate(inscription.emailSentAt);
           return (
             <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
               <Mail className="w-3 h-3" />
-              ✓ {t("reminder.sent")}
+              ✓ {sentDate || t("reminder.sent")}
             </Badge>
           );
         }
 
-        // Sinon on affiche le compte à rebours avec les couleurs appropriées
+        // Countdown
         let badgeClass = "";
         let text = "";
 
@@ -523,7 +597,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
           badgeClass = "bg-green-100 text-green-800 border-green-200";
           text = `D-${diffDays}`;
         }
-        
+
         return (
           <Badge className={`${badgeClass} flex items-center gap-1`}>
             <Mail className="w-3 h-3" />

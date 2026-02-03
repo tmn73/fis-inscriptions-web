@@ -13,7 +13,7 @@ import {
 } from "@/app/lib/colorMappers";
 import {Loader2, ChevronRight} from "lucide-react";
 import {useQuery} from "@tanstack/react-query";
-import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
+import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
 
 // Athlete count component - compact inline display
 const AthleteStats = ({
@@ -76,7 +76,8 @@ const AthleteStats = ({
 };
 
 // Deadline badge - small and functional
-const DeadlineBadge = ({startDate, status}: {startDate: string; status: string}) => {
+const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
+  const startDate = inscription.eventData.startDate;
   const eventDate = new Date(startDate);
   const deadlineDate = new Date(eventDate);
   deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
@@ -86,36 +87,83 @@ const DeadlineBadge = ({startDate, status}: {startDate: string; status: string})
   const diffTime = deadlineDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (status === "email_sent") {
+  const formatSentDate = (date: Date | string | null | undefined) => {
+    if (!date) return null;
+    return format(new Date(date), "dd/MM HH:mm");
+  };
+
+  const countdownTag = (days: number) => {
+    let classes = "";
+    let text = "";
+    if (days < 0) {
+      classes = "text-slate-400 bg-slate-100";
+      text = "Passé";
+    } else if (days === 0) {
+      classes = "text-red-700 bg-red-100 animate-pulse";
+      text = "J-0";
+    } else if (days <= 2) {
+      classes = "text-amber-700 bg-amber-100";
+      text = `J-${days}`;
+    } else {
+      classes = "text-sky-700 bg-sky-50";
+      text = `J-${days}`;
+    }
+    return (
+      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${classes}`}>
+        {text}
+      </span>
+    );
+  };
+
+  const mixed = isMixedEvent(inscription.eventData);
+
+  if (mixed) {
+    const menInfo = getGenderStatus(inscription, "M");
+    const womenInfo = getGenderStatus(inscription, "W");
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        {menInfo.status !== "not_concerned" && (
+          menInfo.status === "email_sent" && menInfo.emailSentAt ? (
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+              <span className={`w-3 h-3 rounded text-[7px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["M"]} flex-shrink-0`}>M</span>
+              ✓ {formatSentDate(menInfo.emailSentAt)}
+            </span>
+          ) : (
+            <div className="flex items-center gap-0.5">
+              <span className={`w-3 h-3 rounded text-[7px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["M"]} flex-shrink-0`}>M</span>
+              {countdownTag(diffDays)}
+            </div>
+          )
+        )}
+        {womenInfo.status !== "not_concerned" && (
+          womenInfo.status === "email_sent" && womenInfo.emailSentAt ? (
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+              <span className={`w-3 h-3 rounded text-[7px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["W"]} flex-shrink-0`}>W</span>
+              ✓ {formatSentDate(womenInfo.emailSentAt)}
+            </span>
+          ) : (
+            <div className="flex items-center gap-0.5">
+              <span className={`w-3 h-3 rounded text-[7px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["W"]} flex-shrink-0`}>W</span>
+              {countdownTag(diffDays)}
+            </div>
+          )
+        )}
+      </div>
+    );
+  }
+
+  // Non-mixed
+  if (inscription.status === "email_sent") {
+    const sentDate = formatSentDate(inscription.emailSentAt);
     return (
       <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-        ✓ Envoyé
+        ✓ {sentDate || "Envoyé"}
       </span>
     );
   }
 
-  let classes = "";
-  let text = "";
-
-  if (diffDays < 0) {
-    classes = "text-slate-400 bg-slate-100";
-    text = "Passé";
-  } else if (diffDays === 0) {
-    classes = "text-red-700 bg-red-100 animate-pulse";
-    text = "J-0";
-  } else if (diffDays <= 2) {
-    classes = "text-amber-700 bg-amber-100";
-    text = `J-${diffDays}`;
-  } else {
-    classes = "text-sky-700 bg-sky-50";
-    text = `J-${diffDays}`;
-  }
-
-  return (
-    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${classes}`}>
-      {text}
-    </span>
-  );
+  return countdownTag(diffDays);
 };
 
 export function InscriptionCard({inscription}: {inscription: Inscription}) {
@@ -230,10 +278,7 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
                   />
                 )}
               </div>
-              <DeadlineBadge
-                startDate={inscription.eventData.startDate}
-                status={inscription.status}
-              />
+              <DeadlineBadge inscription={inscription} />
             </div>
 
             {/* Row 2: Disciplines + Race Levels */}

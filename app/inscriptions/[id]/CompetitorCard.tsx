@@ -10,6 +10,7 @@ import {
   colorBadgePerRaceLevel,
 } from "@/app/lib/colorMappers";
 import type { CompetitionItem } from "@/app/types";
+import { format } from "date-fns";
 
 type CompetitorRow = {
   competitorid: number;
@@ -21,6 +22,7 @@ type CompetitorRow = {
   codexNumbers: string[];
   skiclub: string;
   addedByEmail?: string;
+  createdAt?: Date | string | null;
 };
 
 interface CompetitorCardProps {
@@ -111,9 +113,15 @@ export function CompetitorCard({
               >
                 {competitor.gender === "M" ? "Homme" : "Femme"}
               </Badge>
-              {competitor.addedByEmail && (
+              {(competitor.addedByEmail || competitor.createdAt) && (
                 <span className="text-xs text-slate-400">
-                  par {competitor.addedByEmail}
+                  {competitor.addedByEmail && <>par {competitor.addedByEmail}</>}
+                  {competitor.createdAt && (
+                    <>
+                      {competitor.addedByEmail ? " · " : ""}
+                      {format(new Date(competitor.createdAt), "dd/MM/yyyy")}
+                    </>
+                  )}
                 </span>
               )}
             </div>

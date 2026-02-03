@@ -38,10 +38,12 @@ import {Button} from "@/components/ui/button";
 import {Checkbox} from "@/components/ui/checkbox";
 import {CompetitorCard} from "./CompetitorCard";
 import {useTranslations} from "next-intl";
+import {format} from "date-fns";
 
 type InscriptionCompetitorWithCodex = InscriptionCompetitor & {
   codexNumbers: string[];
   addedByEmail?: string;
+  createdAt?: Date | string | null;
 };
 
 // Hook pour récupérer tous les compétiteurs de l'inscription (nouvelle structure)
@@ -78,6 +80,7 @@ type CompetitorRow = {
   codexNumbers: string[];
   skiclub: string;
   addedByEmail?: string;
+  createdAt?: Date | string | null;
 };
 
 // Copied from Competitors.tsx
@@ -446,6 +449,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
       codexNumbers: (c.codexNumbers || []).map(String),
       skiclub: c.skiclub ?? "",
       addedByEmail: c.addedByEmail,
+      createdAt: c.createdAt,
     }));
   }, [competitorsData]);
 
@@ -614,7 +618,19 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
       columnHelper.accessor((row) => row.addedByEmail ?? "-", {
         id: "addedByEmail",
         header: () => tTable("addedBy"),
-        cell: (info) => <span>{info.getValue() || "-"}</span>,
+        cell: (info) => {
+          const row = info.row.original;
+          return (
+            <div className="flex flex-col">
+              <span>{info.getValue() || "-"}</span>
+              {row.createdAt && (
+                <span className="text-xs text-slate-400">
+                  {format(new Date(row.createdAt), "dd/MM/yyyy")}
+                </span>
+              )}
+            </div>
+          );
+        },
         enableSorting: false,
       }),
       // Action column for managing registrations - only if user has permission

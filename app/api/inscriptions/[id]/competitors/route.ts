@@ -109,6 +109,7 @@ export async function GET(
     .select({
       competitorId: inscriptionCompetitors.competitorId,
       addedBy: inscriptionCompetitors.addedBy,
+      createdAt: inscriptionCompetitors.createdAt,
     })
     .from(inscriptionCompetitors)
     .where(
@@ -120,11 +121,14 @@ export async function GET(
         )
       )
     );
-  
+
   type MainLinkType = typeof links[0];
   const competitorIds = links.map((l: MainLinkType) => l.competitorId);
   const addedByMap = Object.fromEntries(
     links.map((l: MainLinkType) => [l.competitorId, l.addedBy])
+  );
+  const createdAtMap = Object.fromEntries(
+    links.map((l: MainLinkType) => [l.competitorId, l.createdAt])
   );
 
   if (competitorIds.length === 0) {
@@ -177,12 +181,13 @@ export async function GET(
     })
   );
 
-  // Ajoute le champ addedByEmail à chaque compétiteur
+  // Ajoute le champ addedByEmail et createdAt à chaque compétiteur
   const result = c.map((comp: CompetitorResultType) => {
     const addedByKey = String(addedByMap[comp.competitorid] ?? "");
     return {
       ...comp,
       addedByEmail: userEmailMap[addedByKey] || "-",
+      createdAt: createdAtMap[comp.competitorid] || null,
     };
   });
 

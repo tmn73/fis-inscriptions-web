@@ -220,7 +220,16 @@ export const Competitors = ({
                     ? "999"
                     : c.points}
                 </TableCell>
-                <TableCell>{c.addedByEmail || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span>{c.addedByEmail || "-"}</span>
+                    {c.createdAt && (
+                      <span className="text-xs text-slate-400">
+                        {format(new Date(c.createdAt), "dd/MM/yyyy")}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
                 {permissionToEdit && (
                   <TableCell>
                     <Button

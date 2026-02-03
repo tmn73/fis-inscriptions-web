@@ -17,12 +17,13 @@ export const GET = async (
 
   const clerk = await clerkClient();
 
-  // Récupérer tous les liens competitorId <-> codexNumber <-> addedBy pour cette inscription
+  // Récupérer tous les liens competitorId <-> codexNumber <-> addedBy <-> createdAt pour cette inscription
   const links = await db
     .select({
       competitorId: inscriptionCompetitors.competitorId,
       codexNumber: inscriptionCompetitors.codexNumber,
       addedBy: inscriptionCompetitors.addedBy,
+      createdAt: inscriptionCompetitors.createdAt,
     })
     .from(inscriptionCompetitors)
     .where(
@@ -31,7 +32,7 @@ export const GET = async (
         isNull(inscriptionCompetitors.deletedAt)
       )
     );
-  
+
   type LinkType = typeof links[0];
   const competitorIds = links.map((l: LinkType) => l.competitorId);
 
@@ -39,11 +40,15 @@ export const GET = async (
   const codexMap: Record<number, string[]> = {};
   // Mapping competitorId -> addedBy (on prend le premier si plusieurs)
   const addedByMap: Record<number, string> = {};
+  // Mapping competitorId -> createdAt (on prend le premier si plusieurs)
+  const createdAtMap: Record<number, Date | null> = {};
   links.forEach((l: LinkType) => {
     if (!codexMap[l.competitorId]) codexMap[l.competitorId] = [];
     codexMap[l.competitorId].push(l.codexNumber);
     if (!addedByMap[l.competitorId])
       addedByMap[l.competitorId] = l.addedBy ?? "Unknown";
+    if (!createdAtMap[l.competitorId])
+      createdAtMap[l.competitorId] = l.createdAt;
   });
 
   if (competitorIds.length === 0) {
@@ -113,6 +118,7 @@ export const GET = async (
       codexNumbers: codexMap[c.competitorid] || [],
       addedBy: addedByMap[c.competitorid] || "Unknown",
       addedByEmail: userEmailMap[addedByMap[c.competitorid]] || "Unknown",
+      createdAt: createdAtMap[c.competitorid] || null,
     }));
 
   type ResultType = typeof result[0];
