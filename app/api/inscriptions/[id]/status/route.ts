@@ -34,18 +34,45 @@ export async function PATCH(
     const currentTime = new Date();
 
     switch (scope) {
-      case "men":
+      case "men": {
         updateData.menStatus = status;
         if (status === "email_sent") {
           updateData.menEmailSentAt = currentTime;
         }
+        // Recalculer le statut global en fonction de l'autre genre
+        const [currentInscription] = await db
+          .select({ womenStatus: inscriptions.womenStatus })
+          .from(inscriptions)
+          .where(selectNotDeleted(inscriptions, eq(inscriptions.id, inscriptionId)));
+        const otherStatus = currentInscription?.womenStatus;
+        if (otherStatus === "email_sent" && status === "email_sent") {
+          updateData.status = "email_sent";
+          updateData.emailSentAt = currentTime;
+        } else {
+          // Si au moins un genre n'est plus "email_sent", le statut global doit refléter ça
+          updateData.status = status;
+        }
         break;
-      case "women":
+      }
+      case "women": {
         updateData.womenStatus = status;
         if (status === "email_sent") {
           updateData.womenEmailSentAt = currentTime;
         }
+        // Recalculer le statut global en fonction de l'autre genre
+        const [currentInscription] = await db
+          .select({ menStatus: inscriptions.menStatus })
+          .from(inscriptions)
+          .where(selectNotDeleted(inscriptions, eq(inscriptions.id, inscriptionId)));
+        const otherStatus = currentInscription?.menStatus;
+        if (otherStatus === "email_sent" && status === "email_sent") {
+          updateData.status = "email_sent";
+          updateData.emailSentAt = currentTime;
+        } else {
+          updateData.status = status;
+        }
         break;
+      }
       case "both":
         updateData.menStatus = status;
         updateData.womenStatus = status;

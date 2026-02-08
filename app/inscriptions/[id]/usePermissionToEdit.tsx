@@ -20,7 +20,10 @@ export const usePermissionToEdit = (
   }
 
   if (type === "manageCompetitorInscriptions" || type === "manageCoaches") {
-    // Pour la gestion des compétiteurs et coaches, on vérifie aussi le statut par genre
+    // Les admins peuvent toujours modifier les compétiteurs et coaches
+    if (isAdminRole(role)) return true;
+
+    // Pour les autres utilisateurs, on vérifie aussi le statut par genre
     const genderStatus = getGenderStatus(inscription, gender || null);
     const hasUserPermission = !!user.user;
     const canEditBasedOnStatus = genderStatus.canEdit;
