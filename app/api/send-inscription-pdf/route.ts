@@ -102,7 +102,7 @@ export async function POST(request: Request) {
                 eq(inscriptionCompetitors.inscriptionId, Number(inscriptionId))
               )
         );
-      competitorCount = new Set(competitorRows.map(r => r.competitorid)).size;
+      competitorCount = new Set(competitorRows.map((r: { competitorid: number }) => r.competitorid)).size;
     }
 
     // pdfFile est un Blob (File)
