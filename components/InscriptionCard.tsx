@@ -217,7 +217,7 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
   const diffDays = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   const isUrgent = effectiveStatus === "open" && diffDays >= 0 && diffDays <= 1;
-  const isThisWeek = effectiveStatus === "open" && diffDays > 1 && diffDays <= 7;
+  const isApproaching = effectiveStatus === "open" && diffDays >= 2 && diffDays <= 3;
 
   // Discipline order
   const disciplineOrder = ["DH", "SG", "GS", "SL", "AC"];
@@ -233,14 +233,14 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
   // Urgency-driven date block color
   const dateBlockClasses = isUrgent
     ? "bg-red-600"
-    : isThisWeek
+    : isApproaching
       ? "bg-amber-600"
       : "bg-slate-700";
 
   // Card border/background based on urgency
   const cardClasses = isUrgent
     ? "border-red-200 bg-red-50/30"
-    : isThisWeek
+    : isApproaching
       ? "border-amber-200 bg-amber-50/20"
       : "border-slate-200";
 
