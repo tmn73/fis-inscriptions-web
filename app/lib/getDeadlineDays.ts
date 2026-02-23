@@ -1,10 +1,10 @@
 import {Competition} from "@/app/types";
 
-export const CONTINENTAL_CUP_CODES = ["EC", "FEC", "SAC", "NAC", "ANC"];
+export const J8_DEADLINE_CODES = ["EC", "FEC", "SAC", "NAC", "ANC", "NC"];
 
 /**
  * Returns the number of days before the race that the inscription deadline falls.
- * - Continental cups (EC, FEC, SAC, NAC, ANC): J-8
+ * - Continental cups (EC, FEC, SAC, NAC, ANC) and NC: J-8
  * - All other events: J-3
  */
 export function getDeadlineDays(eventData: Competition): number {
@@ -13,8 +13,8 @@ export function getDeadlineDays(eventData: Competition): number {
 }
 
 export function getDeadlineDaysFromCodes(categoryCodes: string[]): number {
-  const isContinentalCup = categoryCodes.some((code) =>
-    CONTINENTAL_CUP_CODES.includes(code)
+  const hasJ8Code = categoryCodes.some((code) =>
+    J8_DEADLINE_CODES.includes(code)
   );
-  return isContinentalCup ? 8 : 3;
+  return hasJ8Code ? 8 : 3;
 }

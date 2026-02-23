@@ -2,7 +2,7 @@ import {describe, it, expect} from "vitest";
 import {
   getDeadlineDays,
   getDeadlineDaysFromCodes,
-  CONTINENTAL_CUP_CODES,
+  J8_DEADLINE_CODES,
 } from "@/app/lib/getDeadlineDays";
 import {Competition} from "@/app/types";
 
@@ -28,13 +28,17 @@ describe("getDeadlineDays", () => {
     });
   });
 
-  describe("continental cups (J-8)", () => {
-    it.each(CONTINENTAL_CUP_CODES)(
-      "should return 8 for %s (continental cup)",
+  describe("continental cups and NC (J-8)", () => {
+    it.each(J8_DEADLINE_CODES)(
+      "should return 8 for %s",
       (code) => {
         expect(getDeadlineDays(makeEventData([code]))).toBe(8);
       }
     );
+
+    it("should return 8 for NC (national championship)", () => {
+      expect(getDeadlineDays(makeEventData(["NC"]))).toBe(8);
+    });
 
     it("should return 8 when event has mixed codes including a continental cup", () => {
       expect(getDeadlineDays(makeEventData(["WC", "EC"]))).toBe(8);
@@ -59,12 +63,12 @@ describe("getDeadlineDays", () => {
     });
   });
 
-  describe("CONTINENTAL_CUP_CODES constant", () => {
-    it("should contain all 5 continental cup codes", () => {
-      expect(CONTINENTAL_CUP_CODES).toEqual(
-        expect.arrayContaining(["EC", "FEC", "SAC", "NAC", "ANC"])
+  describe("J8_DEADLINE_CODES constant", () => {
+    it("should contain all 6 J-8 deadline codes", () => {
+      expect(J8_DEADLINE_CODES).toEqual(
+        expect.arrayContaining(["EC", "FEC", "SAC", "NAC", "ANC", "NC"])
       );
-      expect(CONTINENTAL_CUP_CODES).toHaveLength(5);
+      expect(J8_DEADLINE_CODES).toHaveLength(6);
     });
   });
 });
