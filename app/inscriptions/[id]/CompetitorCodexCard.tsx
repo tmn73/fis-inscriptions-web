@@ -119,7 +119,7 @@ export function CompetitorCodexCard({
               {competitor.createdAt && (
                 <span>
                   {competitor.addedByEmail ? " · " : ""}
-                  {format(new Date(competitor.createdAt), "dd/MM/yyyy")}
+                  {format(new Date(competitor.createdAt), "dd/MM/yyyy HH:mm")}
                 </span>
               )}
             </div>

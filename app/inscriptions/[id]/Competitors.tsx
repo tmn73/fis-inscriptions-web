@@ -225,7 +225,7 @@ export const Competitors = ({
                     <span>{c.addedByEmail || "-"}</span>
                     {c.createdAt && (
                       <span className="text-xs text-slate-400">
-                        {format(new Date(c.createdAt), "dd/MM/yyyy")}
+                        {format(new Date(c.createdAt), "dd/MM/yyyy HH:mm")}
                       </span>
                     )}
                   </div>

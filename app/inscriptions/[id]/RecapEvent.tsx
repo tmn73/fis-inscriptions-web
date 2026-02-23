@@ -625,7 +625,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
               <span>{info.getValue() || "-"}</span>
               {row.createdAt && (
                 <span className="text-xs text-slate-400">
-                  {format(new Date(row.createdAt), "dd/MM/yyyy")}
+                  {format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}
                 </span>
               )}
             </div>
