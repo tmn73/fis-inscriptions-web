@@ -11,7 +11,7 @@ import {
   colorBadgePerRaceLevel,
   colorBadgePerGender,
 } from "@/app/lib/colorMappers";
-import {Loader2, ChevronRight} from "lucide-react";
+import {Loader2} from "lucide-react";
 import {useQuery} from "@tanstack/react-query";
 import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
 
@@ -50,13 +50,13 @@ const AthleteStats = ({
   const womenCount = data.filter((c: {gender?: string}) => c.gender === "W").length;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 flex-shrink-0">
       {hasM && (
         <div className="flex items-center gap-0.5">
           <span className={`w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["M"]}`}>
             M
           </span>
-          <span className="text-xs font-semibold tabular-nums text-slate-600">
+          <span className="text-xs font-semibold tabular-nums text-slate-500">
             {menCount}
           </span>
         </div>
@@ -66,7 +66,7 @@ const AthleteStats = ({
           <span className={`w-4 h-4 rounded text-[9px] font-bold text-white flex items-center justify-center ${colorBadgePerGender["W"]}`}>
             W
           </span>
-          <span className="text-xs font-semibold tabular-nums text-slate-600">
+          <span className="text-xs font-semibold tabular-nums text-slate-500">
             {womenCount}
           </span>
         </div>
@@ -75,7 +75,7 @@ const AthleteStats = ({
   );
 };
 
-// Deadline badge - small and functional
+// Deadline badge - compact, inline for mixed events
 const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
   const startDate = inscription.eventData.startDate;
   const eventDate = new Date(startDate);
@@ -96,7 +96,7 @@ const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
     let classes = "";
     let text = "";
     if (days < 0) {
-      classes = "text-slate-400 bg-slate-100";
+      classes = "text-red-900 bg-red-200 font-bold";
       text = "Passé";
     } else if (days === 0) {
       classes = "text-red-700 bg-red-100 animate-pulse";
@@ -122,7 +122,7 @@ const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
     const womenInfo = getGenderStatus(inscription, "W");
 
     return (
-      <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1 flex-shrink-0 flex-wrap justify-end">
         {menInfo.status !== "not_concerned" && (
           menInfo.status === "email_sent" && menInfo.emailSentAt ? (
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
@@ -157,13 +157,13 @@ const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
   if (inscription.status === "email_sent") {
     const sentDate = formatSentDate(inscription.emailSentAt);
     return (
-      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0">
         ✓ {sentDate || "Envoyé"}
       </span>
     );
   }
 
-  return countdownTag(diffDays);
+  return <div className="flex-shrink-0">{countdownTag(diffDays)}</div>;
 };
 
 export function InscriptionCard({inscription}: {inscription: Inscription}) {
@@ -230,6 +230,20 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
     return a.localeCompare(b);
   });
 
+  // Urgency-driven date block color
+  const dateBlockClasses = isUrgent
+    ? "bg-red-600"
+    : isThisWeek
+      ? "bg-amber-600"
+      : "bg-slate-700";
+
+  // Card border/background based on urgency
+  const cardClasses = isUrgent
+    ? "border-red-200 bg-red-50/30"
+    : isThisWeek
+      ? "border-amber-200 bg-amber-50/20"
+      : "border-slate-200";
+
   return (
     <Link href={`/inscriptions/${inscription.id}`} className="block">
       <article
@@ -237,34 +251,29 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
           group bg-white rounded-xl overflow-hidden
           border transition-all duration-150
           active:scale-[0.98]
-          ${isUrgent
-            ? "border-l-4 border-l-red-500 border-t-slate-200 border-r-slate-200 border-b-slate-200 bg-red-50/30"
-            : isThisWeek
-              ? "border-l-4 border-l-amber-400 border-t-slate-200 border-r-slate-200 border-b-slate-200 bg-amber-50/20"
-              : "border-slate-200 hover:border-slate-300"
-          }
+          ${cardClasses}
         `}
       >
         <div className="flex items-stretch">
-          {/* DATE BLOCK - Left side, prominent */}
-          <div className="flex-shrink-0 w-16 bg-slate-600 text-white flex flex-col items-center justify-center py-3">
-            <span className="text-[10px] uppercase tracking-wider text-slate-200 font-medium">
+          {/* DATE BLOCK - urgency-colored */}
+          <div className={`flex-shrink-0 w-[4.25rem] text-white flex flex-col items-center justify-center py-3 transition-colors ${dateBlockClasses}`}>
+            <span className="text-[10px] uppercase tracking-wider text-white/70 font-medium">
               {weekday}
             </span>
             <span className="text-3xl font-black leading-none tracking-tight">
               {day}
             </span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-200">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
               {month}
             </span>
           </div>
 
-          {/* MAIN CONTENT */}
-          <div className="flex-1 min-w-0 p-3">
+          {/* CONTENT */}
+          <div className="flex-1 min-w-0 py-2.5 px-3 flex flex-col gap-1.5">
             {/* Row 1: Location + Flag + Deadline */}
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <h3 className="text-base font-bold text-slate-900 truncate">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <h3 className="text-[15px] font-bold text-slate-900 truncate">
                   {formattedPlace}
                 </h3>
                 {flagUrl && (
@@ -282,21 +291,21 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
             </div>
 
             {/* Row 2: Disciplines + Race Levels */}
-            <div className="flex items-center gap-1.5 flex-wrap mb-2">
+            <div className="flex items-center gap-1 flex-wrap">
               {sortedDisciplines.map((discipline) => (
                 <span
                   key={discipline}
-                  className={`px-2.5 py-1 rounded text-[11px] font-bold ${
+                  className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                     colorBadgePerDiscipline[discipline] || "bg-slate-200 text-slate-700"
                   }`}
                 >
                   {discipline}
                 </span>
               ))}
-              {raceLevels.slice(0, 2).map((level) => (
+              {raceLevels.map((level) => (
                 <span
                   key={level}
-                  className={`px-2 py-1 rounded text-[10px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                     colorBadgePerRaceLevel[level] || "bg-slate-200 text-slate-600"
                   }`}
                 >
@@ -305,27 +314,21 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
               ))}
             </div>
 
-            {/* Row 3: Codex + Athletes */}
-            <div className="flex items-center justify-between gap-2">
-              {codexes.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-slate-400 font-medium">Codex:</span>
-                  <span className="text-[11px] font-mono text-slate-600">
-                    {codexes.slice(0, 3).join(", ")}
-                    {codexes.length > 3 && ` +${codexes.length - 3}`}
-                  </span>
-                </div>
+            {/* Row 3: Codex + Athletes - subtle metadata */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+              {codexes.length > 0 ? (
+                <span className="text-[10px] font-mono text-slate-400 truncate">
+                  {codexes.slice(0, 3).join(" \u00b7 ")}
+                  {codexes.length > 3 && ` +${codexes.length - 3}`}
+                </span>
+              ) : (
+                <span />
               )}
               <AthleteStats
                 inscriptionId={inscription.id}
                 genderCodes={sexes}
               />
             </div>
-          </div>
-
-          {/* ARROW */}
-          <div className="flex-shrink-0 w-8 flex items-center justify-center bg-slate-50 group-hover:bg-slate-100 transition-colors">
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
           </div>
         </div>
       </article>

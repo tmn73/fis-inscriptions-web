@@ -507,7 +507,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
           let badgeClass = "";
           let text = "";
           if (days < 0) {
-            badgeClass = "bg-gray-100 text-gray-800 border-gray-200";
+            badgeClass = "bg-red-200 text-red-900 border-red-300 font-bold";
             text = t("reminder.past", {days: Math.abs(days)});
           } else if (days === 0) {
             badgeClass = "bg-red-100 text-red-800 border-red-200";
