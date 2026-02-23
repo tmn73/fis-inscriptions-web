@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {Resend} from "resend";
 import {db} from "@/app/db/inscriptionsDB";
 import {getDbTables} from "@/app/lib/getDbTables";
-import {eq} from "drizzle-orm";
+import {and, eq} from "drizzle-orm";
 // Removed date-fns import - using native JS instead
 import {selectNotDeleted} from "@/lib/soft-delete";
 import {getUserOrganizationCode} from "@/app/lib/getUserOrganization";
@@ -19,7 +19,7 @@ function getResendClient() {
 
 export async function POST(request: Request) {
   try {
-    const { inscriptions, organizations } = getDbTables();
+    const { inscriptions, organizations, inscriptionCompetitors, competitors: competitorsTable } = getDbTables();
     // On attend un formData (multipart)
     const formData = await request.formData();
     const pdfFile = formData.get("pdf");
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     }
 
     const eventData = inscription[0].eventData;
+    const isNC = (eventData.categoryCodes ?? []).includes("NC");
 
     // Get organization config dynamically
     const organizationCode = await getUserOrganizationCode();
@@ -76,6 +77,33 @@ export async function POST(request: Request) {
     const baseUrl = organizationData.baseUrl;
     const fromEmail = organizationData.fromEmail;
     const emailTemplates = organizationData.emailTemplates;
+
+    // Count competitors for NC quota request
+    let competitorCount = 0;
+    if (isNC) {
+      const competitorRows = await db
+        .select({ competitorid: competitorsTable.competitorid })
+        .from(inscriptionCompetitors)
+        .innerJoin(
+          competitorsTable,
+          eq(inscriptionCompetitors.competitorId, competitorsTable.competitorid)
+        )
+        .where(
+          gender
+            ? selectNotDeleted(
+                inscriptionCompetitors,
+                and(
+                  eq(inscriptionCompetitors.inscriptionId, Number(inscriptionId)),
+                  eq(competitorsTable.gender, gender)
+                )
+              )
+            : selectNotDeleted(
+                inscriptionCompetitors,
+                eq(inscriptionCompetitors.inscriptionId, Number(inscriptionId))
+              )
+        );
+      competitorCount = new Set(competitorRows.map(r => r.competitorid)).size;
+    }
 
     // pdfFile est un Blob (File)
     const arrayBuffer = await (pdfFile as Blob).arrayBuffer();
@@ -132,12 +160,7 @@ export async function POST(request: Request) {
       ? (inscriptionPdfTemplate?.signature_urls?.women || "https://i.imgur.com/ISeoDQp.jpeg")
       : (inscriptionPdfTemplate?.signature_urls?.men || "https://i.imgur.com/tSwmL0f.png");
 
-    const resend = getResendClient();
-    const {data, error: emailError} = await resend.emails.send({
-      from: fromEmail,
-      to: to,
-      subject: subjectLine,
-      html: `
+    const standardHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f6f7; padding: 24px; color: #222;">
           <p style="font-size: 18px; margin-bottom: 18px;">Dear Ski Friend,</p>
           <p style="font-size: 16px; margin-bottom: 18px;">
@@ -160,10 +183,47 @@ export async function POST(request: Request) {
             <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" style="max-width: 300px; width: 100%; height: auto; display: inline-block;" />
           </div>
         </div>
-      `,
+      `;
+
+    const genderWord = isMen ? "men" : isWomen ? "women" : "athletes";
+
+    const ncQuotaHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f6f7; padding: 24px; color: #222;">
+          <p style="font-size: 18px; margin-bottom: 18px;">Dear Ski Friends,</p>
+          <p style="font-size: 16px; margin-bottom: 18px;">
+            The ${subjectPrefix} would like to participate in your National Championship and kindly requests a quota for <b>${competitorCount} ${genderWord}</b>.
+          </p>
+          <p style="font-size: 16px; margin-bottom: 18px;">
+            Please find attached the ${subjectPrefix} <b><i>${subjectGender}</i></b> Team entries for the following races:
+          </p>
+          <ul style="margin-bottom: 18px;">
+            <li style="font-size: 16px;">
+              <a style="color: #1976d2; text-decoration: underline;" href="${baseUrl}/inscriptions/${inscriptionId}">${shortDate}</a>
+              ➞ ${place} ${nation}-NC
+            </li>
+          </ul>
+          <p style="font-size: 16px; margin-bottom: 18px;">
+            We kindly ask you to <b><a style="color: #1976d2; text-decoration: underline;" href="mailto:${to.join(",")}?subject=Re:%20${encodeURIComponent(subjectLine)}">reply to all</a></b> to confirm receipt, or to let us know if you need any additional information or the programme.
+          </p>
+          <p style="font-size: 16px; margin-bottom: 18px;">
+            We wish you great races, and please feel free to contact me at <a href="mailto:${contactEmail}" style="color: #1976d2; text-decoration: underline;">${contactEmail}</a> if you have any questions.
+          </p>
+          <p style="font-size: 16px;">Thank you very much.</p>
+          <div style="text-align: center; margin-top: 32px;">
+            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" style="max-width: 300px; width: 100%; height: auto; display: inline-block;" />
+          </div>
+        </div>
+      `;
+
+    const resend = getResendClient();
+    const {data, error: emailError} = await resend.emails.send({
+      from: fromEmail,
+      to: to,
+      subject: subjectLine,
+      html: isNC ? ncQuotaHtml : standardHtml,
       attachments: [
         {
-          filename: `${shortDate} ➞ ${place} ${nation}-FIS-${subjectGender}.pdf`
+          filename: `${shortDate} ➞ ${place} ${nation}-${isNC ? "NC" : "FIS"}-${subjectGender}.pdf`
             .replace(/ +/g, " ")
             .replace(" ()", "")
             .trim(),
