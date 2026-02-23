@@ -14,6 +14,7 @@ import {
 import {Loader2} from "lucide-react";
 import {useQuery} from "@tanstack/react-query";
 import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
+import {getDeadlineDays} from "@/app/lib/getDeadlineDays";
 
 // Athlete count component - compact inline display
 const AthleteStats = ({
@@ -80,7 +81,7 @@ const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
   const startDate = inscription.eventData.startDate;
   const eventDate = new Date(startDate);
   const deadlineDate = new Date(eventDate);
-  deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+  deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDays(inscription.eventData));
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   deadlineDate.setUTCHours(0, 0, 0, 0);
@@ -210,7 +211,7 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
   // Urgency styling
   const effectiveStatus = getEffectiveStatusForFilter(inscription);
   const deadlineDate = new Date(eventDate);
-  deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+  deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDays(inscription.eventData));
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   deadlineDate.setUTCHours(0, 0, 0, 0);

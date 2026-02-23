@@ -3,6 +3,7 @@ import {sendNotificationEmail} from "../app/lib/sendNotificationEmail";
 import {format} from "date-fns";
 import {fr} from "date-fns/locale";
 import {clerkClient} from "@clerk/clerk-sdk-node";
+import {getDeadlineDaysFromCodes} from "../app/lib/getDeadlineDays";
 
 const dbUrl = process.env.NEON_DATABASE_URL!;
 // Fallback email configuration for backwards compatibility
@@ -183,7 +184,8 @@ const main = async () => {
     ORDER BY ic.deleted_at ASC;
   `);
 
-  // Récupère les événements dont la date limite d'envoi (J-3) est dans les 7 prochains jours et dont l'email/PDF n'a pas encore été envoyé
+  // Récupère les événements dont la date limite d'envoi est dans les prochains jours et dont l'email/PDF n'a pas encore été envoyé
+  // La deadline varie: J-8 pour les coupes continentales (EC,FEC,SAC,NAC,ANC), J-3 pour le reste
   const {rows: upcomingEventsWithoutEmail} = await client.query(`
     SELECT
       id,
@@ -194,19 +196,18 @@ const main = async () => {
       status,
       created_by,
       created_at,
-      -- Calcul de la date limite (J-3)
-      ((event_data->>'startDate')::date - INTERVAL '3 days') AS deadline_date,
-      -- Calcul des jours restants jusqu'à la date limite
-      ((event_data->>'startDate')::date - INTERVAL '3 days') - CURRENT_DATE AS days_until_deadline
+      -- Récupère les categoryCodes pour déterminer la deadline côté JS
+      COALESCE(
+        (SELECT array_agg(elem::text) FROM jsonb_array_elements_text(event_data->'categoryCodes') AS elem),
+        ARRAY[]::text[]
+      ) AS category_codes
     FROM "ffs".inscriptions
     WHERE deleted_at IS NULL
       AND status NOT IN ('email_sent', 'cancelled')
       AND email_sent_at IS NULL
-      AND ((event_data->>'startDate')::date - INTERVAL '3 days') BETWEEN CURRENT_DATE - INTERVAL '3 days' AND CURRENT_DATE + INTERVAL '7 days'
-    ORDER BY 
-      -- Tri par urgence: les plus urgents en premier (J-0, J-1, J-2...)
-      ((event_data->>'startDate')::date - INTERVAL '3 days') - CURRENT_DATE ASC,
-      -- Puis par date de course pour départager
+      -- Utilise J-8 (deadline max) pour capturer toutes les courses potentiellement urgentes
+      AND ((event_data->>'startDate')::date - INTERVAL '8 days') BETWEEN CURRENT_DATE - INTERVAL '3 days' AND CURRENT_DATE + INTERVAL '7 days'
+    ORDER BY
       (event_data->>'startDate')::date ASC;
   `);
 
@@ -449,8 +450,9 @@ const main = async () => {
           // Calcul manuel plus fiable des jours restants
           const eventDate = new Date(evt.event_start_date);
           const deadlineDate = new Date(eventDate);
+          const deadlineDays = getDeadlineDaysFromCodes(evt.category_codes ?? []);
           // Use UTC methods to avoid timezone-related bugs
-          deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
+          deadlineDate.setUTCDate(eventDate.getUTCDate() - deadlineDays);
           const today = new Date();
           today.setUTCHours(0, 0, 0, 0);
           deadlineDate.setUTCHours(0, 0, 0, 0);

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {format, parseISO} from "date-fns";
+import {getDeadlineDays as getDeadlineDaysForEvent} from "@/app/lib/getDeadlineDays";
 import Link from "next/link";
 import {
   colorBadgePerDiscipline,
@@ -274,7 +275,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
   const getDeadlineDays = useCallback((inscription: Inscription) => {
     const eventDate = new Date(inscription.eventData.startDate);
     const deadlineDate = new Date(eventDate);
-    deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+    deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDaysForEvent(inscription.eventData));
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     deadlineDate.setUTCHours(0, 0, 0, 0);
@@ -474,7 +475,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         const eventDate = new Date(row.eventData.startDate);
         const deadlineDate = new Date(eventDate);
         // Use UTC methods to avoid timezone-related bugs
-        deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
+        deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDaysForEvent(row.eventData));
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
         deadlineDate.setUTCHours(0, 0, 0, 0);
@@ -486,7 +487,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         const eventDate = new Date(row.original.eventData.startDate);
         const deadlineDate = new Date(eventDate);
         // Use UTC methods to avoid timezone-related bugs
-        deadlineDate.setUTCDate(eventDate.getUTCDate() - 3); // J-3
+        deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDaysForEvent(row.original.eventData));
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
         deadlineDate.setUTCHours(0, 0, 0, 0);

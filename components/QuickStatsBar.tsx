@@ -3,6 +3,7 @@
 import {useQuery} from "@tanstack/react-query";
 import {Inscription} from "@/app/types";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
+import {getDeadlineDays} from "@/app/lib/getDeadlineDays";
 import {AlertTriangle, Clock, Send, Calendar, List, XCircle} from "lucide-react";
 import {useTranslations} from "next-intl";
 
@@ -130,7 +131,7 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
 
     const eventDate = new Date(insc.eventData.startDate);
     const deadlineDate = new Date(eventDate);
-    deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+    deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDays(insc.eventData));
     deadlineDate.setUTCHours(0, 0, 0, 0);
 
     const diffTime = deadlineDate.getTime() - now.getTime();
@@ -146,7 +147,7 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
 
     const eventDate = new Date(insc.eventData.startDate);
     const deadlineDate = new Date(eventDate);
-    deadlineDate.setUTCDate(eventDate.getUTCDate() - 3);
+    deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDays(insc.eventData));
     deadlineDate.setUTCHours(0, 0, 0, 0);
 
     const diffTime = deadlineDate.getTime() - now.getTime();
