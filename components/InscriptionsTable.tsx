@@ -456,7 +456,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="cursor-pointer"
+          className="cursor-pointer p-0"
         >
           {tHeaders("date")}
         </Button>
@@ -570,39 +570,22 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         if (inscription.status === "email_sent") {
           const sentDate = formatSentDate(inscription.emailSentAt);
           return (
-            <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
-              <Mail className="w-3 h-3" />
-              ✓ {sentDate || t("reminder.sent")}
-            </Badge>
+            <div className="flex items-center gap-1">
+              <span className="w-4 flex-shrink-0" />
+              <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                ✓ {sentDate || t("reminder.sent")}
+              </Badge>
+            </div>
           );
         }
 
         // Countdown
-        let badgeClass = "";
-        let text = "";
-
-        if (diffDays < 0) {
-          badgeClass = "bg-gray-100 text-gray-800 border-gray-200";
-          text = t("reminder.past", {days: Math.abs(diffDays)});
-        } else if (diffDays === 0) {
-          badgeClass = "bg-red-100 text-red-800 border-red-200";
-          text = t("reminder.warning");
-        } else if (diffDays === 1) {
-          badgeClass = "bg-orange-100 text-orange-800 border-orange-200";
-          text = "D-1";
-        } else if (diffDays === 2) {
-          badgeClass = "bg-yellow-100 text-yellow-800 border-yellow-200";
-          text = "D-2";
-        } else {
-          badgeClass = "bg-green-100 text-green-800 border-green-200";
-          text = `D-${diffDays}`;
-        }
-
         return (
-          <Badge className={`${badgeClass} flex items-center gap-1`}>
-            <Mail className="w-3 h-3" />
-            {text}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <span className="w-4 flex-shrink-0" />
+            {countdownBadge(diffDays)}
+          </div>
         );
       },
       sortingFn: (rowA, rowB) => {

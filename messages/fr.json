@@ -177,7 +177,7 @@
     "table": {
       "headers": {
         "actions": "Actions",
-        "date": "Date",
+        "date": "Race Date",
         "reminder": "Rappel",
         "station": "Station",
         "country": "Pays",
@@ -197,7 +197,7 @@
       },
       "filters": {
         "season": "Saison",
-        "date": "Date",
+        "date": "Race Date",
         "datePlaceholder": "Date de la 1ère course",
         "station": "Station",
         "country": "Pays",

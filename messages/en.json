@@ -177,7 +177,7 @@
     "table": {
       "headers": {
         "actions": "Actions",
-        "date": "Date",
+        "date": "Race Date",
         "reminder": "Reminder",
         "station": "Resort",
         "country": "Country",
@@ -197,7 +197,7 @@
       },
       "filters": {
         "season": "Season",
-        "date": "Date",
+        "date": "Race Date",
         "datePlaceholder": "Date of 1st race",
         "station": "Resort",
         "country": "Country",
