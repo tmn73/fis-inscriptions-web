@@ -646,7 +646,7 @@ export default function StatsPage() {
                     count: Number(item.count),
                     color: GENDER_HEX[item.gender] || '#94a3b8',
                   }))
-                  const total = genderData.reduce((sum, g) => sum + g.count, 0)
+                  const total = genderData.reduce((sum: number, g: any) => sum + g.count, 0)
                   const radius = 70
                   const stroke = 18
                   const circumference = 2 * Math.PI * radius
