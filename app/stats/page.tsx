@@ -533,13 +533,13 @@ export default function StatsPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {stats.byStatus.map((item: any) => {
-                        const maxCount = Math.max(...stats.byStatus.map((s: any) => s.count))
-                        const total = stats.byStatus.reduce((sum: number, s: any) => sum + s.count, 0)
+                        const maxCount = Math.max(...stats.byStatus.map((s: any) => Number(s.count)))
+                        const total = stats.byStatus.reduce((sum: number, s: any) => sum + Number(s.count), 0)
                         return (
                           <BreakdownBar
                             key={item.status}
                             label={tStatus(item.status)}
-                            count={item.count}
+                            count={Number(item.count)}
                             maxCount={maxCount}
                             total={total}
                             barColor={STATUS_COLORS[item.status] || 'bg-slate-400'}
@@ -558,12 +558,12 @@ export default function StatsPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {stats.byGender.map((item: any) => {
-                        const total = stats.byGender.reduce((sum: number, g: any) => sum + g.count, 0)
+                        const total = stats.byGender.reduce((sum: number, g: any) => sum + Number(g.count), 0)
                         return (
                           <BreakdownBar
                             key={item.gender}
                             label={item.gender === 'M' ? t('gender.men') : t('gender.women')}
-                            count={item.count}
+                            count={Number(item.count)}
                             maxCount={total}
                             total={total}
                             barColor={item.gender === 'M' ? 'bg-blue-500' : 'bg-pink-500'}
