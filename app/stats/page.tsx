@@ -61,16 +61,18 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
   }
 }
 
+const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations'
+
 function getMetricsForTab(tab: string): string {
   switch (tab) {
     case 'overview':
-      return 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,avgCompetitorsPerInscription,byStatus,byGender,byDiscipline,topCompetitors,byCreator,timeline'
+      return `${SUMMARY_METRICS},byStatus,byGender,byDiscipline,topCompetitors,byCreator,timeline`
     case 'competitors':
-      return 'totalCompetitors,totalIndividualRegistrations,competitorsList'
+      return `${SUMMARY_METRICS},competitorsList`
     case 'disciplines':
-      return 'totalInscriptions,totalIndividualRegistrations,byDiscipline'
+      return `${SUMMARY_METRICS},byDiscipline`
     case 'countries':
-      return 'totalInscriptions,byCountry'
+      return `${SUMMARY_METRICS},byCountry`
     default:
       return 'all'
   }
@@ -503,7 +505,11 @@ export default function StatsPage() {
             isLoading={isLoading}
           />
           <SummaryCard
-            value={stats?.avgCompetitorsPerInscription?.toFixed(1) ?? '-'}
+            value={
+              stats?.totalIndividualRegistrations && stats?.totalInscriptions
+                ? (stats.totalIndividualRegistrations / stats.totalInscriptions).toFixed(1)
+                : '-'
+            }
             label={t('summary.average')}
             subtitle={t('summary.averageDesc')}
             accentColor="border-l-violet-500"

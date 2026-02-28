@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
-import { and, sql } from 'drizzle-orm'
+import { and, sql, count, eq } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
 
 export const dynamic = 'force-dynamic'
@@ -87,14 +87,13 @@ export async function GET(request: NextRequest) {
     const stats: any = {}
     const wantsAll = query.metrics?.includes('all')
 
-    // Total inscriptions
+    // Total inscriptions (no JOIN — safe with Drizzle query builder)
     if (wantsAll || query.metrics?.includes('totalInscriptions')) {
-      const result = await db.execute(sql`
-        SELECT COUNT(*) as count
-        FROM ${inscriptions}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-      `)
-      stats.totalInscriptions = Number(result.rows[0]?.count) || 0
+      const result = await db
+        .select({ count: count() })
+        .from(inscriptions)
+        .where(whereClause)
+      stats.totalInscriptions = result[0]?.count || 0
     }
 
     // Total competitors (unique runners)
@@ -119,15 +118,14 @@ export async function GET(request: NextRequest) {
       stats.totalIndividualRegistrations = Number(result.rows[0]?.count) || 0
     }
 
-    // Breakdown by status
+    // Breakdown by status (no JOIN — safe with Drizzle query builder)
     if (wantsAll || query.metrics?.includes('byStatus')) {
-      const result = await db.execute(sql`
-        SELECT ${inscriptions.status} as status, COUNT(*) as count
-        FROM ${inscriptions}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-        GROUP BY ${inscriptions.status}
-      `)
-      stats.byStatus = result.rows
+      const result = await db
+        .select({ status: inscriptions.status, count: count() })
+        .from(inscriptions)
+        .where(whereClause)
+        .groupBy(inscriptions.status)
+      stats.byStatus = result
     }
 
     // Breakdown by gender
@@ -183,21 +181,6 @@ export async function GET(request: NextRequest) {
         ORDER BY month DESC
       `)
       stats.timeline = result.rows
-    }
-
-    // Average competitors per inscription
-    if (wantsAll || query.metrics?.includes('avgCompetitorsPerInscription')) {
-      const result = await db.execute(sql`
-        SELECT AVG(competitor_count) as avg
-        FROM (
-          SELECT inscription_id, COUNT(*) as competitor_count
-          FROM ${inscriptionCompetitors}
-          LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-          ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-          GROUP BY inscription_id
-        ) as counts
-      `)
-      stats.avgCompetitorsPerInscription = parseFloat(result.rows[0]?.avg || '0')
     }
 
     // Top competitors by number of registrations
