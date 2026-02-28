@@ -660,7 +660,7 @@ export default function StatsPage() {
                         <div className="relative">
                           <svg width={180} height={180} viewBox="0 0 180 180">
                             <circle cx="90" cy="90" r={radius} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
-                            {genderData.map((item) => {
+                            {genderData.map((item: any) => {
                               const pct = total > 0 ? item.count / total : 0
                               const dash = pct * circumference
                               const gap = circumference - dash
@@ -688,7 +688,7 @@ export default function StatsPage() {
                           </div>
                         </div>
                         <div className="flex gap-6">
-                          {genderData.map((item) => (
+                          {genderData.map((item: any) => (
                             <div key={item.gender} className="flex items-center gap-2 text-sm">
                               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                               <span className="text-muted-foreground">{item.label}</span>
