@@ -685,7 +685,7 @@ export default function StatsPage() {
               </div>
 
               {/* Competitors table */}
-              <Card>
+              <Card className="py-0 overflow-hidden">
                 <div className="overflow-auto max-h-[70vh]">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10">

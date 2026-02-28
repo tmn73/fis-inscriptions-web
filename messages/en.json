@@ -97,7 +97,7 @@
       "women": "Women"
     },
     "competitorsTable": {
-      "search": "Search runner (name, nation, FIS code)...",
+      "search": "Search...",
       "competitors": "runners",
       "noResults": "No runners found",
       "name": "Name",
