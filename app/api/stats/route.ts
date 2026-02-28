@@ -137,6 +137,17 @@ export async function GET(request: NextRequest) {
       stats.totalIndividualRegistrations = Number(result.rows[0]?.count) || 0
     }
 
+    // Total races (codex count - individual races within competitions)
+    if (wantsAll || query.metrics?.includes('totalRaces')) {
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${inscriptions},
+          jsonb_array_elements(${inscriptions.eventData}->'competitions') as comp
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+      `)
+      stats.totalRaces = Number(result.rows[0]?.count) || 0
+    }
+
     // Breakdown by status (no JOIN — safe with Drizzle query builder)
     if (wantsAll || query.metrics?.includes('byStatus')) {
       const result = await db
@@ -162,13 +173,24 @@ export async function GET(request: NextRequest) {
 
     // Breakdown by discipline (from competitions array -> eventCode: SL, GS, DH, SG, AC)
     if (wantsAll || query.metrics?.includes('byDiscipline')) {
+      // Build WHERE with optional discipline-level filter on unnested competitions
+      const disciplineWhereParts = []
+      if (whereClause) disciplineWhereParts.push(whereClause)
+      if (query.discipline && query.discipline.length > 0) {
+        const vals = query.discipline.map(d => sql`${d}`)
+        disciplineWhereParts.push(sql`comp->>'eventCode' IN (${sql.join(vals, sql`, `)})`)
+      }
+      const disciplineWhere = disciplineWhereParts.length > 0
+        ? sql`WHERE ${sql.join(disciplineWhereParts, sql` AND `)}`
+        : sql``
+
       const result = await db.execute(sql`
         SELECT
           comp->>'eventCode' as discipline,
           COUNT(*) as count
         FROM ${inscriptions},
           jsonb_array_elements(${inscriptions.eventData}->'competitions') as comp
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${disciplineWhere}
         GROUP BY comp->>'eventCode'
         ORDER BY count DESC
       `)
