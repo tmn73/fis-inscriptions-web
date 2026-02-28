@@ -64,7 +64,7 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
 function getMetricsForTab(tab: string): string {
   switch (tab) {
     case 'overview':
-      return 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,avgCompetitorsPerInscription,byStatus,byGender,byDiscipline,topCompetitors,timeline'
+      return 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,avgCompetitorsPerInscription,byStatus,byGender,byDiscipline,topCompetitors,byCreator,timeline'
     case 'competitors':
       return 'totalCompetitors,totalIndividualRegistrations,competitorsList'
     case 'disciplines':
@@ -628,6 +628,42 @@ export default function StatsPage() {
                           <Badge variant="outline" className="tabular-nums">
                             {competitor.registration_count} {t('competitorsTable.registrations')}
                           </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* By Creator */}
+              {stats.byCreator && stats.byCreator.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">{t('breakdown.byCreator')}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {stats.byCreator.map((creator: any, index: number) => (
+                        <div
+                          key={creator.createdBy}
+                          className="flex items-center justify-between py-2 border-b last:border-0"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-mono text-muted-foreground w-7 text-right">
+                              {index + 1}.
+                            </span>
+                            <span className="font-medium text-sm truncate max-w-[200px]">
+                              {creator.createdBy}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="tabular-nums">
+                              {creator.inscriptionCount} {t('breakdown.events')}
+                            </Badge>
+                            <Badge variant="secondary" className="tabular-nums">
+                              {creator.competitorCount} {t('competitorsTable.competitors')}
+                            </Badge>
+                          </div>
                         </div>
                       ))}
                     </div>

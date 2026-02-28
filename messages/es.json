@@ -90,6 +90,8 @@
       "byDiscipline": "Por disciplina",
       "byCountry": "Por pais",
       "topCompetitors": "Top corredores por numero de inscripciones",
+      "byCreator": "Inscripciones por usuario",
+      "events": "eventos",
       "timeline": "Timeline de inscripciones"
     },
     "gender": {

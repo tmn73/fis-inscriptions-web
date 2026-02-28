@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
-import { eq, and, sql, count, countDistinct } from 'drizzle-orm'
+import { and, sql } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
 
 export const dynamic = 'force-dynamic'
@@ -89,59 +89,58 @@ export async function GET(request: NextRequest) {
 
     // Total inscriptions
     if (wantsAll || query.metrics?.includes('totalInscriptions')) {
-      const result = await db
-        .select({ count: count() })
-        .from(inscriptions)
-        .where(whereClause)
-      stats.totalInscriptions = result[0]?.count || 0
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${inscriptions}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+      `)
+      stats.totalInscriptions = Number(result.rows[0]?.count) || 0
     }
 
     // Total competitors (unique runners)
     if (wantsAll || query.metrics?.includes('totalCompetitors')) {
-      const result = await db
-        .select({ count: countDistinct(inscriptionCompetitors.competitorId) })
-        .from(inscriptionCompetitors)
-        .leftJoin(inscriptions, eq(inscriptionCompetitors.inscriptionId, inscriptions.id))
-        .where(whereClause)
-      stats.totalCompetitors = result[0]?.count || 0
+      const result = await db.execute(sql`
+        SELECT COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as count
+        FROM ${inscriptionCompetitors}
+        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+      `)
+      stats.totalCompetitors = Number(result.rows[0]?.count) || 0
     }
 
     // Total individual registrations (competitor x events)
     if (wantsAll || query.metrics?.includes('totalIndividualRegistrations')) {
-      const result = await db
-        .select({ count: count() })
-        .from(inscriptionCompetitors)
-        .leftJoin(inscriptions, eq(inscriptionCompetitors.inscriptionId, inscriptions.id))
-        .where(whereClause)
-      stats.totalIndividualRegistrations = result[0]?.count || 0
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${inscriptionCompetitors}
+        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+      `)
+      stats.totalIndividualRegistrations = Number(result.rows[0]?.count) || 0
     }
 
     // Breakdown by status
     if (wantsAll || query.metrics?.includes('byStatus')) {
-      const result = await db
-        .select({
-          status: inscriptions.status,
-          count: count()
-        })
-        .from(inscriptions)
-        .where(whereClause)
-        .groupBy(inscriptions.status)
-      stats.byStatus = result
+      const result = await db.execute(sql`
+        SELECT ${inscriptions.status} as status, COUNT(*) as count
+        FROM ${inscriptions}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        GROUP BY ${inscriptions.status}
+      `)
+      stats.byStatus = result.rows
     }
 
     // Breakdown by gender
     if (wantsAll || query.metrics?.includes('byGender')) {
-      const result = await db
-        .select({
-          gender: competitors.gender,
-          count: count()
-        })
-        .from(inscriptionCompetitors)
-        .leftJoin(inscriptions, eq(inscriptionCompetitors.inscriptionId, inscriptions.id))
-        .leftJoin(competitors, eq(inscriptionCompetitors.competitorId, competitors.competitorid))
-        .where(whereClause)
-        .groupBy(competitors.gender)
-      stats.byGender = result
+      const result = await db.execute(sql`
+        SELECT ${competitors.gender} as gender, COUNT(*) as count
+        FROM ${inscriptionCompetitors}
+        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        GROUP BY ${competitors.gender}
+      `)
+      stats.byGender = result.rows
     }
 
     // Breakdown by discipline (from competitions array -> eventCode: SL, GS, DH, SG, AC)
@@ -242,6 +241,26 @@ export async function GET(request: NextRequest) {
         ORDER BY "registrationCount" DESC, ${competitors.lastname}, ${competitors.firstname}
       `)
       stats.competitorsList = result.rows
+    }
+
+    // Breakdown by creator (who creates the most inscriptions)
+    if (wantsAll || query.metrics?.includes('byCreator')) {
+      const result = await db.execute(sql`
+        SELECT
+          ${inscriptions.createdBy} as "createdBy",
+          COUNT(*) as "inscriptionCount",
+          COALESCE(SUM(sub.competitor_count), 0) as "competitorCount"
+        FROM ${inscriptions}
+        LEFT JOIN (
+          SELECT ${inscriptionCompetitors.inscriptionId} as iid, COUNT(*) as competitor_count
+          FROM ${inscriptionCompetitors}
+          GROUP BY ${inscriptionCompetitors.inscriptionId}
+        ) sub ON sub.iid = ${inscriptions.id}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        GROUP BY ${inscriptions.createdBy}
+        ORDER BY "inscriptionCount" DESC
+      `)
+      stats.byCreator = result.rows
     }
 
     return NextResponse.json(stats)

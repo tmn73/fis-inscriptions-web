@@ -90,6 +90,8 @@
       "byDiscipline": "By discipline",
       "byCountry": "By country",
       "topCompetitors": "Top runners by registration count",
+      "byCreator": "Registrations by user",
+      "events": "events",
       "timeline": "Registration timeline"
     },
     "gender": {
