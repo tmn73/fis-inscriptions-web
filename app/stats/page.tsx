@@ -676,7 +676,7 @@ export default function StatsPage() {
                     placeholder={t('competitorsTable.search')}
                     value={competitorSearch}
                     onChange={(e) => setCompetitorSearch(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 bg-background border-border"
                   />
                 </div>
                 <p className="text-sm text-muted-foreground tabular-nums">
@@ -686,10 +686,10 @@ export default function StatsPage() {
 
               {/* Competitors table */}
               <Card>
-                <div className="overflow-x-auto">
+                <div className="overflow-auto max-h-[70vh]">
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="border-b bg-muted">
                         <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
                         <th className="text-left p-3">
                           <SortableHeader
