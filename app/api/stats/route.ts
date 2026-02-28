@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
 import { and, sql, count, eq } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
+import { clerkClient } from '@clerk/nextjs/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -243,7 +244,36 @@ export async function GET(request: NextRequest) {
         GROUP BY ${inscriptions.createdBy}
         ORDER BY "inscriptionCount" DESC
       `)
-      stats.byCreator = result.rows
+
+      // Resolve Clerk user IDs to names
+      const client = await clerkClient()
+      const rows = result.rows as any[]
+      const userIds = rows.map((r) => r.createdBy).filter(Boolean)
+      const userMap: Record<string, { email: string; firstName: string | null; lastName: string | null }> = {}
+      await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const user = await client.users.getUser(userId)
+            userMap[userId] = {
+              email: user.emailAddresses?.[0]?.emailAddress || userId,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            }
+          } catch {
+            // fallback to ID
+          }
+        })
+      )
+
+      stats.byCreator = rows.map((row) => {
+        const resolved = userMap[row.createdBy]
+        return {
+          ...row,
+          email: resolved?.email || row.createdBy,
+          firstName: resolved?.firstName || null,
+          lastName: resolved?.lastName || null,
+        }
+      })
     }
 
     return NextResponse.json(stats)

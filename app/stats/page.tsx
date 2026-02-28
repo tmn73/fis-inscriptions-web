@@ -643,37 +643,49 @@ export default function StatsPage() {
 
               {/* By Creator */}
               {stats.byCreator && stats.byCreator.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">{t('breakdown.byCreator')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {stats.byCreator.map((creator: any, index: number) => (
-                        <div
-                          key={creator.createdBy}
-                          className="flex items-center justify-between py-2 border-b last:border-0"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-mono text-muted-foreground w-7 text-right">
-                              {index + 1}.
-                            </span>
-                            <span className="font-medium text-sm truncate max-w-[200px]">
-                              {creator.createdBy}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="tabular-nums">
-                              {creator.inscriptionCount} {t('breakdown.events')}
-                            </Badge>
-                            <Badge variant="secondary" className="tabular-nums">
-                              {creator.competitorCount} {t('competitorsTable.competitors')}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
+                <Card className="py-0 overflow-hidden">
+                  <div className="px-4 py-3 border-b">
+                    <h3 className="text-base font-semibold">{t('breakdown.byCreator')}</h3>
+                  </div>
+                  <div className="overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted">
+                          <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.name')}</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Email</th>
+                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('breakdown.events')}</th>
+                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.competitors')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.byCreator.map((creator: any, index: number) => (
+                          <tr
+                            key={creator.createdBy}
+                            className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                          >
+                            <td className="p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
+                            <td className="p-3 font-medium">
+                              {creator.firstName || creator.lastName
+                                ? `${creator.firstName ?? ''} ${creator.lastName ?? ''}`.trim()
+                                : creator.email}
+                            </td>
+                            <td className="p-3 text-muted-foreground hidden sm:table-cell">{creator.email}</td>
+                            <td className="p-3 text-right">
+                              <Badge variant="outline" className="tabular-nums">
+                                {creator.inscriptionCount}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-right">
+                              <Badge variant="secondary" className="tabular-nums">
+                                {creator.competitorCount}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </Card>
               )}
 
