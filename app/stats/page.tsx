@@ -366,25 +366,25 @@ export default function StatsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <TabsList>
-              <TabsTrigger value="overview">
+              <TabsTrigger value="overview" className="cursor-pointer">
                 <BarChart3 className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">{t('tabs.overview')}</span>
                 <span className="sm:hidden">{t('tabs.overviewShort')}</span>
               </TabsTrigger>
-              <TabsTrigger value="competitors">
+              <TabsTrigger value="competitors" className="cursor-pointer">
                 <Users className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">{t('tabs.competitors')}</span>
                 <span className="sm:hidden">{t('tabs.competitorsShort')}</span>
               </TabsTrigger>
-              <TabsTrigger value="disciplines">
+              <TabsTrigger value="disciplines" className="cursor-pointer">
                 <TrendingUp className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">{t('tabs.disciplines')}</span>
                 <span className="sm:hidden">Disc.</span>
               </TabsTrigger>
-              <TabsTrigger value="countries">
+              <TabsTrigger value="countries" className="cursor-pointer">
                 <Globe className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">{t('tabs.countries')}</span>
                 <span className="sm:hidden">{t('tabs.countriesShort')}</span>
@@ -392,7 +392,7 @@ export default function StatsPage() {
             </TabsList>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -413,7 +413,13 @@ export default function StatsPage() {
               )}
             </Button>
 
-            <Button size="sm" onClick={exportToCSV} disabled={isLoading} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToCSV}
+              disabled={isLoading}
+              className="cursor-pointer"
+            >
               <Download className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
@@ -461,7 +467,7 @@ export default function StatsPage() {
               </div>
 
               {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground cursor-pointer">
                   <X className="h-3.5 w-3.5 mr-1" />
                   {t('filters.reset')}
                 </Button>

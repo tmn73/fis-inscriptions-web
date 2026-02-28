@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     if (query.discipline && query.discipline.length > 0) {
       const disciplineConditions = query.discipline.map(d =>
-        sql`${inscriptions.eventData}->>'disciplineCode' = ${d}`
+        sql`${inscriptions.eventData}->'competitions' @> ${`[{"eventCode":"${d}"}]`}::jsonb`
       )
       if (disciplineConditions.length === 1) {
         conditions.push(disciplineConditions[0])
@@ -144,15 +144,17 @@ export async function GET(request: NextRequest) {
       stats.byGender = result
     }
 
-    // Breakdown by discipline
+    // Breakdown by discipline (from competitions array -> eventCode: SL, GS, DH, SG, AC)
     if (wantsAll || query.metrics?.includes('byDiscipline')) {
       const result = await db.execute(sql`
         SELECT
-          event_data->>'disciplineCode' as discipline,
+          comp->>'eventCode' as discipline,
           COUNT(*) as count
-        FROM ${inscriptions}
+        FROM ${inscriptions},
+          jsonb_array_elements(${inscriptions.eventData}->'competitions') as comp
         ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-        GROUP BY event_data->>'disciplineCode'
+        GROUP BY comp->>'eventCode'
+        ORDER BY count DESC
       `)
       stats.byDiscipline = result.rows
     }
