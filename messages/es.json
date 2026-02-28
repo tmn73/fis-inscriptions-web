@@ -46,9 +46,73 @@
   "navigation": {
     "inscriptions": "Inscripciones",
     "competitors": "Competidores",
+    "stats": "Estadisticas",
     "users": "Usuarios",
     "profile": "Perfil",
     "organizationConfig": "Configuración"
+  },
+  "stats": {
+    "title": "Estadisticas",
+    "subtitle": "Vision general de las inscripciones extranjeras",
+    "loading": "Cargando estadisticas...",
+    "noData": "No hay datos disponibles",
+    "season": {
+      "all": "Todas"
+    },
+    "tabs": {
+      "overview": "Vision general",
+      "overviewShort": "Global",
+      "competitors": "Listado corredores",
+      "competitorsShort": "Corredores",
+      "disciplines": "Disciplinas",
+      "countries": "Por pais",
+      "countriesShort": "Paises"
+    },
+    "filters": {
+      "title": "Filtros",
+      "disciplines": "Disciplinas",
+      "status": "Estado",
+      "reset": "Reiniciar"
+    },
+    "summary": {
+      "inscriptions": "Inscripciones",
+      "inscriptionsDesc": "Eventos registrados",
+      "competitors": "Corredores inscritos",
+      "competitorsDesc": "Corredores unicos",
+      "individual": "Inscripciones indiv.",
+      "individualDesc": "Corredor x Carreras",
+      "average": "Prom. / inscripcion",
+      "averageDesc": "Corredores por evento"
+    },
+    "breakdown": {
+      "byStatus": "Por estado",
+      "byGender": "Por genero",
+      "byDiscipline": "Por disciplina",
+      "byCountry": "Por pais",
+      "topCompetitors": "Top corredores por numero de inscripciones",
+      "timeline": "Timeline de inscripciones"
+    },
+    "gender": {
+      "men": "Hombres",
+      "women": "Mujeres"
+    },
+    "competitorsTable": {
+      "search": "Buscar corredor (nombre, nacion, codigo FIS)...",
+      "competitors": "corredores",
+      "noResults": "No se encontraron corredores",
+      "name": "Nombre",
+      "nation": "Nacion",
+      "gender": "Genero",
+      "fisCode": "Codigo FIS",
+      "registrations": "inscripciones"
+    },
+    "disciplines": {
+      "ofTotal": "del total"
+    },
+    "countries": {
+      "count": "paises",
+      "unknown": "Desconocido"
+    }
   },
   "admin": {
     "organizationConfig": {

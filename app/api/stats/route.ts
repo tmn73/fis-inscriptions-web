@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
-import { eq, and, gte, lte, sql, count, countDistinct } from 'drizzle-orm'
+import { eq, and, sql, count, countDistinct } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
 
 export const dynamic = 'force-dynamic'

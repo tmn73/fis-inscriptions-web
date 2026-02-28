@@ -51,6 +51,69 @@
     "profile": "Profil",
     "organizationConfig": "Configuration"
   },
+  "stats": {
+    "title": "Statistiques",
+    "subtitle": "Vue d'ensemble des inscriptions etrangeres",
+    "loading": "Chargement des statistiques...",
+    "noData": "Aucune donnee disponible",
+    "season": {
+      "all": "Toutes"
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "overviewShort": "Global",
+      "competitors": "Listing coureurs",
+      "competitorsShort": "Coureurs",
+      "disciplines": "Disciplines",
+      "countries": "Par pays",
+      "countriesShort": "Pays"
+    },
+    "filters": {
+      "title": "Filtres",
+      "disciplines": "Disciplines",
+      "status": "Statut",
+      "reset": "Reinitialiser"
+    },
+    "summary": {
+      "inscriptions": "Inscriptions",
+      "inscriptionsDesc": "Evenements enregistres",
+      "competitors": "Coureurs inscrits",
+      "competitorsDesc": "Coureurs uniques",
+      "individual": "Inscriptions indiv.",
+      "individualDesc": "Coureur x Courses",
+      "average": "Moy. / inscription",
+      "averageDesc": "Coureurs par evenement"
+    },
+    "breakdown": {
+      "byStatus": "Par statut",
+      "byGender": "Par genre",
+      "byDiscipline": "Par discipline",
+      "byCountry": "Par pays",
+      "topCompetitors": "Top coureurs par nombre d'inscriptions",
+      "timeline": "Timeline des inscriptions"
+    },
+    "gender": {
+      "men": "Hommes",
+      "women": "Femmes"
+    },
+    "competitorsTable": {
+      "search": "Rechercher un coureur (nom, nation, FIS code)...",
+      "competitors": "coureurs",
+      "noResults": "Aucun coureur trouve",
+      "name": "Nom",
+      "nation": "Nation",
+      "gender": "Genre",
+      "fisCode": "Code FIS",
+      "registrations": "inscriptions"
+    },
+    "disciplines": {
+      "ofTotal": "du total"
+    },
+    "countries": {
+      "count": "pays",
+      "unknown": "Inconnu"
+    }
+  },
   "admin": {
     "organizationConfig": {
       "title": "Configuration de l'organisation",

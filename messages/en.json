@@ -51,6 +51,69 @@
     "profile": "Profile",
     "organizationConfig": "Configuration"
   },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Overview of foreign registrations",
+    "loading": "Loading statistics...",
+    "noData": "No data available",
+    "season": {
+      "all": "All"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "overviewShort": "Overview",
+      "competitors": "Runners listing",
+      "competitorsShort": "Runners",
+      "disciplines": "Disciplines",
+      "countries": "By country",
+      "countriesShort": "Countries"
+    },
+    "filters": {
+      "title": "Filters",
+      "disciplines": "Disciplines",
+      "status": "Status",
+      "reset": "Reset"
+    },
+    "summary": {
+      "inscriptions": "Registrations",
+      "inscriptionsDesc": "Registered events",
+      "competitors": "Registered runners",
+      "competitorsDesc": "Unique runners",
+      "individual": "Individual reg.",
+      "individualDesc": "Runner x Races",
+      "average": "Avg / registration",
+      "averageDesc": "Runners per event"
+    },
+    "breakdown": {
+      "byStatus": "By status",
+      "byGender": "By gender",
+      "byDiscipline": "By discipline",
+      "byCountry": "By country",
+      "topCompetitors": "Top runners by registration count",
+      "timeline": "Registration timeline"
+    },
+    "gender": {
+      "men": "Men",
+      "women": "Women"
+    },
+    "competitorsTable": {
+      "search": "Search runner (name, nation, FIS code)...",
+      "competitors": "runners",
+      "noResults": "No runners found",
+      "name": "Name",
+      "nation": "Nation",
+      "gender": "Gender",
+      "fisCode": "FIS Code",
+      "registrations": "registrations"
+    },
+    "disciplines": {
+      "ofTotal": "of total"
+    },
+    "countries": {
+      "count": "countries",
+      "unknown": "Unknown"
+    }
+  },
   "admin": {
     "organizationConfig": {
       "title": "Organization Configuration",
