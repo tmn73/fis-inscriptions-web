@@ -203,17 +203,17 @@ export async function GET(request: NextRequest) {
     if (wantsAll || query.metrics?.includes('topCompetitors')) {
       const result = await db.execute(sql`
         SELECT
-          c.competitorid,
-          c.firstname,
-          c.lastname,
-          c.nationcode,
-          c.gender,
+          ${competitors.competitorid},
+          ${competitors.firstname},
+          ${competitors.lastname},
+          ${competitors.nationcode},
+          ${competitors.gender},
           COUNT(*) as registration_count
-        FROM ${inscriptionCompetitors} ic
-        LEFT JOIN ${inscriptions} i ON ic.inscription_id = i.id
-        LEFT JOIN ${competitors} c ON ic.competitor_id = c.competitorid
+        FROM ${inscriptionCompetitors}
+        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-        GROUP BY c.competitorid, c.firstname, c.lastname, c.nationcode, c.gender
+        GROUP BY ${competitors.competitorid}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}
         ORDER BY registration_count DESC
         LIMIT 20
       `)
@@ -224,20 +224,20 @@ export async function GET(request: NextRequest) {
     if (query.metrics?.includes('competitorsList')) {
       const result = await db.execute(sql`
         SELECT
-          c.competitorid as "competitorId",
-          c.fiscode as "fisCode",
-          c.firstname as "firstName",
-          c.lastname as "lastName",
-          c.nationcode as "nationCode",
-          c.gender,
-          c.birthdate as "birthDate",
+          ${competitors.competitorid} as "competitorId",
+          ${competitors.fiscode} as "fisCode",
+          ${competitors.firstname} as "firstName",
+          ${competitors.lastname} as "lastName",
+          ${competitors.nationcode} as "nationCode",
+          ${competitors.gender},
+          ${competitors.birthdate} as "birthDate",
           COUNT(*) as "registrationCount"
-        FROM ${inscriptionCompetitors} ic
-        LEFT JOIN ${inscriptions} i ON ic.inscription_id = i.id
-        LEFT JOIN ${competitors} c ON ic.competitor_id = c.competitorid
+        FROM ${inscriptionCompetitors}
+        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${whereClause ? sql`WHERE ${whereClause}` : sql``}
-        GROUP BY c.competitorid, c.fiscode, c.firstname, c.lastname, c.nationcode, c.gender, c.birthdate
-        ORDER BY "registrationCount" DESC, c.lastname, c.firstname
+        GROUP BY ${competitors.competitorid}, ${competitors.fiscode}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}, ${competitors.birthdate}
+        ORDER BY "registrationCount" DESC, ${competitors.lastname}, ${competitors.firstname}
       `)
       stats.competitorsList = result.rows
     }

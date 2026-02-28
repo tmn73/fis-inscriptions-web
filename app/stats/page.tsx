@@ -366,36 +366,38 @@ export default function StatsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <TabsList>
-            <TabsTrigger value="overview">
-              <BarChart3 className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">{t('tabs.overview')}</span>
-              <span className="sm:hidden">{t('tabs.overviewShort')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="competitors">
-              <Users className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">{t('tabs.competitors')}</span>
-              <span className="sm:hidden">{t('tabs.competitorsShort')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="disciplines">
-              <TrendingUp className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">{t('tabs.disciplines')}</span>
-              <span className="sm:hidden">Disc.</span>
-            </TabsTrigger>
-            <TabsTrigger value="countries">
-              <Globe className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">{t('tabs.countries')}</span>
-              <span className="sm:hidden">{t('tabs.countriesShort')}</span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col gap-2">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList>
+              <TabsTrigger value="overview">
+                <BarChart3 className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">{t('tabs.overview')}</span>
+                <span className="sm:hidden">{t('tabs.overviewShort')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="competitors">
+                <Users className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">{t('tabs.competitors')}</span>
+                <span className="sm:hidden">{t('tabs.competitorsShort')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="disciplines">
+                <TrendingUp className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">{t('tabs.disciplines')}</span>
+                <span className="sm:hidden">Disc.</span>
+              </TabsTrigger>
+              <TabsTrigger value="countries">
+                <Globe className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">{t('tabs.countries')}</span>
+                <span className="sm:hidden">{t('tabs.countriesShort')}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={showFilters ? 'bg-accent' : ''}
+              className={`cursor-pointer ${showFilters ? 'bg-accent' : ''}`}
             >
               <Filter className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">{t('filters.title')}</span>
@@ -411,7 +413,7 @@ export default function StatsPage() {
               )}
             </Button>
 
-            <Button size="sm" onClick={exportToCSV} disabled={isLoading}>
+            <Button size="sm" onClick={exportToCSV} disabled={isLoading} className="cursor-pointer">
               <Download className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
@@ -469,7 +471,7 @@ export default function StatsPage() {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
           <SummaryCard
             value={stats?.totalInscriptions ?? '-'}
             label={t('summary.inscriptions')}
