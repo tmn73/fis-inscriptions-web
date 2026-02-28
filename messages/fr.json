@@ -74,6 +74,7 @@
       "title": "Filtres",
       "disciplines": "Disciplines",
       "status": "Statut",
+      "gender": "Genre",
       "reset": "Reinitialiser"
     },
     "summary": {

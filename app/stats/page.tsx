@@ -200,12 +200,15 @@ export default function StatsPage() {
   const [season, setSeason] = useState<number | null>(currentSeason)
   const [showFilters, setShowFilters] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [genderFilter, setGenderFilter] = useState<string[]>([])
   const [disciplineFilter, setDisciplineFilter] = useState<string[]>([])
   const [competitorSearch, setCompetitorSearch] = useState('')
+  const [countrySearch, setCountrySearch] = useState('')
+  const [userSearch, setUserSearch] = useState('')
   const [sortColumn, setSortColumn] = useState<SortColumn>('registrationCount')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  const activeFilterCount = statusFilter.length + disciplineFilter.length
+  const activeFilterCount = statusFilter.length + disciplineFilter.length + genderFilter.length
 
   // Build query params
   const queryParams = useMemo(() => {
@@ -215,9 +218,10 @@ export default function StatsPage() {
     if (endDate) params.set('endDate', endDate)
     if (statusFilter.length > 0) params.set('status', statusFilter.join(','))
     if (disciplineFilter.length > 0) params.set('discipline', disciplineFilter.join(','))
+    if (genderFilter.length > 0) params.set('gender', genderFilter.join(','))
     params.set('metrics', getMetricsForTab(activeTab))
     return params.toString()
-  }, [season, statusFilter, disciplineFilter, activeTab])
+  }, [season, statusFilter, disciplineFilter, genderFilter, activeTab])
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats', queryParams],
@@ -259,6 +263,33 @@ export default function StatsPage() {
     return list
   }, [stats?.competitorsList, competitorSearch, sortColumn, sortDirection])
 
+  // Filter countries for the countries tab
+  const filteredCountries = useMemo(() => {
+    if (!stats?.byCountry) return []
+    let list = [...stats.byCountry]
+    if (countrySearch) {
+      const search = countrySearch.toLowerCase()
+      list = list.filter((c: any) => c.country?.toLowerCase().includes(search))
+    }
+    return list.sort((a: any, b: any) => Number(b.count) - Number(a.count))
+  }, [stats?.byCountry, countrySearch])
+
+  // Filter users for the users tab
+  const filteredUsers = useMemo(() => {
+    if (!stats?.byCreator) return []
+    let list = [...stats.byCreator]
+    if (userSearch) {
+      const search = userSearch.toLowerCase()
+      list = list.filter(
+        (u: any) =>
+          u.firstName?.toLowerCase().includes(search) ||
+          u.lastName?.toLowerCase().includes(search) ||
+          u.email?.toLowerCase().includes(search)
+      )
+    }
+    return list
+  }, [stats?.byCreator, userSearch])
+
   // Handlers
   const handleDisciplineToggle = (discipline: string) => {
     setDisciplineFilter((prev) =>
@@ -269,6 +300,12 @@ export default function StatsPage() {
   const handleStatusToggle = (status: string) => {
     setStatusFilter((prev) =>
       prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    )
+  }
+
+  const handleGenderToggle = (gender: string) => {
+    setGenderFilter((prev) =>
+      prev.includes(gender) ? prev.filter((g) => g !== gender) : [...prev, gender]
     )
   }
 
@@ -284,6 +321,7 @@ export default function StatsPage() {
   const clearFilters = () => {
     setStatusFilter([])
     setDisciplineFilter([])
+    setGenderFilter([])
   }
 
   const exportToCSV = async () => {
@@ -293,6 +331,7 @@ export default function StatsPage() {
     if (endDate) params.set('endDate', endDate)
     if (statusFilter.length > 0) params.set('status', statusFilter.join(','))
     if (disciplineFilter.length > 0) params.set('discipline', disciplineFilter.join(','))
+    if (genderFilter.length > 0) params.set('gender', genderFilter.join(','))
     params.set('metrics', 'competitorsList')
 
     const response = await fetch(`/api/stats?${params.toString()}`)
@@ -468,6 +507,27 @@ export default function StatsPage() {
                       variant={statusFilter.includes(value) ? 'default' : 'outline'}
                       className="cursor-pointer transition-all hover:opacity-80"
                       onClick={() => handleStatusToggle(value)}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {t('filters.gender')}
+                </Label>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {[
+                    { value: 'M', label: t('gender.men') },
+                    { value: 'F', label: t('gender.women') },
+                  ].map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant={genderFilter.includes(value) ? 'default' : 'outline'}
+                      className="cursor-pointer transition-all hover:opacity-80"
+                      onClick={() => handleGenderToggle(value)}
                     >
                       {label}
                     </Badge>
@@ -851,89 +911,125 @@ export default function StatsPage() {
 
         {/* === COUNTRIES TAB === */}
         <TabsContent value="countries" className="space-y-4 mt-2">
-          {stats?.byCountry && stats.byCountry.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{t('breakdown.byCountry')}</CardTitle>
-                  <span className="text-sm text-muted-foreground tabular-nums">
-                    {stats.byCountry.length} {t('countries.count')}
-                  </span>
+          {stats?.byCountry && (
+            <>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('competitorsTable.search')}
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                    className="pl-9 bg-background border-border"
+                  />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {stats.byCountry
-                  .sort((a: any, b: any) => Number(b.count) - Number(a.count))
-                  .map((item: any) => {
-                    const maxCount = Math.max(...stats.byCountry.map((c: any) => Number(c.count)))
-                    const total = stats.byCountry.reduce((sum: number, c: any) => sum + Number(c.count), 0)
-                    return (
-                      <BreakdownBar
-                        key={item.country}
-                        label={item.country || t('countries.unknown')}
-                        count={Number(item.count)}
-                        maxCount={maxCount}
-                        total={total}
-                        barColor="bg-sky-500"
-                      />
-                    )
-                  })}
-              </CardContent>
-            </Card>
+                <p className="text-sm text-muted-foreground tabular-nums">
+                  {filteredCountries.length} / {stats.byCountry.length} {t('countries.count')}
+                </p>
+              </div>
+
+              {filteredCountries.length > 0 && (
+                <Card>
+                  <CardContent className="space-y-3 pt-4">
+                    {filteredCountries.map((item: any) => {
+                      const maxCount = Math.max(...filteredCountries.map((c: any) => Number(c.count)))
+                      const total = filteredCountries.reduce((sum: number, c: any) => sum + Number(c.count), 0)
+                      return (
+                        <BreakdownBar
+                          key={item.country}
+                          label={item.country || t('countries.unknown')}
+                          count={Number(item.count)}
+                          maxCount={maxCount}
+                          total={total}
+                          barColor="bg-sky-500"
+                        />
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+              )}
+
+              {filteredCountries.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">{t('competitorsTable.noResults')}</div>
+              )}
+            </>
           )}
 
-          {stats && (!stats.byCountry || stats.byCountry.length === 0) && (
+          {stats && !stats.byCountry && (
             <div className="text-center py-12 text-muted-foreground">{t('noData')}</div>
           )}
         </TabsContent>
 
         {/* === USERS TAB === */}
         <TabsContent value="users" className="space-y-4 mt-2">
-          {stats?.byCreator && stats.byCreator.length > 0 && (
-            <Card className="py-0 overflow-hidden">
-              <div className="overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="border-b bg-muted">
-                      <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
-                      <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.name')}</th>
-                      <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Email</th>
-                      <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('breakdown.events')}</th>
-                      <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.competitors')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.byCreator.map((creator: any, index: number) => (
-                      <tr
-                        key={creator.createdBy}
-                        className="border-b last:border-0 hover:bg-muted/30 transition-colors"
-                      >
-                        <td className="p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
-                        <td className="p-3 font-medium">
-                          {creator.firstName || creator.lastName
-                            ? `${creator.firstName ?? ''} ${creator.lastName ?? ''}`.trim()
-                            : creator.email}
-                        </td>
-                        <td className="p-3 text-muted-foreground hidden sm:table-cell">{creator.email}</td>
-                        <td className="p-3 text-right">
-                          <Badge variant="outline" className="tabular-nums">
-                            {creator.inscriptionCount}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-right">
-                          <Badge variant="secondary" className="tabular-nums">
-                            {creator.competitorCount}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {stats?.byCreator && (
+            <>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('competitorsTable.search')}
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-9 bg-background border-border"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground tabular-nums">
+                  {filteredUsers.length} / {stats.byCreator.length} {t('tabs.users').toLowerCase()}
+                </p>
               </div>
-            </Card>
+
+              {filteredUsers.length > 0 && (
+                <Card className="py-0 overflow-hidden">
+                  <div className="overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="border-b bg-muted">
+                          <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.name')}</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Email</th>
+                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('breakdown.events')}</th>
+                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.competitors')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((creator: any, index: number) => (
+                          <tr
+                            key={creator.createdBy}
+                            className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                          >
+                            <td className="p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
+                            <td className="p-3 font-medium">
+                              {creator.firstName || creator.lastName
+                                ? `${creator.firstName ?? ''} ${creator.lastName ?? ''}`.trim()
+                                : creator.email}
+                            </td>
+                            <td className="p-3 text-muted-foreground hidden sm:table-cell">{creator.email}</td>
+                            <td className="p-3 text-right">
+                              <Badge variant="outline" className="tabular-nums">
+                                {creator.inscriptionCount}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-right">
+                              <Badge variant="secondary" className="tabular-nums">
+                                {creator.competitorCount}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+
+              {filteredUsers.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">{t('competitorsTable.noResults')}</div>
+              )}
+            </>
           )}
 
-          {stats && (!stats.byCreator || stats.byCreator.length === 0) && (
+          {stats && !stats.byCreator && (
             <div className="text-center py-12 text-muted-foreground">{t('noData')}</div>
           )}
         </TabsContent>

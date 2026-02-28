@@ -85,6 +85,20 @@ export async function GET(request: NextRequest) {
       ? and(...conditions)
       : undefined
 
+    // Gender filter applies to queries that JOIN with competitors
+    const genderConditions = [...conditions]
+    if (query.gender && query.gender.length > 0) {
+      const genderSql = query.gender.map(g => sql`${competitors.gender} = ${g}`)
+      if (genderSql.length === 1) {
+        genderConditions.push(genderSql[0])
+      } else {
+        genderConditions.push(sql`(${sql.join(genderSql, sql` OR `)})`)
+      }
+    }
+    const genderWhereClause = genderConditions.length > 0
+      ? and(...genderConditions)
+      : undefined
+
     const stats: any = {}
     const wantsAll = query.metrics?.includes('all')
 
@@ -99,22 +113,26 @@ export async function GET(request: NextRequest) {
 
     // Total competitors (unique runners)
     if (wantsAll || query.metrics?.includes('totalCompetitors')) {
+      const hasGender = query.gender && query.gender.length > 0
       const result = await db.execute(sql`
         SELECT COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as count
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${hasGender ? sql`LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
       `)
       stats.totalCompetitors = Number(result.rows[0]?.count) || 0
     }
 
     // Total individual registrations (competitor x events)
     if (wantsAll || query.metrics?.includes('totalIndividualRegistrations')) {
+      const hasGender = query.gender && query.gender.length > 0
       const result = await db.execute(sql`
         SELECT COUNT(*) as count
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${hasGender ? sql`LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
       `)
       stats.totalIndividualRegistrations = Number(result.rows[0]?.count) || 0
     }
@@ -136,7 +154,7 @@ export async function GET(request: NextRequest) {
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.gender}
       `)
       stats.byGender = result.rows
@@ -197,7 +215,7 @@ export async function GET(request: NextRequest) {
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}
         ORDER BY registration_count DESC
         LIMIT 20
@@ -220,7 +238,7 @@ export async function GET(request: NextRequest) {
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.fiscode}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}, ${competitors.birthdate}
         ORDER BY "registrationCount" DESC, ${competitors.lastname}, ${competitors.firstname}
       `)
