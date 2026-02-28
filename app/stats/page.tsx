@@ -61,7 +61,7 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
   }
 }
 
-const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations'
+const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,totalRaces'
 
 function getMetricsForTab(tab: string): string {
   switch (tab) {
@@ -546,7 +546,7 @@ export default function StatsPage() {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mt-4">
           <SummaryCard
             value={stats?.totalInscriptions ?? '-'}
             label={t('summary.inscriptions')}
@@ -561,6 +561,14 @@ export default function StatsPage() {
             subtitle={t('summary.competitorsDesc')}
             accentColor="border-l-emerald-500"
             icon={Users}
+            isLoading={isLoading}
+          />
+          <SummaryCard
+            value={stats?.totalRaces ?? '-'}
+            label={t('summary.races')}
+            subtitle={t('summary.racesDesc')}
+            accentColor="border-l-rose-500"
+            icon={BarChart3}
             isLoading={isLoading}
           />
           <SummaryCard

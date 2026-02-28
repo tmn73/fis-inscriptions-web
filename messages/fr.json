@@ -84,6 +84,8 @@
       "competitorsDesc": "Coureurs uniques",
       "individual": "Inscriptions indiv.",
       "individualDesc": "Coureur x Courses",
+      "races": "Total courses",
+      "racesDesc": "Courses individuelles (codex)",
       "average": "Moy. / inscription",
       "averageDesc": "Coureurs par evenement"
     },

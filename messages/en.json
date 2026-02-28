@@ -84,6 +84,8 @@
       "competitorsDesc": "Unique runners",
       "individual": "Individual reg.",
       "individualDesc": "Runner x Races",
+      "races": "Total races",
+      "racesDesc": "Individual races (codex)",
       "average": "Avg / registration",
       "averageDesc": "Runners per event"
     },
