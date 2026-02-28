@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PlusCircle, Snowflake, Users, Settings, Menu, ChevronDown, UserCheck } from "lucide-react";
+import { PlusCircle, Snowflake, Users, Settings, Menu, ChevronDown, UserCheck, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 import { Button } from "./button";
@@ -77,6 +77,12 @@ export const Header = () => {
                 {tNav("competitors")}
               </Button>
             </Link>
+            <Link href="/stats">
+              <Button variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                {tNav("stats")}
+              </Button>
+            </Link>
             <SignedIn>
               <Link href="/inscriptions/new">
                 <Button className="bg-white/95 text-blue-600 hover:bg-white shadow-lg shadow-black/10 font-semibold">
@@ -109,6 +115,12 @@ export const Header = () => {
               <Button size="sm" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10">
                 <UserCheck className="mr-1.5 h-4 w-4" />
                 {tNav("competitors")}
+              </Button>
+            </Link>
+            <Link href="/stats">
+              <Button size="sm" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10">
+                <BarChart3 className="mr-1.5 h-4 w-4" />
+                {tNav("stats")}
               </Button>
             </Link>
             <SignedIn>
@@ -183,6 +195,12 @@ export const Header = () => {
                   <Button variant="ghost" className="w-full justify-start hover:bg-accent">
                     <UserCheck className="mr-2 h-4 w-4" />
                     {tNav("competitors")}
+                  </Button>
+                </Link>
+                <Link href="/stats" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start hover:bg-accent">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    {tNav("stats")}
                   </Button>
                 </Link>
                 <SignedIn>
