@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
-import { and, sql, count, eq } from 'drizzle-orm'
+import { and, sql, count, eq, isNull } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
 import { clerkClient } from '@clerk/nextjs/server'
 
@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
 
     const { inscriptions, inscriptionCompetitors, competitors } = getDbTables()
 
-    // Build base query conditions
-    const conditions = []
+    // Build base query conditions (always exclude soft-deleted records)
+    const conditions = [isNull(inscriptions.deletedAt)]
 
     if (query.startDate) {
       conditions.push(
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       : undefined
 
     // Gender filter applies to queries that JOIN with competitors
-    const genderConditions = [...conditions]
+    const genderConditions = [...conditions, isNull(inscriptionCompetitors.deletedAt)]
     if (query.gender && query.gender.length > 0) {
       const genderSql = query.gender.map(g => sql`${competitors.gender} = ${g}`)
       if (genderSql.length === 1) {
@@ -124,11 +124,11 @@ export async function GET(request: NextRequest) {
       stats.totalCompetitors = Number(result.rows[0]?.count) || 0
     }
 
-    // Total individual registrations (competitor x events)
+    // Total individual registrations (unique competitor x event pairs)
     if (wantsAll || query.metrics?.includes('totalIndividualRegistrations')) {
       const hasGender = query.gender && query.gender.length > 0
       const result = await db.execute(sql`
-        SELECT COUNT(*) as count
+        SELECT COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.competitorId})) as count
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         ${hasGender ? sql`LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
           SELECT DISTINCT ${inscriptionCompetitors.inscriptionId}
           FROM ${inscriptionCompetitors}
           LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
-          WHERE ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
+          WHERE ${inscriptionCompetitors.deletedAt} IS NULL AND ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
         )`)
       }
       const racesWhere = racesWhereParts.length > 0
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
     // Breakdown by gender
     if (wantsAll || query.metrics?.includes('byGender')) {
       const result = await db.execute(sql`
-        SELECT ${competitors.gender} as gender, COUNT(*) as count
+        SELECT ${competitors.gender} as gender, COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.competitorId})) as count
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
           SELECT DISTINCT ${inscriptionCompetitors.inscriptionId}
           FROM ${inscriptionCompetitors}
           LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
-          WHERE ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
+          WHERE ${inscriptionCompetitors.deletedAt} IS NULL AND ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
         )`)
       }
       const disciplineWhere = disciplineWhereParts.length > 0
@@ -258,7 +258,7 @@ export async function GET(request: NextRequest) {
           ${competitors.lastname},
           ${competitors.nationcode},
           ${competitors.gender},
-          COUNT(*) as registration_count
+          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as registration_count
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
@@ -281,7 +281,7 @@ export async function GET(request: NextRequest) {
           ${competitors.nationcode} as "nationCode",
           ${competitors.gender},
           ${competitors.birthdate} as "birthDate",
-          COUNT(*) as "registrationCount"
+          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as "registrationCount"
         FROM ${inscriptionCompetitors}
         LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
@@ -301,8 +301,9 @@ export async function GET(request: NextRequest) {
           COALESCE(SUM(sub.competitor_count), 0) as "competitorCount"
         FROM ${inscriptions}
         LEFT JOIN (
-          SELECT ${inscriptionCompetitors.inscriptionId} as iid, COUNT(*) as competitor_count
+          SELECT ${inscriptionCompetitors.inscriptionId} as iid, COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as competitor_count
           FROM ${inscriptionCompetitors}
+          WHERE ${inscriptionCompetitors.deletedAt} IS NULL
           GROUP BY ${inscriptionCompetitors.inscriptionId}
         ) sub ON sub.iid = ${inscriptions.id}
         ${whereClause ? sql`WHERE ${whereClause}` : sql``}
