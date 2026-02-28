@@ -15,6 +15,10 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { getCurrentSeason } from '@/app/lib/dates'
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, Legend,
+} from 'recharts'
 
 const DISCIPLINE_OPTIONS = [
   { value: 'DH', label: 'DH', full: 'Downhill' },
@@ -41,13 +45,27 @@ const DISCIPLINE_COLORS: Record<string, { bar: string; text: string; bg: string 
   AC: { bar: 'bg-violet-500', text: 'text-violet-700', bg: 'bg-violet-50' },
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-sky-500',
-  validated: 'bg-emerald-500',
-  email_sent: 'bg-teal-500',
-  cancelled: 'bg-slate-400',
-  refused: 'bg-red-500',
-  not_concerned: 'bg-slate-300',
+
+const STATUS_HEX: Record<string, string> = {
+  open: '#0ea5e9',
+  validated: '#10b981',
+  email_sent: '#14b8a6',
+  cancelled: '#94a3b8',
+  refused: '#ef4444',
+  not_concerned: '#cbd5e1',
+}
+
+const DISCIPLINE_HEX: Record<string, string> = {
+  DH: '#ef4444',
+  SL: '#10b981',
+  GS: '#3b82f6',
+  SG: '#f59e0b',
+  AC: '#8b5cf6',
+}
+
+const GENDER_HEX: Record<string, string> = {
+  M: '#3b82f6',
+  F: '#ec4899',
 }
 
 type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount'
@@ -57,7 +75,7 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
   if (!season) return { startDate: '', endDate: '' }
   return {
     startDate: `${season - 1}-07-01`,
-    endDate: `${season}-06-30`,
+    endDate: `${season}-04-30`,
   }
 }
 
@@ -521,7 +539,7 @@ export default function StatsPage() {
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {[
                     { value: 'M', label: t('gender.men') },
-                    { value: 'F', label: t('gender.women') },
+                    { value: 'W', label: t('gender.women') },
                   ].map(({ value, label }) => (
                     <Badge
                       key={value}
@@ -606,78 +624,106 @@ export default function StatsPage() {
             <>
               {/* Breakdowns grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* By Status */}
-                {stats.byStatus && stats.byStatus.length > 0 && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base">{t('breakdown.byStatus')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {stats.byStatus.map((item: any) => {
-                        const maxCount = Math.max(...stats.byStatus.map((s: any) => Number(s.count)))
-                        const total = stats.byStatus.reduce((sum: number, s: any) => sum + Number(s.count), 0)
-                        return (
-                          <BreakdownBar
-                            key={item.status}
-                            label={tStatus(item.status)}
-                            count={Number(item.count)}
-                            maxCount={maxCount}
-                            total={total}
-                            barColor={STATUS_COLORS[item.status] || 'bg-slate-400'}
-                          />
-                        )
-                      })}
-                    </CardContent>
-                  </Card>
-                )}
+                {/* By Status - Horizontal Bar Chart */}
+                {stats.byStatus && stats.byStatus.length > 0 && (() => {
+                  const statusData = stats.byStatus.map((item: any) => ({
+                    name: tStatus(item.status),
+                    value: Number(item.count),
+                    fill: STATUS_HEX[item.status] || '#94a3b8',
+                  }))
+                  return (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">{t('breakdown.byStatus')}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={statusData.length * 40 + 20}>
+                          <BarChart data={statusData} layout="vertical" margin={{ left: 0, right: 12, top: 0, bottom: 0 }}>
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 13 }} axisLine={false} tickLine={false} />
+                            <Tooltip formatter={(value: number) => [value, '']} />
+                            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                              {statusData.map((entry: any, index: number) => (
+                                <Cell key={index} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
 
-                {/* By Gender */}
-                {stats.byGender && stats.byGender.length > 0 && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base">{t('breakdown.byGender')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {stats.byGender.map((item: any) => {
-                        const total = stats.byGender.reduce((sum: number, g: any) => sum + Number(g.count), 0)
-                        return (
-                          <BreakdownBar
-                            key={item.gender}
-                            label={item.gender === 'M' ? t('gender.men') : t('gender.women')}
-                            count={Number(item.count)}
-                            maxCount={total}
-                            total={total}
-                            barColor={item.gender === 'M' ? 'bg-blue-500' : 'bg-pink-500'}
-                          />
-                        )
-                      })}
-                    </CardContent>
-                  </Card>
-                )}
+                {/* By Gender - Donut Chart */}
+                {stats.byGender && stats.byGender.length > 0 && (() => {
+                  const genderData = stats.byGender.map((item: any) => ({
+                    name: item.gender === 'M' ? t('gender.men') : t('gender.women'),
+                    value: Number(item.count),
+                    fill: GENDER_HEX[item.gender] || '#94a3b8',
+                  }))
+                  const total = genderData.reduce((sum: number, g: any) => sum + g.value, 0)
+                  return (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">{t('breakdown.byGender')}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex flex-col items-center">
+                        <ResponsiveContainer width="100%" height={200}>
+                          <PieChart>
+                            <Pie
+                              data={genderData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={55}
+                              outerRadius={85}
+                              paddingAngle={3}
+                              dataKey="value"
+                              strokeWidth={0}
+                            >
+                              {genderData.map((entry: any, index: number) => (
+                                <Cell key={index} fill={entry.fill} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value: number) => [value, '']} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <p className="text-2xl font-bold tabular-nums -mt-2">{total}</p>
+                        <p className="text-xs text-muted-foreground">{t('summary.competitors')}</p>
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
 
-                {/* By Discipline */}
-                {stats.byDiscipline && stats.byDiscipline.length > 0 && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base">{t('breakdown.byDiscipline')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {stats.byDiscipline.map((item: any) => {
-                        const maxCount = Math.max(...stats.byDiscipline.map((d: any) => Number(d.count)))
-                        const colors = DISCIPLINE_COLORS[item.discipline]
-                        return (
-                          <BreakdownBar
-                            key={item.discipline}
-                            label={item.discipline}
-                            count={Number(item.count)}
-                            maxCount={maxCount}
-                            barColor={colors?.bar || 'bg-slate-400'}
-                          />
-                        )
-                      })}
-                    </CardContent>
-                  </Card>
-                )}
+                {/* By Discipline - Horizontal Bar Chart */}
+                {stats.byDiscipline && stats.byDiscipline.length > 0 && (() => {
+                  const disciplineData = stats.byDiscipline.map((item: any) => ({
+                    name: item.discipline,
+                    value: Number(item.count),
+                    fill: DISCIPLINE_HEX[item.discipline] || '#94a3b8',
+                  }))
+                  return (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">{t('breakdown.byDiscipline')}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={disciplineData.length * 40 + 20}>
+                          <BarChart data={disciplineData} layout="vertical" margin={{ left: 0, right: 12, top: 0, bottom: 0 }}>
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={40} tick={{ fontSize: 13 }} axisLine={false} tickLine={false} />
+                            <Tooltip formatter={(value: number) => [value, '']} />
+                            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                              {disciplineData.map((entry: any, index: number) => (
+                                <Cell key={index} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
               </div>
 
               {/* Top Competitors */}

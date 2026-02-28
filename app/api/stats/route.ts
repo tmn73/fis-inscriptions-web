@@ -139,11 +139,26 @@ export async function GET(request: NextRequest) {
 
     // Total races (codex count - individual races within competitions)
     if (wantsAll || query.metrics?.includes('totalRaces')) {
+      const hasGender = query.gender && query.gender.length > 0
+      const racesWhereParts = []
+      if (whereClause) racesWhereParts.push(whereClause)
+      if (hasGender) {
+        const genderVals = query.gender!.map(g => sql`${g}`)
+        racesWhereParts.push(sql`${inscriptions.id} IN (
+          SELECT DISTINCT ${inscriptionCompetitors.inscriptionId}
+          FROM ${inscriptionCompetitors}
+          LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+          WHERE ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
+        )`)
+      }
+      const racesWhere = racesWhereParts.length > 0
+        ? sql`WHERE ${sql.join(racesWhereParts, sql` AND `)}`
+        : sql``
       const result = await db.execute(sql`
         SELECT COUNT(*) as count
         FROM ${inscriptions},
           jsonb_array_elements(${inscriptions.eventData}->'competitions') as comp
-        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        ${racesWhere}
       `)
       stats.totalRaces = Number(result.rows[0]?.count) || 0
     }
@@ -173,12 +188,22 @@ export async function GET(request: NextRequest) {
 
     // Breakdown by discipline (from competitions array -> eventCode: SL, GS, DH, SG, AC)
     if (wantsAll || query.metrics?.includes('byDiscipline')) {
+      const hasGender = query.gender && query.gender.length > 0
       // Build WHERE with optional discipline-level filter on unnested competitions
       const disciplineWhereParts = []
       if (whereClause) disciplineWhereParts.push(whereClause)
       if (query.discipline && query.discipline.length > 0) {
         const vals = query.discipline.map(d => sql`${d}`)
         disciplineWhereParts.push(sql`comp->>'eventCode' IN (${sql.join(vals, sql`, `)})`)
+      }
+      if (hasGender) {
+        const genderVals = query.gender!.map(g => sql`${g}`)
+        disciplineWhereParts.push(sql`${inscriptions.id} IN (
+          SELECT DISTINCT ${inscriptionCompetitors.inscriptionId}
+          FROM ${inscriptionCompetitors}
+          LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+          WHERE ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
+        )`)
       }
       const disciplineWhere = disciplineWhereParts.length > 0
         ? sql`WHERE ${sql.join(disciplineWhereParts, sql` AND `)}`
