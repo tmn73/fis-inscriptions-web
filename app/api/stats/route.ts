@@ -130,6 +130,22 @@ export async function GET(request: NextRequest) {
     const stats: any = {}
     const wantsAll = query.metrics?.includes('all')
 
+    // Available seasons (always returned — lightweight query, no filters applied)
+    if (wantsAll || query.metrics?.includes('availableSeasons')) {
+      const result = await db.execute(sql`
+        SELECT DISTINCT
+          CASE
+            WHEN EXTRACT(MONTH FROM (${inscriptions.eventData}->>'startDate')::date) >= 7
+            THEN EXTRACT(YEAR FROM (${inscriptions.eventData}->>'startDate')::date) + 1
+            ELSE EXTRACT(YEAR FROM (${inscriptions.eventData}->>'startDate')::date)
+          END as season
+        FROM ${inscriptions}
+        WHERE ${inscriptions.deletedAt} IS NULL
+        ORDER BY season DESC
+      `)
+      stats.availableSeasons = result.rows.map((r: any) => Number(r.season))
+    }
+
     // Total inscriptions (no JOIN — safe with Drizzle query builder)
     if (wantsAll || query.metrics?.includes('totalInscriptions')) {
       const result = await db

@@ -71,17 +71,18 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
 const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,totalRaces'
 
 function getMetricsForTab(tab: string): string {
+  const base = `availableSeasons,${SUMMARY_METRICS}`
   switch (tab) {
     case 'overview':
-      return `${SUMMARY_METRICS},byStatus,byGender,byDiscipline,topCompetitors,timeline`
+      return `${base},byStatus,byGender,byDiscipline,topCompetitors,timeline`
     case 'competitors':
-      return `${SUMMARY_METRICS},competitorsList`
+      return `${base},competitorsList`
     case 'disciplines':
-      return `${SUMMARY_METRICS},byDiscipline`
+      return `${base},byDiscipline`
     case 'countries':
-      return `${SUMMARY_METRICS},byCountry`
+      return `${base},byCountry`
     case 'users':
-      return `${SUMMARY_METRICS},byCreator`
+      return `${base},byCreator`
     default:
       return 'all'
   }
@@ -393,31 +394,38 @@ export default function StatsPage() {
         </div>
 
         {/* Season selector */}
-        <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1">
-          {[currentSeason - 1, currentSeason].map((s) => (
-            <button
-              key={s}
-              onClick={() => setSeason(s)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
-                season === s
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-          <button
-            onClick={() => setSeason(null)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
-              season === null
-                ? 'bg-background shadow-sm text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t('season.all')}
-          </button>
-        </div>
+        {(() => {
+          const seasons: number[] = stats?.availableSeasons ?? [currentSeason]
+          return (
+            <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1">
+              {seasons.map((s: number) => (
+                <button
+                  key={s}
+                  onClick={() => setSeason(s)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
+                    season === s
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+              {seasons.length > 1 && (
+                <button
+                  onClick={() => setSeason(null)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
+                    season === null
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t('season.all')}
+                </button>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Tabs */}
@@ -693,10 +701,10 @@ export default function StatsPage() {
                             <span className="text-[10px] text-muted-foreground uppercase tracking-wide">total</span>
                           </div>
                         </div>
-                        <div className="flex gap-6">
+                        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
                           {genderData.map((item: any) => (
                             <div key={item.gender} className="flex items-center gap-2 text-sm">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                               <span className="text-muted-foreground">{item.label}</span>
                               <span className="font-semibold tabular-nums">{item.count}</span>
                               <span className="text-xs text-muted-foreground">
