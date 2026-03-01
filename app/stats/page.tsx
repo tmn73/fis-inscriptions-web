@@ -54,7 +54,6 @@ const STATUS_COLORS: Record<string, string> = {
 const GENDER_HEX: Record<string, string> = {
   M: '#1e3a5f',
   W: '#a855f7',
-  F: '#a855f7',
 }
 
 type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount'
@@ -70,21 +69,18 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
 
 const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,totalRaces'
 
-function getMetricsForTab(tab: string): string {
-  const base = `availableSeasons,${SUMMARY_METRICS}`
+function getTabMetrics(tab: string): string {
   switch (tab) {
     case 'overview':
-      return `${base},byStatus,byGender,byDiscipline,topCompetitors,timeline`
+      return 'byStatus,byGender,byDiscipline,topCompetitors,timeline'
     case 'competitors':
-      return `${base},competitorsList`
-    case 'disciplines':
-      return `${base},byDiscipline`
+      return 'competitorsList'
     case 'countries':
-      return `${base},byCountry`
+      return 'byCountry'
     case 'users':
-      return `${base},byCreator`
+      return 'byCreator'
     default:
-      return 'all'
+      return ''
   }
 }
 
@@ -219,7 +215,8 @@ export default function StatsPage() {
   const activeFilterCount = statusFilter.length + disciplineFilter.length + genderFilter.length
 
   // Build query params
-  const queryParams = useMemo(() => {
+  // Base filter params (shared between summary and tab queries)
+  const filterParams = useMemo(() => {
     const params = new URLSearchParams()
     const { startDate, endDate } = getSeasonDateRange(season)
     if (startDate) params.set('startDate', startDate)
@@ -227,18 +224,38 @@ export default function StatsPage() {
     if (statusFilter.length > 0) params.set('status', statusFilter.join(','))
     if (disciplineFilter.length > 0) params.set('discipline', disciplineFilter.join(','))
     if (genderFilter.length > 0) params.set('gender', genderFilter.join(','))
-    params.set('metrics', getMetricsForTab(activeTab))
     return params.toString()
-  }, [season, statusFilter, disciplineFilter, genderFilter, activeTab])
+  }, [season, statusFilter, disciplineFilter, genderFilter])
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['stats', queryParams],
+  // Summary stats (stable across tab changes)
+  const { data: summary, isLoading: summaryLoading } = useQuery({
+    queryKey: ['stats-summary', filterParams],
     queryFn: async () => {
-      const response = await fetch(`/api/stats?${queryParams}`)
+      const params = new URLSearchParams(filterParams)
+      params.set('metrics', `availableSeasons,${SUMMARY_METRICS}`)
+      const response = await fetch(`/api/stats?${params}`)
       if (!response.ok) throw new Error('Failed to fetch stats')
       return response.json()
     },
   })
+
+  // Tab-specific data
+  const { data: tabData, isLoading: tabLoading } = useQuery({
+    queryKey: ['stats-tab', filterParams, activeTab],
+    enabled: getTabMetrics(activeTab).length > 0,
+    queryFn: async () => {
+      const metrics = getTabMetrics(activeTab)
+      const params = new URLSearchParams(filterParams)
+      params.set('metrics', metrics)
+      const response = await fetch(`/api/stats?${params}`)
+      if (!response.ok) throw new Error('Failed to fetch stats')
+      return response.json()
+    },
+  })
+
+  // Merge summary + tab data for easy access
+  const stats = useMemo(() => ({ ...summary, ...tabData }), [summary, tabData])
+  const availableSeasons: number[] = stats?.availableSeasons ?? [currentSeason]
 
   // Filter + sort competitors for the table
   const filteredCompetitors = useMemo(() => {
@@ -339,13 +356,7 @@ export default function StatsPage() {
   }
 
   const exportToCSV = async () => {
-    const params = new URLSearchParams()
-    const { startDate, endDate } = getSeasonDateRange(season)
-    if (startDate) params.set('startDate', startDate)
-    if (endDate) params.set('endDate', endDate)
-    if (statusFilter.length > 0) params.set('status', statusFilter.join(','))
-    if (disciplineFilter.length > 0) params.set('discipline', disciplineFilter.join(','))
-    if (genderFilter.length > 0) params.set('gender', genderFilter.join(','))
+    const params = new URLSearchParams(filterParams)
     params.set('metrics', 'competitorsList')
 
     const response = await fetch(`/api/stats?${params.toString()}`)
@@ -394,38 +405,81 @@ export default function StatsPage() {
         </div>
 
         {/* Season selector */}
-        {(() => {
-          const seasons: number[] = stats?.availableSeasons ?? [currentSeason]
-          return (
-            <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1">
-              {seasons.map((s: number) => (
-                <button
-                  key={s}
-                  onClick={() => setSeason(s)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
-                    season === s
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-              {seasons.length > 1 && (
-                <button
-                  onClick={() => setSeason(null)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
-                    season === null
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t('season.all')}
-                </button>
-              )}
-            </div>
-          )
-        })()}
+        <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1">
+          {availableSeasons.map((s: number) => (
+            <button
+              key={s}
+              onClick={() => setSeason(s)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
+                season === s
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+          {availableSeasons.length > 1 && (
+            <button
+              onClick={() => setSeason(null)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
+                season === null
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('season.all')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        <SummaryCard
+          value={stats?.totalInscriptions ?? '-'}
+          label={t('summary.inscriptions')}
+          subtitle={t('summary.inscriptionsDesc')}
+          accentColor="border-l-sky-500"
+          icon={Calendar}
+          isLoading={summaryLoading}
+        />
+        <SummaryCard
+          value={stats?.totalCompetitors ?? '-'}
+          label={t('summary.competitors')}
+          subtitle={t('summary.competitorsDesc')}
+          accentColor="border-l-emerald-500"
+          icon={Users}
+          isLoading={summaryLoading}
+        />
+        <SummaryCard
+          value={stats?.totalRaces ?? '-'}
+          label={t('summary.races')}
+          subtitle={t('summary.racesDesc')}
+          accentColor="border-l-rose-500"
+          icon={BarChart3}
+          isLoading={summaryLoading}
+        />
+        <SummaryCard
+          value={stats?.totalIndividualRegistrations ?? '-'}
+          label={t('summary.individual')}
+          subtitle={t('summary.individualDesc')}
+          accentColor="border-l-amber-500"
+          icon={TrendingUp}
+          isLoading={summaryLoading}
+        />
+        <SummaryCard
+          value={
+            stats?.totalIndividualRegistrations && stats?.totalInscriptions
+              ? (stats.totalIndividualRegistrations / stats.totalInscriptions).toFixed(1)
+              : '-'
+          }
+          label={t('summary.average')}
+          subtitle={t('summary.averageDesc')}
+          accentColor="border-l-violet-500"
+          icon={Users}
+          isLoading={summaryLoading}
+        />
       </div>
 
       {/* Tabs */}
@@ -442,11 +496,6 @@ export default function StatsPage() {
                 <Users className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">{t('tabs.competitors')}</span>
                 <span className="sm:hidden">{t('tabs.competitorsShort')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="disciplines" className="cursor-pointer">
-                <TrendingUp className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">{t('tabs.disciplines')}</span>
-                <span className="sm:hidden">Disc.</span>
               </TabsTrigger>
               <TabsTrigger value="countries" className="cursor-pointer">
                 <Globe className="h-4 w-4 mr-1.5" />
@@ -486,7 +535,7 @@ export default function StatsPage() {
               variant="outline"
               size="sm"
               onClick={exportToCSV}
-              disabled={isLoading}
+              disabled={summaryLoading || tabLoading}
               className="cursor-pointer"
             >
               <Download className="h-4 w-4 mr-1.5" />
@@ -566,56 +615,8 @@ export default function StatsPage() {
           </Card>
         )}
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mt-4">
-          <SummaryCard
-            value={stats?.totalInscriptions ?? '-'}
-            label={t('summary.inscriptions')}
-            subtitle={t('summary.inscriptionsDesc')}
-            accentColor="border-l-sky-500"
-            icon={Calendar}
-            isLoading={isLoading}
-          />
-          <SummaryCard
-            value={stats?.totalCompetitors ?? '-'}
-            label={t('summary.competitors')}
-            subtitle={t('summary.competitorsDesc')}
-            accentColor="border-l-emerald-500"
-            icon={Users}
-            isLoading={isLoading}
-          />
-          <SummaryCard
-            value={stats?.totalRaces ?? '-'}
-            label={t('summary.races')}
-            subtitle={t('summary.racesDesc')}
-            accentColor="border-l-rose-500"
-            icon={BarChart3}
-            isLoading={isLoading}
-          />
-          <SummaryCard
-            value={stats?.totalIndividualRegistrations ?? '-'}
-            label={t('summary.individual')}
-            subtitle={t('summary.individualDesc')}
-            accentColor="border-l-amber-500"
-            icon={TrendingUp}
-            isLoading={isLoading}
-          />
-          <SummaryCard
-            value={
-              stats?.totalIndividualRegistrations && stats?.totalInscriptions
-                ? (stats.totalIndividualRegistrations / stats.totalInscriptions).toFixed(1)
-                : '-'
-            }
-            label={t('summary.average')}
-            subtitle={t('summary.averageDesc')}
-            accentColor="border-l-violet-500"
-            icon={Users}
-            isLoading={isLoading}
-          />
-        </div>
-
         {/* Loading state */}
-        {isLoading && (
+        {tabLoading && (
           <div className="flex items-center justify-center py-12">
             <div className="animate-pulse text-muted-foreground">{t('loading')}</div>
           </div>
@@ -634,10 +635,10 @@ export default function StatsPage() {
                       <CardTitle className="text-base">{t('breakdown.byStatus')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {stats.byStatus.map((item: any) => {
+                      {(() => {
                         const maxCount = Math.max(...stats.byStatus.map((s: any) => Number(s.count)))
                         const total = stats.byStatus.reduce((sum: number, s: any) => sum + Number(s.count), 0)
-                        return (
+                        return stats.byStatus.map((item: any) => (
                           <BreakdownBar
                             key={item.status}
                             label={tStatus(item.status)}
@@ -646,8 +647,8 @@ export default function StatsPage() {
                             total={total}
                             barColor={STATUS_COLORS[item.status] || 'bg-slate-400'}
                           />
-                        )
-                      })}
+                        ))
+                      })()}
                     </CardContent>
                   </Card>
                 )}
@@ -725,19 +726,21 @@ export default function StatsPage() {
                       <CardTitle className="text-base">{t('breakdown.byDiscipline')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {stats.byDiscipline.map((item: any) => {
+                      {(() => {
                         const maxCount = Math.max(...stats.byDiscipline.map((d: any) => Number(d.count)))
-                        const colors = DISCIPLINE_COLORS[item.discipline]
-                        return (
-                          <BreakdownBar
-                            key={item.discipline}
-                            label={item.discipline}
-                            count={Number(item.count)}
-                            maxCount={maxCount}
-                            barColor={colors?.bar || 'bg-slate-400'}
-                          />
-                        )
-                      })}
+                        return stats.byDiscipline.map((item: any) => {
+                          const colors = DISCIPLINE_COLORS[item.discipline]
+                          return (
+                            <BreakdownBar
+                              key={item.discipline}
+                              label={item.discipline}
+                              count={Number(item.count)}
+                              maxCount={maxCount}
+                              barColor={colors?.bar || 'bg-slate-400'}
+                            />
+                          )
+                        })
+                      })()}
                     </CardContent>
                   </Card>
                 )}
@@ -916,60 +919,12 @@ export default function StatsPage() {
                     </tbody>
                   </table>
 
-                  {filteredCompetitors.length === 0 && !isLoading && (
+                  {filteredCompetitors.length === 0 && !tabLoading && (
                     <div className="text-center py-8 text-muted-foreground">{t('competitorsTable.noResults')}</div>
                   )}
                 </div>
               </Card>
             </>
-          )}
-        </TabsContent>
-
-        {/* === DISCIPLINES TAB === */}
-        <TabsContent value="disciplines" className="space-y-4 mt-2">
-          {stats?.byDiscipline && stats.byDiscipline.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {stats.byDiscipline
-                .sort((a: any, b: any) => Number(b.count) - Number(a.count))
-                .map((item: any) => {
-                  const colors = DISCIPLINE_COLORS[item.discipline]
-                  const total = stats.byDiscipline.reduce(
-                    (sum: number, d: any) => sum + Number(d.count),
-                    0
-                  )
-                  const share = total > 0 ? ((Number(item.count) / total) * 100).toFixed(1) : '0'
-
-                  return (
-                    <Card key={item.discipline}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${colors?.bar || 'bg-slate-400'}`} />
-                            <span className="font-bold text-lg">{item.discipline}</span>
-                          </div>
-                          <span className="text-2xl font-bold tabular-nums">{item.count}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>
-                            {DISCIPLINE_OPTIONS.find((d) => d.value === item.discipline)?.full || item.discipline}
-                          </span>
-                          <span>{share}% {t('disciplines.ofTotal')}</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-1.5 mt-2">
-                          <div
-                            className={`h-1.5 rounded-full transition-all duration-500 ${colors?.bar || 'bg-slate-400'}`}
-                            style={{ width: `${share}%` }}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-            </div>
-          )}
-
-          {stats && (!stats.byDiscipline || stats.byDiscipline.length === 0) && (
-            <div className="text-center py-12 text-muted-foreground">{t('noData')}</div>
           )}
         </TabsContent>
 
