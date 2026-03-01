@@ -258,8 +258,14 @@ export default function StatsPage() {
     list.sort((a: any, b: any) => {
       let aVal = a[sortColumn]
       let bVal = b[sortColumn]
-      if (typeof aVal === 'string') aVal = aVal.toLowerCase()
-      if (typeof bVal === 'string') bVal = bVal.toLowerCase()
+      // registrationCount comes as string from SQL - compare as number
+      if (sortColumn === 'registrationCount') {
+        aVal = Number(aVal) || 0
+        bVal = Number(bVal) || 0
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase()
+        bVal = typeof bVal === 'string' ? bVal.toLowerCase() : bVal
+      }
       if (aVal == null) return 1
       if (bVal == null) return -1
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
@@ -885,10 +891,8 @@ export default function StatsPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="p-3 hidden md:table-cell">
-                            <Badge variant="outline" className="text-xs">
-                              {competitor.nationCode}
-                            </Badge>
+                          <td className="p-3 hidden md:table-cell text-muted-foreground text-xs">
+                            {competitor.nationCode}
                           </td>
                           <td className="p-3 hidden lg:table-cell text-muted-foreground">
                             {competitor.gender === 'M' ? t('gender.men') : t('gender.women')}
@@ -896,13 +900,8 @@ export default function StatsPage() {
                           <td className="p-3 hidden lg:table-cell text-muted-foreground tabular-nums">
                             {competitor.fisCode}
                           </td>
-                          <td className="p-3 text-right">
-                            <Badge
-                              className="tabular-nums"
-                              variant={Number(competitor.registrationCount) >= 5 ? 'default' : 'secondary'}
-                            >
-                              {competitor.registrationCount}
-                            </Badge>
+                          <td className="p-3 text-right tabular-nums font-medium">
+                            {competitor.registrationCount}
                           </td>
                         </tr>
                       ))}

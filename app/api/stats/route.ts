@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDbTables } from '@/app/lib/getDbTables'
-import { and, sql, count, eq, isNull } from 'drizzle-orm'
+import { and, sql, count, isNull } from 'drizzle-orm'
 import { db } from '@/app/db/inscriptionsDB'
 import { clerkClient } from '@clerk/nextjs/server'
 
@@ -35,6 +35,38 @@ export async function GET(request: NextRequest) {
 
     const { inscriptions, inscriptionCompetitors, competitors } = getDbTables()
 
+    // SQL expression for effective status (mirrors getEffectiveStatusForFilter from genderStatus.ts)
+    // For mixed events, considers menStatus/womenStatus instead of raw status
+    const effectiveStatusSql = sql`CASE
+      WHEN NOT (
+        ${inscriptions.eventData}->'genderCodes' @> '"M"'::jsonb
+        AND ${inscriptions.eventData}->'genderCodes' @> '"W"'::jsonb
+      ) THEN ${inscriptions.status}::text
+      WHEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status}) = 'not_concerned'
+        AND COALESCE(${inscriptions.womenStatus}, ${inscriptions.status}) = 'not_concerned'
+      THEN 'not_concerned'
+      WHEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status}) = 'not_concerned'
+      THEN COALESCE(${inscriptions.womenStatus}, ${inscriptions.status})::text
+      WHEN COALESCE(${inscriptions.womenStatus}, ${inscriptions.status}) = 'not_concerned'
+      THEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status})::text
+      WHEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status}) = 'open'
+        OR COALESCE(${inscriptions.womenStatus}, ${inscriptions.status}) = 'open'
+      THEN 'open'
+      WHEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status})
+        = COALESCE(${inscriptions.womenStatus}, ${inscriptions.status})
+      THEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status})::text
+      ELSE CASE
+        WHEN (CASE COALESCE(${inscriptions.menStatus}, ${inscriptions.status})
+          WHEN 'open' THEN 4 WHEN 'validated' THEN 3 WHEN 'email_sent' THEN 2
+          WHEN 'cancelled' THEN 1 WHEN 'refused' THEN 1 WHEN 'not_concerned' THEN 0 ELSE 0 END)
+        >= (CASE COALESCE(${inscriptions.womenStatus}, ${inscriptions.status})
+          WHEN 'open' THEN 4 WHEN 'validated' THEN 3 WHEN 'email_sent' THEN 2
+          WHEN 'cancelled' THEN 1 WHEN 'refused' THEN 1 WHEN 'not_concerned' THEN 0 ELSE 0 END)
+        THEN COALESCE(${inscriptions.menStatus}, ${inscriptions.status})::text
+        ELSE COALESCE(${inscriptions.womenStatus}, ${inscriptions.status})::text
+      END
+    END`
+
     // Build base query conditions (always exclude soft-deleted records)
     const conditions = [isNull(inscriptions.deletedAt)]
 
@@ -51,12 +83,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (query.status && query.status.length > 0) {
-      const statusConditions = query.status.map(s => eq(inscriptions.status, s as any))
-      if (statusConditions.length === 1) {
-        conditions.push(statusConditions[0])
-      } else {
-        conditions.push(sql`(${sql.join(statusConditions, sql` OR `)})`)
-      }
+      const statusValues = query.status.map(s => sql`${s}`)
+      conditions.push(sql`(${effectiveStatusSql}) IN (${sql.join(statusValues, sql`, `)})`)
     }
 
     if (query.discipline && query.discipline.length > 0) {
@@ -163,14 +191,15 @@ export async function GET(request: NextRequest) {
       stats.totalRaces = Number(result.rows[0]?.count) || 0
     }
 
-    // Breakdown by status (no JOIN — safe with Drizzle query builder)
+    // Breakdown by effective status (accounts for mixed-gender events)
     if (wantsAll || query.metrics?.includes('byStatus')) {
-      const result = await db
-        .select({ status: inscriptions.status, count: count() })
-        .from(inscriptions)
-        .where(whereClause)
-        .groupBy(inscriptions.status)
-      stats.byStatus = result
+      const result = await db.execute(sql`
+        SELECT (${effectiveStatusSql}) as status, COUNT(*) as count
+        FROM ${inscriptions}
+        ${whereClause ? sql`WHERE ${whereClause}` : sql``}
+        GROUP BY 1
+      `)
+      stats.byStatus = result.rows
     }
 
     // Breakdown by gender
