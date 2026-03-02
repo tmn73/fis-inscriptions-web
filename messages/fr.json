@@ -82,19 +82,19 @@
       "inscriptionsDesc": "Inscriptions enregistrees",
       "competitors": "Coureurs",
       "competitorsDesc": "Athletes uniques",
-      "races": "Codex",
+      "races": "Courses",
       "racesDesc": "Courses dans les inscriptions",
-      "codexRegistrations": "Inscriptions codex",
-      "codexRegistrationsDesc": "Athletes inscrits a des codex",
-      "average": "Moy. codex / coureur",
-      "averageDesc": "Codex par athlete en moyenne"
+      "courseRegistrations": "Inscriptions courses",
+      "courseRegistrationsDesc": "Athletes inscrits a des courses",
+      "average": "Moy. courses / coureur",
+      "averageDesc": "Courses par athlete en moyenne"
     },
     "breakdown": {
       "byStatus": "Par statut",
       "byGender": "Par genre",
       "byDiscipline": "Par discipline",
       "byCountry": "Par pays",
-      "topCompetitors": "Top coureurs par nombre de codex",
+      "topCompetitors": "Top coureurs par nombre de courses",
       "byCreator": "Inscriptions par utilisateur",
       "events": "events",
       "timeline": "Timeline des inscriptions"
@@ -112,7 +112,7 @@
       "gender": "Genre",
       "fisCode": "Code FIS",
       "registrations": "inscriptions",
-      "codex": "codex"
+      "courses": "courses"
     },
     "disciplines": {
       "ofTotal": "du total"
@@ -337,11 +337,11 @@
       "gender": "Sexe",
       "birthdate": "Naissance"
     },
-    "eventsTitle": "Évènements et codex où le compétiteur est inscrit :",
+    "eventsTitle": "Évènements et courses où le compétiteur est inscrit :",
     "eventCount": {
       "event_one": "événement",
       "event_other": "événements",
-      "codex": "codex"
+      "courses": "courses"
     },
     "noInscriptions": "Aucune inscription trouvée pour ce compétiteur."
   },
@@ -354,8 +354,8 @@
     "tabs": {
       "recap": "Récap",
       "recapFull": "Récapitulatif",
-      "codex": "Codex",
-      "codexFull": "Par codex",
+      "courses": "Courses",
+      "coursesFull": "Par course",
       "coaches": "Coachs/Staff",
       "coachesFull": "Coachs/Staff"
     },
@@ -364,7 +364,7 @@
       "loadError": "Erreur lors du chargement des compétiteurs.",
       "loadCompetitorsError": "Erreur lors du chargement des coureurs",
       "updateError": "Erreur lors de la mise à jour des inscriptions du compétiteur",
-      "noCompetitors": "Aucun compétiteur présent pour ce codex pour le moment",
+      "noCompetitors": "Aucun compétiteur présent pour cette course pour le moment",
       "editRestriction": "L'inscription / désincription n'est possible que lorsque l'inscription est <b>ouverte</b>.",
       "table": {
         "lastName": "Nom",
@@ -378,14 +378,14 @@
       "manage": {
         "title": "Gérer les inscriptions",
         "modalTitle": "Gérer les inscriptions de {firstName} {lastName}",
-        "description": "Cochez les codex auxquels vous souhaitez inscrire le compétiteur. Décochez ceux dont vous souhaitez le désinscrire. Les codex affichés sont filtrés selon le sexe du compétiteur.",
-        "descriptionMobile": "Cochez les codex auxquels vous souhaitez inscrire le compétiteur. Décochez ceux dont vous souhaitez le désinscrire.",
+        "description": "Cochez les courses auxquelles vous souhaitez inscrire le compétiteur. Décochez celles dont vous souhaitez le désinscrire. Les courses affichées sont filtrées selon le sexe du compétiteur.",
+        "descriptionMobile": "Cochez les courses auxquelles vous souhaitez inscrire le compétiteur. Décochez celles dont vous souhaitez le désinscrire.",
         "cancel": "Annuler",
         "updating": "Mise à jour...",
         "update": "Mettre à jour les inscriptions",
         "loadingInfo": "Chargement des informations d'inscription...",
-        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
-        "selectCodex": "Sélectionnez les codex pour l'inscription :",
+        "noCompatibleCourses": "Aucune course compatible avec le sexe du compétiteur pour cet événement.",
+        "selectCourses": "Sélectionnez les courses pour l'inscription :",
         "selectAll": "Tout sélectionner",
         "deselectAll": "Tout retirer"
       }
@@ -629,13 +629,13 @@
       "manage": {
         "title": "Gérer les inscriptions",
         "modalTitle": "Gérer les inscriptions de {firstName} {lastName}",
-        "description": "Cochez les codex auxquels vous souhaitez inscrire le compétiteur. Décochez ceux dont vous souhaitez le désinscrire. Les codex affichés sont filtrés selon le sexe du compétiteur.",
-        "selectCodex": "Sélectionnez les codex pour l'inscription :",
+        "description": "Cochez les courses auxquelles vous souhaitez inscrire le compétiteur. Décochez celles dont vous souhaitez le désinscrire. Les courses affichées sont filtrées selon le sexe du compétiteur.",
+        "selectCourses": "Sélectionnez les courses pour l'inscription :",
         "cancel": "Annuler",
         "update": "Mettre à jour les inscriptions",
         "updating": "Mise à jour...",
         "loadingInfo": "Chargement des informations d'inscription...",
-        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
+        "noCompatibleCourses": "Aucune course compatible avec le sexe du compétiteur pour cet événement.",
         "selectAll": "Tout sélectionner",
         "deselectAll": "Tout retirer"
       },
@@ -652,7 +652,7 @@
         "loadData": "Erreur lors du chargement des données.",
         "loadCompetitors": "Erreur lors du chargement des compétiteurs",
         "updateRegistrations": "Erreur lors de la mise à jour des inscriptions du compétiteur",
-        "noCodex": "Aucun codex pour cet évènement."
+        "noCourses": "Aucune course pour cet évènement."
       },
       "loading": "Chargement des données..."
     }
@@ -734,7 +734,7 @@
       "searchResults": "Résultats de recherche",
       "noResults": "Aucun compétiteur trouvé",
       "selected": "Sélectionner un compétiteur",
-      "forWhichCodex": "Pour quels codex ? (courses {gender})",
+      "forWhichCourses": "Pour quelles courses ? (courses {gender})",
       "saving": "Ajout..."
     },
     "addCoach": {
@@ -811,7 +811,7 @@
       "noActivity": "Aucune activité trouvée dans les 30 derniers jours",
       "view": "Voir",
       "inscriptionCreated": "Inscription créée pour '{eventName}'",
-      "competitorAdded": "Compétiteur ajouté : {competitorName}{nation}{codex} dans '{eventName}'",
+      "competitorAdded": "Compétiteur ajouté : {competitorName}{nation}{courses} dans '{eventName}'",
       "coachAdded": "Coach ajouté : {firstName} {lastName}{team} dans '{eventName}'",
       "unknownActivity": "Activité inconnue",
       "event": "Événement",

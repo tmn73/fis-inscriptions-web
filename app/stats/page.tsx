@@ -56,7 +56,7 @@ const GENDER_HEX: Record<string, string> = {
   W: '#a855f7',
 }
 
-type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount' | 'codexCount'
+type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount' | 'courseCount'
 type SortDirection = 'asc' | 'desc'
 
 function getSeasonDateRange(season: number | null): { startDate: string; endDate: string } {
@@ -67,7 +67,7 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
   }
 }
 
-const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalRaces,totalCodexRegistrations,summarySparklines'
+const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalRaces,totalCourseRegistrations,summarySparklines'
 
 function getTabMetrics(tab: string): string {
   switch (tab) {
@@ -287,7 +287,7 @@ export default function StatsPage() {
   const [competitorSearch, setCompetitorSearch] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
   const [userSearch, setUserSearch] = useState('')
-  const [sortColumn, setSortColumn] = useState<SortColumn>('codexCount')
+  const [sortColumn, setSortColumn] = useState<SortColumn>('courseCount')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
   const activeFilterCount = statusFilter.length + disciplineFilter.length + genderFilter.length
@@ -354,8 +354,8 @@ export default function StatsPage() {
     list.sort((a: any, b: any) => {
       let aVal = a[sortColumn]
       let bVal = b[sortColumn]
-      // registrationCount/codexCount come as string from SQL - compare as number
-      if (sortColumn === 'registrationCount' || sortColumn === 'codexCount') {
+      // registrationCount/courseCount come as string from SQL - compare as number
+      if (sortColumn === 'registrationCount' || sortColumn === 'courseCount') {
         aVal = Number(aVal) || 0
         bVal = Number(bVal) || 0
       } else if (typeof aVal === 'string') {
@@ -442,7 +442,7 @@ export default function StatsPage() {
 
     if (!data.competitorsList || data.competitorsList.length === 0) return
 
-    const headers = ['FIS Code', 'Nom', 'Prenom', 'Nation', 'Genre', 'Date naissance', 'Nb inscriptions', 'Nb codex']
+    const headers = ['FIS Code', 'Nom', 'Prenom', 'Nation', 'Genre', 'Date naissance', 'Nb inscriptions', 'Nb courses']
     const rows = data.competitorsList.map((row: any) => [
       row.fisCode ?? '',
       row.lastName ?? '',
@@ -451,7 +451,7 @@ export default function StatsPage() {
       row.gender ?? '',
       row.birthDate ?? '',
       row.registrationCount ?? 0,
-      row.codexCount ?? 0,
+      row.courseCount ?? 0,
     ])
 
     const escapeCSV = (val: any) => {
@@ -518,7 +518,7 @@ export default function StatsPage() {
         const sparklines = stats?.summarySparklines as any[] | undefined
         const inscrSparkline = sparklines?.map((r: any) => Number(r.inscriptions))
         const compSparkline = sparklines?.map((r: any) => Number(r.competitors))
-        const codexRegSparkline = sparklines?.map((r: any) => Number(r.codex_registrations))
+        const courseRegSparkline = sparklines?.map((r: any) => Number(r.course_registrations))
         return (
       <div className="space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -549,23 +549,23 @@ export default function StatsPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SummaryCard
-            value={stats?.totalCodexRegistrations ?? '-'}
-            label={t('summary.codexRegistrations')}
-            subtitle={t('summary.codexRegistrationsDesc')}
-            sparklineData={codexRegSparkline}
+            value={stats?.totalCourseRegistrations ?? '-'}
+            label={t('summary.courseRegistrations')}
+            subtitle={t('summary.courseRegistrationsDesc')}
+            sparklineData={courseRegSparkline}
             sparklineColor="var(--color-chart-4)"
             isLoading={summaryLoading}
             size="large"
           />
           <SummaryCard
             value={
-              stats?.totalCodexRegistrations && stats?.totalCompetitors
-                ? (stats.totalCodexRegistrations / stats.totalCompetitors).toFixed(1)
+              stats?.totalCourseRegistrations && stats?.totalCompetitors
+                ? (stats.totalCourseRegistrations / stats.totalCompetitors).toFixed(1)
                 : '-'
             }
             label={t('summary.average')}
             subtitle={t('summary.averageDesc')}
-            sparklineData={codexRegSparkline && compSparkline ? codexRegSparkline.map((v, i) => compSparkline[i] ? v / compSparkline[i] : 0) : undefined}
+            sparklineData={courseRegSparkline && compSparkline ? courseRegSparkline.map((v, i) => compSparkline[i] ? v / compSparkline[i] : 0) : undefined}
             sparklineColor="var(--color-chart-5)"
             isLoading={summaryLoading}
             size="large"
@@ -870,7 +870,7 @@ export default function StatsPage() {
                               {competitor.registration_count} {t('competitorsTable.registrations')}
                             </Badge>
                             <Badge variant="secondary" className="tabular-nums font-bold">
-                              {competitor.codex_count} {t('competitorsTable.codex')}
+                              {competitor.course_count} {t('competitorsTable.courses')}
                             </Badge>
                           </div>
                         </div>
@@ -983,8 +983,8 @@ export default function StatsPage() {
                         </th>
                         <th className="text-right p-3">
                           <SortableHeader
-                            label={t('competitorsTable.codex')}
-                            column="codexCount"
+                            label={t('competitorsTable.courses')}
+                            column="courseCount"
                             currentSort={sortColumn}
                             currentDirection={sortDirection}
                             onSort={handleSort}
@@ -1022,7 +1022,7 @@ export default function StatsPage() {
                             {competitor.registrationCount}
                           </td>
                           <td className="p-3 text-right tabular-nums font-bold">
-                            {competitor.codexCount}
+                            {competitor.courseCount}
                           </td>
                         </tr>
                       ))}
