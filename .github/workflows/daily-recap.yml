@@ -14,10 +14,9 @@ jobs:
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
-      - run: pnpm install
-      - run: pnpm tsx scripts/daily-recap.ts
+      - run: bun install
+      - run: bun tsx scripts/daily-recap.ts

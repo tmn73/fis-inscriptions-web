@@ -126,7 +126,7 @@ const competitors = await db.query.competitors.findMany({
 
 - **TypeScript Strict Mode**: Maximum type safety
 - **ESLint Configuration**: Code quality enforcement
-- **Pre-commit Hooks**: Automated testing and linting
+- **CI Pipeline**: Automated testing and linting
 - **CI/CD Pipeline**: Automated testing and deployment
 
 ## 📊 Technical Metrics
@@ -143,19 +143,19 @@ const competitors = await db.query.competitors.findMany({
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
 # Setup environment
 cp .env.example .env.local
 
 # Run development server
-pnpm dev
+bun dev
 
 # Run tests
-pnpm test
+bun run test
 
 # Build for production
-pnpm build
+bun run build
 ```
 
 ### Key Dependencies

@@ -10,16 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
       - name: Install dependencies
-        run: pnpm install
+        run: bun install
       - name: Install script dependencies
-        run: pnpm add csv-parse @neondatabase/serverless drizzle-orm
+        run: bun add csv-parse @neondatabase/serverless drizzle-orm
       - name: Download FIS Points List CSV
         run: curl -o FIS-points-list.csv 'https://data.fis-ski.com/fis_athletes/ajax/fispointslistfunctions/export_fispointslist.html?export_csv=true&sectorcode=AL&seasoncode=2026&listid=412'
       - name: Run import script

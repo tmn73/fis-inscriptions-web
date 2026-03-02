@@ -153,7 +153,7 @@ if (!isAdminRole(role)) {
 ## 🚀 Améliorations futures possibles
 
 1. **Graphiques avancés avec Recharts:**
-   - Installer: `pnpm add recharts`
+   - Installer: `bun add recharts`
    - Remplacer les barres CSS par des vraies charts
 
 2. **Filtres supplémentaires:**
@@ -162,7 +162,7 @@ if (!isAdminRole(role)) {
    - Par organisation
 
 3. **Export Excel:**
-   - Installer: `pnpm add xlsx`
+   - Installer: `bun add xlsx`
    - Ajouter un bouton "Export Excel" à côté du CSV
 
 4. **Cache et performance:**
@@ -181,7 +181,7 @@ if (!isAdminRole(role)) {
 
 Pour tester manuellement:
 
-1. Démarrer le serveur de dev: `pnpm dev`
+1. Démarrer le serveur de dev: `bun dev`
 2. Aller sur `/stats`
 3. Tester les filtres
 4. Vérifier l'export CSV

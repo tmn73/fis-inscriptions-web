@@ -140,7 +140,7 @@ FOREIGN KEY (inscription_id) REFERENCES rfedi.inscriptions(id) ON DELETE CASCADE
 **Option B : Migration automatisée avec Drizzle**
 ```bash
 # Créer une nouvelle migration
-pnpm drizzle-kit generate --config=drizzle-inscriptions.ts --custom
+bun drizzle-kit generate --config=drizzle-inscriptions.ts --custom
 ```
 
 ### 5. 📦 Import des données compétiteurs
@@ -194,10 +194,10 @@ Fichiers à vérifier/mettre à jour :
 
 ```bash
 # Build
-pnpm build
+bun run build
 
 # Tests
-pnpm test
+bun run test
 
 # Test manuel des endpoints critiques :
 # - GET /api/competitors?search=test&gender=M
