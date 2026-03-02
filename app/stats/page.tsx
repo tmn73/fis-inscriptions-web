@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
-  Download, TrendingUp, Users, Calendar, BarChart3,
+  Download, Users, BarChart3,
   Globe, Search, Filter, X, ArrowUp, ArrowDown,
   ChevronDown, ChevronUp, UserCog,
 } from 'lucide-react'
@@ -56,7 +56,7 @@ const GENDER_HEX: Record<string, string> = {
   W: '#a855f7',
 }
 
-type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount'
+type SortColumn = 'lastName' | 'firstName' | 'nationCode' | 'gender' | 'fisCode' | 'registrationCount' | 'codexCount'
 type SortDirection = 'asc' | 'desc'
 
 function getSeasonDateRange(season: number | null): { startDate: string; endDate: string } {
@@ -67,7 +67,7 @@ function getSeasonDateRange(season: number | null): { startDate: string; endDate
   }
 }
 
-const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalIndividualRegistrations,totalRaces'
+const SUMMARY_METRICS = 'totalInscriptions,totalCompetitors,totalRaces,totalCodexRegistrations,summarySparklines'
 
 function getTabMetrics(tab: string): string {
   switch (tab) {
@@ -86,38 +86,116 @@ function getTabMetrics(tab: string): string {
 
 // --- Sub-components ---
 
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  if (!data || data.length < 2) return null
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  const h = 48
+  const w = 140
+  const pad = 6
+
+  const pts = data.map((v, i) => ({
+    x: pad + (i / (data.length - 1)) * (w - pad * 2),
+    y: pad + (1 - (v - min) / range) * (h - pad * 2),
+  }))
+
+  // Smooth bezier path
+  let d = `M${pts[0].x},${pts[0].y}`
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1]
+    const curr = pts[i]
+    const cpx = (prev.x + curr.x) / 2
+    d += ` C${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`
+  }
+
+  // Approximate path length for stroke animation (generous estimate)
+  const pathLen = pts.reduce((sum, p, i) => {
+    if (i === 0) return 0
+    const dx = p.x - pts[i - 1].x
+    const dy = p.y - pts[i - 1].y
+    return sum + Math.sqrt(dx * dx + dy * dy)
+  }, 0) * 1.3
+
+  const areaD = `${d} L${pts[pts.length - 1].x},${h} L${pts[0].x},${h} Z`
+  const uid = `sp-${color.replace(/[^a-z0-9]/gi, '')}`
+
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0">
+      <defs>
+        <linearGradient id={uid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.12} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path d={areaD} fill={`url(#${uid})`} className="sparkline-area" />
+      <path
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="sparkline-line"
+        style={{ strokeDasharray: pathLen, strokeDashoffset: pathLen }}
+      />
+      <circle
+        cx={pts[pts.length - 1].x}
+        cy={pts[pts.length - 1].y}
+        r={3}
+        fill={color}
+        className="sparkline-dot"
+        style={{ transformOrigin: `${pts[pts.length - 1].x}px ${pts[pts.length - 1].y}px` }}
+      />
+    </svg>
+  )
+}
+
 function SummaryCard({
   value,
   label,
   subtitle,
-  accentColor,
-  icon: Icon,
+  sparklineData,
+  sparklineColor = '#64748b',
   isLoading,
+  size = 'default',
 }: {
   value: number | string
   label: string
   subtitle: string
-  accentColor: string
-  icon: React.ElementType
+  sparklineData?: number[]
+  sparklineColor?: string
   isLoading: boolean
+  size?: 'default' | 'large'
 }) {
+  const isLarge = size === 'large'
   return (
-    <Card className={`relative overflow-hidden border-l-[3px] ${accentColor}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            {isLoading ? (
-              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
-            ) : (
-              <p className="text-2xl md:text-3xl font-bold tabular-nums tracking-tight">{value}</p>
+    <div className="group relative">
+      <Card
+        className="relative overflow-hidden border-transparent transition-all duration-300 hover:shadow-lg hover:border-border/40 hover:-translate-y-0.5"
+        style={{ background: `linear-gradient(135deg, var(--card) 60%, color-mix(in srgb, ${sparklineColor} 4%, var(--card)))` }}
+      >
+        <CardContent className={isLarge ? 'p-5 pb-6' : 'p-4 pb-5'}>
+          <div className="flex items-end justify-between gap-3">
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sparklineColor }} />
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
+              </div>
+              {isLoading ? (
+                <div className={`${isLarge ? 'h-10 w-20' : 'h-8 w-16'} bg-muted animate-pulse rounded`} />
+              ) : (
+                <p className={`${isLarge ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl'} font-bold tabular-nums tracking-tighter leading-none`}>{value}</p>
+              )}
+              <p className="text-xs text-muted-foreground/60">{subtitle}</p>
+            </div>
+            {sparklineData && sparklineData.length >= 2 && (
+              <Sparkline data={sparklineData} color={sparklineColor} />
             )}
-            <p className="text-sm font-medium text-foreground">{label}</p>
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
           </div>
-          <Icon className="h-5 w-5 text-muted-foreground/50" />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -209,7 +287,7 @@ export default function StatsPage() {
   const [competitorSearch, setCompetitorSearch] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
   const [userSearch, setUserSearch] = useState('')
-  const [sortColumn, setSortColumn] = useState<SortColumn>('registrationCount')
+  const [sortColumn, setSortColumn] = useState<SortColumn>('codexCount')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
   const activeFilterCount = statusFilter.length + disciplineFilter.length + genderFilter.length
@@ -276,8 +354,8 @@ export default function StatsPage() {
     list.sort((a: any, b: any) => {
       let aVal = a[sortColumn]
       let bVal = b[sortColumn]
-      // registrationCount comes as string from SQL - compare as number
-      if (sortColumn === 'registrationCount') {
+      // registrationCount/codexCount come as string from SQL - compare as number
+      if (sortColumn === 'registrationCount' || sortColumn === 'codexCount') {
         aVal = Number(aVal) || 0
         bVal = Number(bVal) || 0
       } else if (typeof aVal === 'string') {
@@ -364,7 +442,7 @@ export default function StatsPage() {
 
     if (!data.competitorsList || data.competitorsList.length === 0) return
 
-    const headers = ['FIS Code', 'Nom', 'Prenom', 'Nation', 'Genre', 'Date naissance', 'Nb inscriptions']
+    const headers = ['FIS Code', 'Nom', 'Prenom', 'Nation', 'Genre', 'Date naissance', 'Nb inscriptions', 'Nb codex']
     const rows = data.competitorsList.map((row: any) => [
       row.fisCode ?? '',
       row.lastName ?? '',
@@ -373,6 +451,7 @@ export default function StatsPage() {
       row.gender ?? '',
       row.birthDate ?? '',
       row.registrationCount ?? 0,
+      row.codexCount ?? 0,
     ])
 
     const escapeCSV = (val: any) => {
@@ -435,52 +514,66 @@ export default function StatsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-        <SummaryCard
-          value={stats?.totalInscriptions ?? '-'}
-          label={t('summary.inscriptions')}
-          subtitle={t('summary.inscriptionsDesc')}
-          accentColor="border-l-sky-500"
-          icon={Calendar}
-          isLoading={summaryLoading}
-        />
-        <SummaryCard
-          value={stats?.totalCompetitors ?? '-'}
-          label={t('summary.competitors')}
-          subtitle={t('summary.competitorsDesc')}
-          accentColor="border-l-emerald-500"
-          icon={Users}
-          isLoading={summaryLoading}
-        />
-        <SummaryCard
-          value={stats?.totalRaces ?? '-'}
-          label={t('summary.races')}
-          subtitle={t('summary.racesDesc')}
-          accentColor="border-l-rose-500"
-          icon={BarChart3}
-          isLoading={summaryLoading}
-        />
-        <SummaryCard
-          value={stats?.totalIndividualRegistrations ?? '-'}
-          label={t('summary.individual')}
-          subtitle={t('summary.individualDesc')}
-          accentColor="border-l-amber-500"
-          icon={TrendingUp}
-          isLoading={summaryLoading}
-        />
-        <SummaryCard
-          value={
-            stats?.totalIndividualRegistrations && stats?.totalInscriptions
-              ? (stats.totalIndividualRegistrations / stats.totalInscriptions).toFixed(1)
-              : '-'
-          }
-          label={t('summary.average')}
-          subtitle={t('summary.averageDesc')}
-          accentColor="border-l-violet-500"
-          icon={Users}
-          isLoading={summaryLoading}
-        />
+      {(() => {
+        const sparklines = stats?.summarySparklines as any[] | undefined
+        const inscrSparkline = sparklines?.map((r: any) => Number(r.inscriptions))
+        const compSparkline = sparklines?.map((r: any) => Number(r.competitors))
+        const codexRegSparkline = sparklines?.map((r: any) => Number(r.codex_registrations))
+        return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <SummaryCard
+            value={stats?.totalInscriptions ?? '-'}
+            label={t('summary.inscriptions')}
+            subtitle={t('summary.inscriptionsDesc')}
+            sparklineData={inscrSparkline}
+            sparklineColor="var(--color-chart-1)"
+            isLoading={summaryLoading}
+          />
+          <SummaryCard
+            value={stats?.totalCompetitors ?? '-'}
+            label={t('summary.competitors')}
+            subtitle={t('summary.competitorsDesc')}
+            sparklineData={compSparkline}
+            sparklineColor="var(--color-chart-2)"
+            isLoading={summaryLoading}
+          />
+          <SummaryCard
+            value={stats?.totalRaces ?? '-'}
+            label={t('summary.races')}
+            subtitle={t('summary.racesDesc')}
+            sparklineData={inscrSparkline}
+            sparklineColor="var(--color-chart-3)"
+            isLoading={summaryLoading}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <SummaryCard
+            value={stats?.totalCodexRegistrations ?? '-'}
+            label={t('summary.codexRegistrations')}
+            subtitle={t('summary.codexRegistrationsDesc')}
+            sparklineData={codexRegSparkline}
+            sparklineColor="var(--color-chart-4)"
+            isLoading={summaryLoading}
+            size="large"
+          />
+          <SummaryCard
+            value={
+              stats?.totalCodexRegistrations && stats?.totalCompetitors
+                ? (stats.totalCodexRegistrations / stats.totalCompetitors).toFixed(1)
+                : '-'
+            }
+            label={t('summary.average')}
+            subtitle={t('summary.averageDesc')}
+            sparklineData={codexRegSparkline && compSparkline ? codexRegSparkline.map((v, i) => compSparkline[i] ? v / compSparkline[i] : 0) : undefined}
+            sparklineColor="var(--color-chart-5)"
+            isLoading={summaryLoading}
+            size="large"
+          />
+        </div>
       </div>
+        )
+      })()}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -772,9 +865,14 @@ export default function StatsPage() {
                               </span>
                             </div>
                           </div>
-                          <Badge variant="outline" className="tabular-nums">
-                            {competitor.registration_count} {t('competitorsTable.registrations')}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="tabular-nums">
+                              {competitor.registration_count} {t('competitorsTable.registrations')}
+                            </Badge>
+                            <Badge variant="secondary" className="tabular-nums font-bold">
+                              {competitor.codex_count} {t('competitorsTable.codex')}
+                            </Badge>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -883,6 +981,15 @@ export default function StatsPage() {
                             onSort={handleSort}
                           />
                         </th>
+                        <th className="text-right p-3">
+                          <SortableHeader
+                            label={t('competitorsTable.codex')}
+                            column="codexCount"
+                            currentSort={sortColumn}
+                            currentDirection={sortDirection}
+                            onSort={handleSort}
+                          />
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -913,6 +1020,9 @@ export default function StatsPage() {
                           </td>
                           <td className="p-3 text-right tabular-nums font-medium">
                             {competitor.registrationCount}
+                          </td>
+                          <td className="p-3 text-right tabular-nums font-bold">
+                            {competitor.codexCount}
                           </td>
                         </tr>
                       ))}

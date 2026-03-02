@@ -80,21 +80,21 @@
     "summary": {
       "inscriptions": "Registrations",
       "inscriptionsDesc": "Registered events",
-      "competitors": "Registered runners",
-      "competitorsDesc": "Unique runners",
-      "individual": "Individual reg.",
-      "individualDesc": "Runner x Races",
-      "races": "Total races",
-      "racesDesc": "Individual races (codex)",
-      "average": "Avg / registration",
-      "averageDesc": "Runners per event"
+      "competitors": "Runners",
+      "competitorsDesc": "Unique athletes",
+      "races": "Codex",
+      "racesDesc": "Races in registrations",
+      "codexRegistrations": "Codex registrations",
+      "codexRegistrationsDesc": "Athletes registered to codex",
+      "average": "Avg codex / runner",
+      "averageDesc": "Codex per athlete on average"
     },
     "breakdown": {
       "byStatus": "By status",
       "byGender": "By gender",
       "byDiscipline": "By discipline",
       "byCountry": "By country",
-      "topCompetitors": "Top runners by registration count",
+      "topCompetitors": "Top runners by codex count",
       "byCreator": "Registrations by user",
       "events": "events",
       "timeline": "Registration timeline"
@@ -111,7 +111,8 @@
       "nation": "Nation",
       "gender": "Gender",
       "fisCode": "FIS Code",
-      "registrations": "registrations"
+      "registrations": "registrations",
+      "codex": "codex"
     },
     "disciplines": {
       "ofTotal": "of total"

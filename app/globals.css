@@ -142,4 +142,28 @@
   .animate-snowfall {
     animation: snowfall linear infinite;
   }
+
+  /* Sparkline draw animation */
+  .sparkline-line {
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .group:hover .sparkline-line {
+    stroke-dashoffset: 0 !important;
+  }
+  .sparkline-area {
+    transition: opacity 0.5s ease-out 0.4s;
+    opacity: 0;
+  }
+  .group:hover .sparkline-area {
+    opacity: 1;
+  }
+  .sparkline-dot {
+    transition: opacity 0.2s ease-out 0.7s, transform 0.2s ease-out 0.7s;
+    opacity: 0;
+    transform: scale(0);
+  }
+  .group:hover .sparkline-dot {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

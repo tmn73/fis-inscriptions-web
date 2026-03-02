@@ -79,20 +79,22 @@
     },
     "summary": {
       "inscriptions": "Inscripciones",
-      "inscriptionsDesc": "Eventos registrados",
-      "competitors": "Corredores inscritos",
-      "competitorsDesc": "Corredores unicos",
-      "individual": "Inscripciones indiv.",
-      "individualDesc": "Corredor x Carreras",
-      "average": "Prom. / inscripcion",
-      "averageDesc": "Corredores por evento"
+      "inscriptionsDesc": "Inscripciones registradas",
+      "competitors": "Corredores",
+      "competitorsDesc": "Atletas unicos",
+      "races": "Codex",
+      "racesDesc": "Carreras en inscripciones",
+      "codexRegistrations": "Inscripciones codex",
+      "codexRegistrationsDesc": "Atletas inscritos a codex",
+      "average": "Prom. codex / corredor",
+      "averageDesc": "Codex por atleta en promedio"
     },
     "breakdown": {
       "byStatus": "Por estado",
       "byGender": "Por genero",
       "byDiscipline": "Por disciplina",
       "byCountry": "Por pais",
-      "topCompetitors": "Top corredores por numero de inscripciones",
+      "topCompetitors": "Top corredores por numero de codex",
       "byCreator": "Inscripciones por usuario",
       "events": "eventos",
       "timeline": "Timeline de inscripciones"
@@ -109,7 +111,8 @@
       "nation": "Nacion",
       "gender": "Genero",
       "fisCode": "Codigo FIS",
-      "registrations": "inscripciones"
+      "registrations": "inscripciones",
+      "codex": "codex"
     },
     "disciplines": {
       "ofTotal": "del total"

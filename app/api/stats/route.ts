@@ -161,8 +161,8 @@ export async function GET(request: NextRequest) {
       const result = await db.execute(sql`
         SELECT COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as count
         FROM ${inscriptionCompetitors}
-        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        ${hasGender ? sql`LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
       `)
       stats.totalCompetitors = Number(result.rows[0]?.count) || 0
@@ -174,11 +174,24 @@ export async function GET(request: NextRequest) {
       const result = await db.execute(sql`
         SELECT COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.competitorId})) as count
         FROM ${inscriptionCompetitors}
-        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        ${hasGender ? sql`LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
       `)
       stats.totalIndividualRegistrations = Number(result.rows[0]?.count) || 0
+    }
+
+    // Total codex registrations (total competitor x codex entries, validated against eventData)
+    if (wantsAll || query.metrics?.includes('totalCodexRegistrations')) {
+      const hasGender = query.gender && query.gender.length > 0
+      const result = await db.execute(sql`
+        SELECT COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as count
+        FROM ${inscriptionCompetitors}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
+      `)
+      stats.totalCodexRegistrations = Number(result.rows[0]?.count) || 0
     }
 
     // Total races (codex count - individual races within competitions)
@@ -223,8 +236,8 @@ export async function GET(request: NextRequest) {
       const result = await db.execute(sql`
         SELECT ${competitors.gender} as gender, COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.competitorId})) as count
         FROM ${inscriptionCompetitors}
-        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.gender}
       `)
@@ -246,7 +259,7 @@ export async function GET(request: NextRequest) {
         disciplineWhereParts.push(sql`${inscriptions.id} IN (
           SELECT DISTINCT ${inscriptionCompetitors.inscriptionId}
           FROM ${inscriptionCompetitors}
-          LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+          INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
           WHERE ${inscriptionCompetitors.deletedAt} IS NULL AND ${competitors.gender} IN (${sql.join(genderVals, sql`, `)})
         )`)
       }
@@ -294,6 +307,25 @@ export async function GET(request: NextRequest) {
       stats.timeline = result.rows
     }
 
+    // Summary sparklines (monthly breakdown of key metrics for summary cards)
+    if (query.metrics?.includes('summarySparklines')) {
+      const hasGender = query.gender && query.gender.length > 0
+      const result = await db.execute(sql`
+        SELECT
+          DATE_TRUNC('month', ${inscriptions.createdAt}) as month,
+          COUNT(DISTINCT ${inscriptions.id}) as inscriptions,
+          COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as competitors,
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as codex_registrations
+        FROM ${inscriptionCompetitors}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
+        ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
+        GROUP BY DATE_TRUNC('month', ${inscriptions.createdAt})
+        ORDER BY month ASC
+      `)
+      stats.summarySparklines = result.rows
+    }
+
     // Top competitors by number of registrations
     if (wantsAll || query.metrics?.includes('topCompetitors')) {
       const result = await db.execute(sql`
@@ -303,13 +335,14 @@ export async function GET(request: NextRequest) {
           ${competitors.lastname},
           ${competitors.nationcode},
           ${competitors.gender},
-          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as registration_count
+          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as registration_count,
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as codex_count
         FROM ${inscriptionCompetitors}
-        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}
-        ORDER BY registration_count DESC
+        ORDER BY codex_count DESC
         LIMIT 20
       `)
       stats.topCompetitors = result.rows
@@ -326,13 +359,14 @@ export async function GET(request: NextRequest) {
           ${competitors.nationcode} as "nationCode",
           ${competitors.gender},
           ${competitors.birthdate} as "birthDate",
-          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as "registrationCount"
+          COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as "registrationCount",
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as "codexCount"
         FROM ${inscriptionCompetitors}
-        LEFT JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
-        LEFT JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
+        INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
+        INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.fiscode}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}, ${competitors.birthdate}
-        ORDER BY "registrationCount" DESC, ${competitors.lastname}, ${competitors.firstname}
+        ORDER BY "codexCount" DESC, ${competitors.lastname}, ${competitors.firstname}
       `)
       stats.competitorsList = result.rows
     }
