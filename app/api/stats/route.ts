@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Total codex registrations (total competitor x codex entries, validated against eventData)
-    if (wantsAll || query.metrics?.includes('totalCodexRegistrations')) {
+    if (wantsAll || query.metrics?.includes('totalCourseRegistrations')) {
       const hasGender = query.gender && query.gender.length > 0
       const result = await db.execute(sql`
         SELECT COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as count
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
         ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
       `)
-      stats.totalCodexRegistrations = Number(result.rows[0]?.count) || 0
+      stats.totalCourseRegistrations = Number(result.rows[0]?.count) || 0
     }
 
     // Total races (codex count - individual races within competitions)
@@ -315,7 +315,7 @@ export async function GET(request: NextRequest) {
           DATE_TRUNC('month', ${inscriptions.createdAt}) as month,
           COUNT(DISTINCT ${inscriptions.id}) as inscriptions,
           COUNT(DISTINCT ${inscriptionCompetitors.competitorId}) as competitors,
-          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as codex_registrations
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as course_registrations
         FROM ${inscriptionCompetitors}
         INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         ${hasGender ? sql`INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}` : sql``}
@@ -336,13 +336,13 @@ export async function GET(request: NextRequest) {
           ${competitors.nationcode},
           ${competitors.gender},
           COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as registration_count,
-          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as codex_count
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as course_count
         FROM ${inscriptionCompetitors}
         INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}
-        ORDER BY codex_count DESC
+        ORDER BY course_count DESC
         LIMIT 20
       `)
       stats.topCompetitors = result.rows
@@ -360,13 +360,13 @@ export async function GET(request: NextRequest) {
           ${competitors.gender},
           ${competitors.birthdate} as "birthDate",
           COUNT(DISTINCT ${inscriptionCompetitors.inscriptionId}) as "registrationCount",
-          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as "codexCount"
+          COUNT(DISTINCT (${inscriptionCompetitors.inscriptionId}, ${inscriptionCompetitors.codexNumber})) as "courseCount"
         FROM ${inscriptionCompetitors}
         INNER JOIN ${inscriptions} ON ${inscriptionCompetitors.inscriptionId} = ${inscriptions.id}
         INNER JOIN ${competitors} ON ${inscriptionCompetitors.competitorId} = ${competitors.competitorid}
         ${genderWhereClause ? sql`WHERE ${genderWhereClause}` : sql``}
         GROUP BY ${competitors.competitorid}, ${competitors.fiscode}, ${competitors.firstname}, ${competitors.lastname}, ${competitors.nationcode}, ${competitors.gender}, ${competitors.birthdate}
-        ORDER BY "codexCount" DESC, ${competitors.lastname}, ${competitors.firstname}
+        ORDER BY "courseCount" DESC, ${competitors.lastname}, ${competitors.firstname}
       `)
       stats.competitorsList = result.rows
     }
