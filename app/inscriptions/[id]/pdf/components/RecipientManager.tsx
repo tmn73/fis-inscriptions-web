@@ -137,8 +137,8 @@ export const RecipientManager: React.FC<RecipientManagerProps> = ({
         ?.filter((code: string) => code !== "TRA")
         .join("/") || "FIS";
 
-      const isNC = eventData.categoryCodes?.includes("NC") ?? false;
-      const actionWord = isNC ? "quota request" : "entries";
+      const needsQuota = eventData.categoryCodes?.some((c: string) => ["NC", "NJC"].includes(c)) ?? false;
+      const actionWord = needsQuota ? "quota request" : "entries";
 
       let subjectLine = `French 🇫🇷 ${subjectGender} ${actionWord} for ${shortDate} ➞ ${place} ${nation} - ${raceType}`
         .replace(/ +/g, " ")

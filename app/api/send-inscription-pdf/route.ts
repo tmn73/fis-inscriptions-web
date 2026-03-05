@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     const eventData = inscription[0].eventData;
-    const isNC = (eventData.categoryCodes ?? []).includes("NC");
+    const needsQuota = (eventData.categoryCodes ?? []).some((c: string) => ["NC", "NJC"].includes(c));
 
     // Get organization config dynamically
     const organizationCode = await getUserOrganizationCode();
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
     // Count competitors for NC quota request
     let competitorCount = 0;
-    if (isNC) {
+    if (needsQuota) {
       const competitorRows = await db
         .select({ competitorid: competitorsTable.competitorid })
         .from(inscriptionCompetitors)
@@ -149,6 +149,7 @@ export async function POST(request: Request) {
     const nation = eventData.placeNationCode
       ? `(${eventData.placeNationCode})`
       : "";
+    const raceType = (eventData.categoryCodes ?? []).filter((c: string) => c !== "TRA").join("/") || "FIS";
 
     // Get email template data or fallback to hardcoded values for backwards compatibility
     const inscriptionPdfTemplate = emailTemplates?.inscription_pdf;
@@ -169,7 +170,7 @@ export async function POST(request: Request) {
           <ul style="margin-bottom: 18px;">
             <li style="font-size: 16px;">
               <a style="color: #1976d2; text-decoration: underline;" href="${baseUrl}/inscriptions/${inscriptionId}">${shortDate}</a>
-              ➞ ${place} ${nation}-FIS
+              ➞ ${place} ${nation}-${raceType}
             </li>
           </ul>
           <p style="font-size: 16px; margin-bottom: 18px;">
@@ -199,7 +200,7 @@ export async function POST(request: Request) {
           <ul style="margin-bottom: 18px;">
             <li style="font-size: 16px;">
               <a style="color: #1976d2; text-decoration: underline;" href="${baseUrl}/inscriptions/${inscriptionId}">${shortDate}</a>
-              ➞ ${place} ${nation}-NC
+              ➞ ${place} ${nation}-${raceType}
             </li>
           </ul>
           <p style="font-size: 16px; margin-bottom: 18px;">
@@ -220,10 +221,10 @@ export async function POST(request: Request) {
       from: fromEmail,
       to: to,
       subject: subjectLine,
-      html: isNC ? ncQuotaHtml : standardHtml,
+      html: needsQuota ? ncQuotaHtml : standardHtml,
       attachments: [
         {
-          filename: `${shortDate} ➞ ${place} ${nation}-${isNC ? "NC" : "FIS"}-${subjectGender}.pdf`
+          filename: `${shortDate} ➞ ${place} ${nation}-${raceType}-${subjectGender}.pdf`
             .replace(/ +/g, " ")
             .replace(" ()", "")
             .trim(),
