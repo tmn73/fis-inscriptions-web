@@ -112,7 +112,7 @@
       "gender": "Genero",
       "fisCode": "Codigo FIS",
       "registrations": "inscripciones",
-      "codex": "codex"
+      "courses": "courses"
     },
     "disciplines": {
       "ofTotal": "del total"

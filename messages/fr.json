@@ -83,7 +83,7 @@
       "competitors": "Coureurs",
       "competitorsDesc": "Athletes uniques",
       "races": "Departs",
-      "racesDesc": "Nombre de departs individuels"
+      "racesDesc": "Nombre de departs uniques"
     },
     "breakdown": {
       "byStatus": "Par statut",

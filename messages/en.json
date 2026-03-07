@@ -112,7 +112,7 @@
       "gender": "Gender",
       "fisCode": "FIS Code",
       "registrations": "registrations",
-      "codex": "codex"
+      "courses": "courses"
     },
     "disciplines": {
       "ofTotal": "of total"
