@@ -129,14 +129,12 @@ export const Header = () => {
                 active={isActive("/competitors")}
               />
               <SignedIn>
-                {showAdminItems && (
-                  <NavItem
-                    href="/stats"
-                    icon={BarChart3}
-                    label={tNav("stats")}
-                    active={isActive("/stats")}
-                  />
-                )}
+                <NavItem
+                  href="/stats"
+                  icon={BarChart3}
+                  label={tNav("stats")}
+                  active={isActive("/stats")}
+                />
                 {showAdminItems && (
                   <NavItem
                     href="/users"
@@ -176,6 +174,12 @@ export const Header = () => {
                 active={isActive("/competitors")}
               />
               <SignedIn>
+                <NavItem
+                  href="/stats"
+                  icon={BarChart3}
+                  label={tNav("stats")}
+                  active={isActive("/stats")}
+                />
                 {(showAdminItems || showSuperAdminItems) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -185,17 +189,6 @@ export const Header = () => {
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {showAdminItems && (
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/stats"
-                            className="flex items-center cursor-pointer"
-                          >
-                            <BarChart3 className="mr-2 h-4 w-4" />
-                            {tNav("stats")}
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
                       {showAdminItems && (
                         <DropdownMenuItem asChild>
                           <Link
@@ -284,20 +277,18 @@ export const Header = () => {
                   </Button>
                 </Link>
                 <SignedIn>
-                  {showAdminItems && (
-                    <Link
-                      href="/stats"
-                      onClick={() => setMobileMenuOpen(false)}
+                  <Link
+                    href="/stats"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-accent"
                     >
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start hover:bg-accent"
-                      >
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        {tNav("stats")}
-                      </Button>
-                    </Link>
-                  )}
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      {tNav("stats")}
+                    </Button>
+                  </Link>
                   {showAdminItems && (
                     <Link
                       href="/users"
