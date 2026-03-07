@@ -39,7 +39,7 @@ export async function PATCH(
         if (status === "email_sent") {
           updateData.menEmailSentAt = currentTime;
         }
-        // Recalculer le statut global en fonction de l'autre genre
+        // Recalculer le statut global seulement si les deux genres sont "email_sent"
         const [currentInscription] = await db
           .select({ womenStatus: inscriptions.womenStatus })
           .from(inscriptions)
@@ -48,10 +48,8 @@ export async function PATCH(
         if (otherStatus === "email_sent" && status === "email_sent") {
           updateData.status = "email_sent";
           updateData.emailSentAt = currentTime;
-        } else {
-          // Si au moins un genre n'est plus "email_sent", le statut global doit refléter ça
-          updateData.status = status;
         }
+        // Ne pas modifier le statut global si on change juste un genre
         break;
       }
       case "women": {
@@ -59,7 +57,7 @@ export async function PATCH(
         if (status === "email_sent") {
           updateData.womenEmailSentAt = currentTime;
         }
-        // Recalculer le statut global en fonction de l'autre genre
+        // Recalculer le statut global seulement si les deux genres sont "email_sent"
         const [currentInscription] = await db
           .select({ menStatus: inscriptions.menStatus })
           .from(inscriptions)
@@ -68,9 +66,8 @@ export async function PATCH(
         if (otherStatus === "email_sent" && status === "email_sent") {
           updateData.status = "email_sent";
           updateData.emailSentAt = currentTime;
-        } else {
-          updateData.status = status;
         }
+        // Ne pas modifier le statut global si on change juste un genre
         break;
       }
       case "both":
