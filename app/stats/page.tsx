@@ -547,30 +547,6 @@ export default function StatsPage() {
             isLoading={summaryLoading}
           />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <SummaryCard
-            value={stats?.totalCourseRegistrations ?? '-'}
-            label={t('summary.courseRegistrations')}
-            subtitle={t('summary.courseRegistrationsDesc')}
-            sparklineData={courseRegSparkline}
-            sparklineColor="var(--color-chart-4)"
-            isLoading={summaryLoading}
-            size="large"
-          />
-          <SummaryCard
-            value={
-              stats?.totalCourseRegistrations && stats?.totalCompetitors
-                ? (stats.totalCourseRegistrations / stats.totalCompetitors).toFixed(1)
-                : '-'
-            }
-            label={t('summary.average')}
-            subtitle={t('summary.averageDesc')}
-            sparklineData={courseRegSparkline && compSparkline ? courseRegSparkline.map((v, i) => compSparkline[i] ? v / compSparkline[i] : 0) : undefined}
-            sparklineColor="var(--color-chart-5)"
-            isLoading={summaryLoading}
-            size="large"
-          />
-        </div>
       </div>
         )
       })()}

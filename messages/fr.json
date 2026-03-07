@@ -82,12 +82,8 @@
       "inscriptionsDesc": "Inscriptions enregistrees",
       "competitors": "Coureurs",
       "competitorsDesc": "Athletes uniques",
-      "races": "Courses",
-      "racesDesc": "Courses dans les inscriptions",
-      "courseRegistrations": "Inscriptions courses",
-      "courseRegistrationsDesc": "Athletes inscrits a des courses",
-      "average": "Moy. courses / coureur",
-      "averageDesc": "Courses par athlete en moyenne"
+      "races": "Departs",
+      "racesDesc": "Nombre de departs individuels"
     },
     "breakdown": {
       "byStatus": "Par statut",
