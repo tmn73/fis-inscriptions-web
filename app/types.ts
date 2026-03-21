@@ -8,6 +8,11 @@ import {
 
 export type Inscription = typeof inscriptions.$inferSelect;
 
+export type InscriptionWithCounts = Inscription & {
+  menCount: number;
+  womenCount: number;
+};
+
 export type Competitor = typeof competitors.$inferSelect;
 
 export type InscriptionCompetitor =

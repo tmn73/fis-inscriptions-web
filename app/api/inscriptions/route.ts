@@ -4,7 +4,7 @@ import {db} from "@/app/db/inscriptionsDB";
 import {getDbTables} from "@/app/lib/getDbTables";
 import {Resend} from "resend";
 import {clerkClient} from "@clerk/clerk-sdk-node";
-import {isNull, eq} from "drizzle-orm";
+import {isNull, eq, sql} from "drizzle-orm";
 import {getUserOrganizationCode} from "@/app/lib/getUserOrganization";
 import {checkDuplicateCodex} from "@/app/lib/checkDuplicateCodex";
 import type {Competition} from "@/app/lib/checkDuplicateCodex";
@@ -161,10 +161,59 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const { inscriptions } = getDbTables();
-  const inscripList = await db
-    .select()
+  const { inscriptions, inscriptionCompetitors, competitors } = getDbTables();
+
+  const result = await db
+    .select({
+      id: inscriptions.id,
+      eventId: inscriptions.eventId,
+      status: inscriptions.status,
+      menStatus: inscriptions.menStatus,
+      womenStatus: inscriptions.womenStatus,
+      createdBy: inscriptions.createdBy,
+      createdAt: inscriptions.createdAt,
+      emailSentAt: inscriptions.emailSentAt,
+      menEmailSentAt: inscriptions.menEmailSentAt,
+      womenEmailSentAt: inscriptions.womenEmailSentAt,
+      eventData: sql`jsonb_build_object(
+        'startDate', ${inscriptions.eventData}->'startDate',
+        'endDate', ${inscriptions.eventData}->'endDate',
+        'place', ${inscriptions.eventData}->'place',
+        'placeNationCode', ${inscriptions.eventData}->'placeNationCode',
+        'organiserNationCode', ${inscriptions.eventData}->'organiserNationCode',
+        'genderCodes', ${inscriptions.eventData}->'genderCodes',
+        'categoryCodes', ${inscriptions.eventData}->'categoryCodes',
+        'seasonCode', ${inscriptions.eventData}->'seasonCode',
+        'competitions', (
+          SELECT jsonb_agg(jsonb_build_object(
+            'codex', c->'codex',
+            'eventCode', c->'eventCode',
+            'genderCode', c->'genderCode',
+            'categoryCode', c->'categoryCode',
+            'seasonCode', c->'seasonCode'
+          ))
+          FROM jsonb_array_elements(${inscriptions.eventData}->'competitions') c
+        )
+      )`,
+      menCount: sql<number>`coalesce((
+        SELECT count(distinct ic.competitor_id)
+        FROM ${inscriptionCompetitors} ic
+        INNER JOIN ${competitors} comp ON ic.competitor_id = comp.competitorid
+        WHERE ic.inscription_id = ${inscriptions.id}
+          AND ic.deleted_at IS NULL
+          AND comp.gender = 'M'
+      ), 0)`,
+      womenCount: sql<number>`coalesce((
+        SELECT count(distinct ic.competitor_id)
+        FROM ${inscriptionCompetitors} ic
+        INNER JOIN ${competitors} comp ON ic.competitor_id = comp.competitorid
+        WHERE ic.inscription_id = ${inscriptions.id}
+          AND ic.deleted_at IS NULL
+          AND comp.gender = 'W'
+      ), 0)`,
+    })
     .from(inscriptions)
     .where(isNull(inscriptions.deletedAt));
-  return NextResponse.json(inscripList);
+
+  return NextResponse.json(result);
 }

@@ -34,7 +34,7 @@ import {
   colorBadgePerGender,
 } from "@/app/lib/colorMappers";
 import {DebouncedInput} from "@/components/ui/debounced-input";
-import {Inscription} from "@/app/types";
+import {InscriptionWithCounts} from "@/app/types";
 import type {CompetitionItem} from "@/app/types";
 import Image from "next/image";
 import {useCountryInfo} from "@/hooks/useCountryInfo";
@@ -99,27 +99,14 @@ const FILTER_PRESETS: FilterPreset[] = [
 
 // Composant pour afficher le nombre de compétiteurs pour une inscription par genre
 const CompetitorCountCell = ({
-  inscriptionId,
+  count,
   gender,
   hasGender,
 }: {
-  inscriptionId: number;
+  count: number;
   gender: "M" | "W";
   hasGender: boolean;
 }) => {
-  const {data, isLoading, isError} = useQuery({
-    queryKey: ["inscription-competitors-all", inscriptionId],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/inscriptions/${inscriptionId}/competitors/all`
-      );
-      if (!res.ok)
-        throw new Error("Erreur lors du chargement des compétiteurs");
-      return res.json();
-    },
-    enabled: hasGender,
-  });
-
   // Si l'événement n'a pas ce genre, afficher un indicateur visuel clair (rougeâtre)
   if (!hasGender) {
     return (
@@ -130,24 +117,6 @@ const CompetitorCountCell = ({
       </div>
     );
   }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center">
-        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-      </div>
-    );
-  }
-
-  if (isError || !Array.isArray(data)) {
-    return (
-      <div className="flex items-center justify-center">
-        <span className="text-gray-300 text-sm">—</span>
-      </div>
-    );
-  }
-
-  const count = data.filter((c: {gender?: string}) => c.gender === gender).length;
 
   // Style visuel distinct selon qu'il y a des athlètes ou non
   if (count === 0) {
@@ -266,13 +235,13 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
 
   const [showFilters, setShowFilters] = useState(false);
 
-  const {data, isLoading} = useQuery<Inscription[]>({
+  const {data, isLoading} = useQuery<InscriptionWithCounts[]>({
     queryKey: ["inscriptions"],
     queryFn: () => fetch("/api/inscriptions").then((res) => res.json()),
   });
 
   // Helper to calculate deadline days
-  const getDeadlineDays = useCallback((inscription: Inscription) => {
+  const getDeadlineDays = useCallback((inscription: InscriptionWithCounts) => {
     const eventDate = new Date(inscription.eventData.startDate);
     const deadlineDate = new Date(eventDate);
     deadlineDate.setUTCDate(eventDate.getUTCDate() - getDeadlineDaysForEvent(inscription.eventData));
@@ -425,7 +394,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       className: colorBadgePerGender[s],
     })), [sexOptions, tGender]);
 
-  const columns: ColumnDef<Inscription>[] = [
+  const columns: ColumnDef<InscriptionWithCounts>[] = [
     {
       id: "actions",
       cell: ({row}) => {
@@ -825,7 +794,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         return (
           <div className="text-center">
             <CompetitorCountCell
-              inscriptionId={row.original.id}
+              count={row.original.menCount ?? 0}
               gender="M"
               hasGender={hasM}
             />
@@ -848,7 +817,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
         return (
           <div className="text-center">
             <CompetitorCountCell
-              inscriptionId={row.original.id}
+              count={row.original.womenCount ?? 0}
               gender="W"
               hasGender={hasW}
             />

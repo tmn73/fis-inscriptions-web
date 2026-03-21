@@ -2,7 +2,7 @@
 import Link from "next/link";
 import {format, parseISO} from "date-fns";
 import {fr} from "date-fns/locale";
-import {Inscription} from "@/app/types";
+import {InscriptionWithCounts} from "@/app/types";
 import type {CompetitionItem} from "@/app/types";
 import Image from "next/image";
 import {useCountryInfo} from "@/hooks/useCountryInfo";
@@ -11,44 +11,21 @@ import {
   colorBadgePerRaceLevel,
   colorBadgePerGender,
 } from "@/app/lib/colorMappers";
-import {Loader2} from "lucide-react";
-import {useQuery} from "@tanstack/react-query";
 import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
 import {getDeadlineDays} from "@/app/lib/getDeadlineDays";
 
 // Athlete count component - compact inline display
 const AthleteStats = ({
-  inscriptionId,
+  menCount,
+  womenCount,
   genderCodes,
 }: {
-  inscriptionId: number;
+  menCount: number;
+  womenCount: number;
   genderCodes: string[];
 }) => {
-  const {data, isLoading, isError} = useQuery({
-    queryKey: ["inscription-competitors-all", inscriptionId],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/inscriptions/${inscriptionId}/competitors/all`
-      );
-      if (!res.ok)
-        throw new Error("Erreur lors du chargement des compétiteurs");
-      return res.json();
-    },
-  });
-
   const hasM = genderCodes.includes("M");
   const hasW = genderCodes.includes("W");
-
-  if (isLoading) {
-    return <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />;
-  }
-
-  if (isError || !Array.isArray(data)) {
-    return null;
-  }
-
-  const menCount = data.filter((c: {gender?: string}) => c.gender === "M").length;
-  const womenCount = data.filter((c: {gender?: string}) => c.gender === "W").length;
 
   return (
     <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -77,7 +54,7 @@ const AthleteStats = ({
 };
 
 // Deadline badge - compact, inline for mixed events
-const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
+const DeadlineBadge = ({inscription}: {inscription: InscriptionWithCounts}) => {
   const startDate = inscription.eventData.startDate;
   const eventDate = new Date(startDate);
   const deadlineDate = new Date(eventDate);
@@ -167,7 +144,7 @@ const DeadlineBadge = ({inscription}: {inscription: Inscription}) => {
   return <div className="flex-shrink-0">{countdownTag(diffDays)}</div>;
 };
 
-export function InscriptionCard({inscription}: {inscription: Inscription}) {
+export function InscriptionCard({inscription}: {inscription: InscriptionWithCounts}) {
   const {flagUrl, countryLabel} = useCountryInfo(
     inscription.eventData.placeNationCode ||
     inscription.eventData.organiserNationCode ||
@@ -326,7 +303,8 @@ export function InscriptionCard({inscription}: {inscription: Inscription}) {
                 <span />
               )}
               <AthleteStats
-                inscriptionId={inscription.id}
+                menCount={inscription.menCount ?? 0}
+                womenCount={inscription.womenCount ?? 0}
                 genderCodes={sexes}
               />
             </div>
