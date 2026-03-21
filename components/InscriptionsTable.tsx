@@ -15,7 +15,7 @@ import {TableBody, TableCell, TableHead} from "@/components/ui/table";
 import {Table, TableHeader, TableRow} from "@/components/ui/table";
 import {useState, useMemo} from "react";
 import {Button} from "@/components/ui/button";
-import {Loader2, Mail} from "lucide-react";
+import {Loader2, Mail, Eye} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {useTranslations} from "next-intl";
 import {
@@ -48,6 +48,8 @@ import {
 import {StatusBadges} from "@/components/ui/status-badges";
 import {getEffectiveStatusForFilter, isMixedEvent, getGenderStatus} from "@/app/lib/genderStatus";
 import {MultiSelect} from "@/components/ui/multi-select";
+import {QuickViewDrawer} from "@/components/QuickViewDrawer";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 // Filter presets configuration
 type FilterPreset = {
@@ -184,6 +186,22 @@ const CountrySelectItem = ({countryCode}: {countryCode: string}) => {
   );
 };
 
+// Composant drapeau seul (sans texte pays)
+const FlagIcon = ({country}: {country: string}) => {
+  const {flagUrl, countryLabel} = useCountryInfo(country);
+  if (!flagUrl) return null;
+  return (
+    <Image
+      src={flagUrl}
+      alt={countryLabel}
+      className="inline-block w-5 h-3.5 object-cover border border-gray-200 rounded-[2px] flex-shrink-0"
+      loading="lazy"
+      width={20}
+      height={14}
+    />
+  );
+};
+
 type InscriptionsTableProps = {
   externalFilter?: string;
 };
@@ -234,6 +252,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
   }, [externalFilter, activePreset, applyPreset]);
 
   const [showFilters, setShowFilters] = useState(false);
+  const [quickViewInscription, setQuickViewInscription] = useState<InscriptionWithCounts | null>(null);
 
   const {data, isLoading} = useQuery<InscriptionWithCounts[]>({
     queryKey: ["inscriptions"],
@@ -399,15 +418,29 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       id: "actions",
       cell: ({row}) => {
         return (
-          <Link href={`/inscriptions/${row.original.id}`}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white text-[#3d7cf2] hover:bg-[#f0f7ff] cursor-pointer text-base px-2 py-1"
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/inscriptions/${row.original.id}`}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-semibold text-blue-600 bg-white border border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer"
             >
               {tCommon("actions.details")}
-            </Button>
-          </Link>
+            </Link>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-200 bg-white text-gray-400 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => setQuickViewInscription(row.original)}
+                  >
+                    <Eye className="w-[18px] h-[18px]" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Vue rapide</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         );
       },
       header: tHeaders("actions"),
@@ -577,18 +610,18 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       ),
       cell: ({row}) => {
         const locationId = row.original.eventData.place;
-        let stationName = "";
-        if (locationId) {
-          stationName = locationId;
-        } else {
-          stationName = "Non renseigné";
-        }
+        const stationName = locationId
+          ? locationId[0].toUpperCase() + locationId.slice(1)
+          : "Non renseigné";
+        const country =
+          row.original.eventData.placeNationCode ||
+          row.original.eventData.organiserNationCode ||
+          "";
         return (
-          <span>
-            {stationName
-              ? stationName[0].toUpperCase() + stationName.slice(1)
-              : "Non renseigné"}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {country && <FlagIcon country={country} />}
+            <span className="font-medium">{stationName}</span>
+          </div>
         );
       },
       filterFn: (row, id, filterValue) => {
@@ -632,14 +665,14 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       enableColumnFilter: true,
       accessorFn: (row) => row,
       cell: ({row}) => (
-        <div className="grid grid-cols-2 gap-1">
-          {(row.original.eventData.competitions ?? []).map(
-            (c: CompetitionItem, i: number) => (
-              <Badge key={`${c.codex}-${i}`} variant={"outline"} className="text-center justify-center">
+        <div className="flex flex-wrap gap-1">
+          {[...(row.original.eventData.competitions ?? [])]
+            .sort((a, b) => Number(a.codex) - Number(b.codex))
+            .map((c: CompetitionItem, i: number) => (
+              <span key={`${c.codex}-${i}`} className="font-mono text-[11px] text-gray-500 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">
                 {c.codex}
-              </Badge>
-            )
-          )}
+              </span>
+            ))}
         </div>
       ),
       filterFn: (row, id, filterValue) => {
@@ -859,7 +892,9 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
       sorting,
       columnFilters,
       columnVisibility: {
-        sex: false, // Cacher la colonne sex mais garder le filtre fonctionnel
+        sex: false,
+        country: false,
+        season: false,
       },
     },
     enableColumnFilters: true,
@@ -1323,6 +1358,14 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
           )}
         </div>
       </div>
+
+      <QuickViewDrawer
+        inscription={quickViewInscription}
+        open={!!quickViewInscription}
+        onOpenChange={(open) => {
+          if (!open) setQuickViewInscription(null);
+        }}
+      />
     </>
   );
 }

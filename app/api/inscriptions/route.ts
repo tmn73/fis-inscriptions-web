@@ -163,57 +163,70 @@ export async function POST(request: Request) {
 export async function GET() {
   const { inscriptions, inscriptionCompetitors, competitors } = getDbTables();
 
-  const result = await db
-    .select({
-      id: inscriptions.id,
-      eventId: inscriptions.eventId,
-      status: inscriptions.status,
-      menStatus: inscriptions.menStatus,
-      womenStatus: inscriptions.womenStatus,
-      createdBy: inscriptions.createdBy,
-      createdAt: inscriptions.createdAt,
-      emailSentAt: inscriptions.emailSentAt,
-      menEmailSentAt: inscriptions.menEmailSentAt,
-      womenEmailSentAt: inscriptions.womenEmailSentAt,
-      eventData: sql`jsonb_build_object(
-        'startDate', ${inscriptions.eventData}->'startDate',
-        'endDate', ${inscriptions.eventData}->'endDate',
-        'place', ${inscriptions.eventData}->'place',
-        'placeNationCode', ${inscriptions.eventData}->'placeNationCode',
-        'organiserNationCode', ${inscriptions.eventData}->'organiserNationCode',
-        'genderCodes', ${inscriptions.eventData}->'genderCodes',
-        'categoryCodes', ${inscriptions.eventData}->'categoryCodes',
-        'seasonCode', ${inscriptions.eventData}->'seasonCode',
-        'competitions', (
-          SELECT jsonb_agg(jsonb_build_object(
-            'codex', c->'codex',
-            'eventCode', c->'eventCode',
-            'genderCode', c->'genderCode',
-            'categoryCode', c->'categoryCode',
-            'seasonCode', c->'seasonCode'
-          ))
-          FROM jsonb_array_elements(${inscriptions.eventData}->'competitions') c
-        )
-      )`,
-      menCount: sql<number>`coalesce((
-        SELECT count(distinct ic.competitor_id)
-        FROM ${inscriptionCompetitors} ic
-        INNER JOIN ${competitors} comp ON ic.competitor_id = comp.competitorid
-        WHERE ic.inscription_id = ${inscriptions.id}
-          AND ic.deleted_at IS NULL
-          AND comp.gender = 'M'
-      ), 0)`,
-      womenCount: sql<number>`coalesce((
-        SELECT count(distinct ic.competitor_id)
-        FROM ${inscriptionCompetitors} ic
-        INNER JOIN ${competitors} comp ON ic.competitor_id = comp.competitorid
-        WHERE ic.inscription_id = ${inscriptions.id}
-          AND ic.deleted_at IS NULL
-          AND comp.gender = 'W'
-      ), 0)`,
-    })
-    .from(inscriptions)
-    .where(isNull(inscriptions.deletedAt));
+  const [inscripList, counts] = await Promise.all([
+    db
+      .select({
+        id: inscriptions.id,
+        eventId: inscriptions.eventId,
+        status: inscriptions.status,
+        menStatus: inscriptions.menStatus,
+        womenStatus: inscriptions.womenStatus,
+        createdBy: inscriptions.createdBy,
+        createdAt: inscriptions.createdAt,
+        emailSentAt: inscriptions.emailSentAt,
+        menEmailSentAt: inscriptions.menEmailSentAt,
+        womenEmailSentAt: inscriptions.womenEmailSentAt,
+        eventData: sql`jsonb_build_object(
+          'startDate', ${inscriptions.eventData}->'startDate',
+          'endDate', ${inscriptions.eventData}->'endDate',
+          'place', ${inscriptions.eventData}->'place',
+          'placeNationCode', ${inscriptions.eventData}->'placeNationCode',
+          'organiserNationCode', ${inscriptions.eventData}->'organiserNationCode',
+          'genderCodes', ${inscriptions.eventData}->'genderCodes',
+          'categoryCodes', ${inscriptions.eventData}->'categoryCodes',
+          'seasonCode', ${inscriptions.eventData}->'seasonCode',
+          'competitions', (
+            SELECT jsonb_agg(jsonb_build_object(
+              'codex', c->'codex',
+              'eventCode', c->'eventCode',
+              'genderCode', c->'genderCode',
+              'categoryCode', c->'categoryCode',
+              'seasonCode', c->'seasonCode'
+            ))
+            FROM jsonb_array_elements(${inscriptions.eventData}->'competitions') c
+          )
+        )`,
+      })
+      .from(inscriptions)
+      .where(isNull(inscriptions.deletedAt)),
+    db
+      .select({
+        inscriptionId: inscriptionCompetitors.inscriptionId,
+        gender: competitors.gender,
+        count: sql<number>`count(distinct ${inscriptionCompetitors.competitorId})::int`,
+      })
+      .from(inscriptionCompetitors)
+      .innerJoin(
+        competitors,
+        eq(inscriptionCompetitors.competitorId, competitors.competitorid)
+      )
+      .where(isNull(inscriptionCompetitors.deletedAt))
+      .groupBy(inscriptionCompetitors.inscriptionId, competitors.gender),
+  ]);
+
+  const countsMap = new Map<number, { menCount: number; womenCount: number }>();
+  for (const row of counts) {
+    const existing = countsMap.get(row.inscriptionId) || { menCount: 0, womenCount: 0 };
+    if (row.gender === "M") existing.menCount = Number(row.count);
+    if (row.gender === "W") existing.womenCount = Number(row.count);
+    countsMap.set(row.inscriptionId, existing);
+  }
+
+  const result = inscripList.map((i: typeof inscripList[number]) => ({
+    ...i,
+    menCount: countsMap.get(i.id)?.menCount ?? 0,
+    womenCount: countsMap.get(i.id)?.womenCount ?? 0,
+  }));
 
   return NextResponse.json(result);
 }
