@@ -34,10 +34,10 @@ const STATUS_OPTIONS = [
 ]
 
 const DISCIPLINE_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
-  DH: { bar: 'bg-red-500', text: 'text-red-700', bg: 'bg-red-50' },
-  SL: { bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50' },
-  GS: { bar: 'bg-blue-500', text: 'text-blue-700', bg: 'bg-blue-50' },
-  SG: { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' },
+  DH: { bar: 'bg-yellow-500', text: 'text-yellow-700', bg: 'bg-yellow-50' },
+  SL: { bar: 'bg-blue-500', text: 'text-blue-700', bg: 'bg-blue-50' },
+  GS: { bar: 'bg-pink-500', text: 'text-pink-700', bg: 'bg-pink-50' },
+  SG: { bar: 'bg-green-500', text: 'text-green-700', bg: 'bg-green-50' },
   AC: { bar: 'bg-violet-500', text: 'text-violet-700', bg: 'bg-violet-50' },
 }
 
