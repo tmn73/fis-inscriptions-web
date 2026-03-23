@@ -231,9 +231,7 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
               />
             )}
           <div className="flex-shrink-0">
-            {permissionToEdit &&
-            inscription?.status === "open" &&
-            currentOrDefaultActiveCodex ? (
+            {permissionToEdit && currentOrDefaultActiveCodex ? (
               <AddCompetitorModal
                 inscriptionId={inscriptionId}
                 defaultCodex={currentOrDefaultActiveCodex} // Use the derived active codex
@@ -243,10 +241,6 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
             ) : !permissionToEdit ? (
               <div className="text-xs text-slate-400 italic">
                 Vous n&apos;avez pas les droits pour ajouter des compétiteurs.
-              </div>
-            ) : inscription?.status !== "open" ? (
-              <div className="text-xs text-slate-400 italic">
-                Inscription fermée.
               </div>
             ) : null}
           </div>
