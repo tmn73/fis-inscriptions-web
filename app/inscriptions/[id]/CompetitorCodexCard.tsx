@@ -10,14 +10,14 @@ import { format } from "date-fns";
 interface CompetitorCodexCardProps {
   competitor: InscriptionCompetitor;
   permissionToEdit: boolean;
-  inscriptionStatus: string;
+  canEditBasedOnStatus: boolean;
   onManageRegistrations: (competitorId: number) => void;
 }
 
 export function CompetitorCodexCard({
   competitor,
   permissionToEdit,
-  inscriptionStatus,
+  canEditBasedOnStatus,
   onManageRegistrations,
 }: CompetitorCodexCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -99,7 +99,7 @@ export function CompetitorCodexCard({
                 size="sm"
                 title="Gérer les inscriptions"
                 className="h-7 w-7 p-0"
-                disabled={inscriptionStatus !== "open"}
+                disabled={!canEditBasedOnStatus}
                 onClick={(e) => {
                   e.stopPropagation();
                   onManageRegistrations(competitor.competitorid);

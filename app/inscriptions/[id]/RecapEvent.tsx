@@ -39,6 +39,7 @@ import {Checkbox} from "@/components/ui/checkbox";
 import {CompetitorCard} from "./CompetitorCard";
 import {useTranslations} from "next-intl";
 import {format} from "date-fns";
+import {getGenderStatus} from "@/app/lib/genderStatus";
 
 type InscriptionCompetitorWithCodex = InscriptionCompetitor & {
   codexNumbers: string[];
@@ -406,8 +407,14 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
   const permissionToEdit = usePermissionToEdit(
     inscription,
     "manageCompetitorInscriptions",
-    null
+    genderFilter === "both" ? null : genderFilter
   );
+
+  // Get the effective status for the current gender filter
+  const effectiveGenderStatus = inscription
+    ? getGenderStatus(inscription, genderFilter === "both" ? null : genderFilter)
+    : null;
+  const canEditBasedOnStatus = effectiveGenderStatus?.canEdit ?? false;
 
   // Derived sorting state for the table, ensuring it's always valid with current filters
   const tableSorting = useMemo(() => {
@@ -647,7 +654,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                     size="icon"
                     title={tTable("actions")}
                     className="cursor-pointer"
-                    disabled={inscription?.status !== "open"}
+                    disabled={!canEditBasedOnStatus}
                     onClick={() => setOpenDialog(competitor.competitorid)}
                   >
                     <Settings className="w-5 h-5 text-slate-500" />
@@ -743,7 +750,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
           genderFilter={genderFilter}
         />
         <div className="flex gap-1 md:gap-2 items-center flex-wrap">
-          {permissionToEdit && inscription?.status === "open" ? (
+          {permissionToEdit && canEditBasedOnStatus ? (
             genderFilter === "W" ? (
               <AddCompetitorModal
                 inscriptionId={inscriptionId}
@@ -926,7 +933,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                   competitions={inscription?.eventData?.competitions || []}
                   genderFilter={genderFilter}
                   permissionToEdit={permissionToEdit}
-                  inscriptionStatus={inscription?.status || ""}
+                  canEditBasedOnStatus={canEditBasedOnStatus}
                   onManageRegistrations={(competitorId) => setOpenDialog(competitorId)}
                 />
               ))}

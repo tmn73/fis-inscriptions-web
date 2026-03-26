@@ -30,7 +30,7 @@ interface CompetitorCardProps {
   competitions: CompetitionItem[];
   genderFilter: "both" | "M" | "W";
   permissionToEdit: boolean;
-  inscriptionStatus: string;
+  canEditBasedOnStatus: boolean;
   onManageRegistrations: (competitorId: number) => void;
 }
 
@@ -39,7 +39,7 @@ export function CompetitorCard({
   competitions,
   genderFilter,
   permissionToEdit,
-  inscriptionStatus,
+  canEditBasedOnStatus,
   onManageRegistrations,
 }: CompetitorCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -131,7 +131,7 @@ export function CompetitorCard({
                 size="sm"
                 title="Gérer les inscriptions"
                 className="h-7 w-7 p-0"
-                disabled={inscriptionStatus !== "open"}
+                disabled={!canEditBasedOnStatus}
                 onClick={(e) => {
                   e.stopPropagation();
                   onManageRegistrations(competitor.competitorid);

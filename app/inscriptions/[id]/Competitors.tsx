@@ -30,6 +30,7 @@ import {format} from "date-fns";
 import {CompetitionItem} from "@/app/types";
 import {CompetitorCodexCard} from "./CompetitorCodexCard";
 import {useTranslations} from "next-intl";
+import {getGenderStatus} from "@/app/lib/genderStatus";
 
 export const useInscriptionCompetitors = (
   inscriptionId: string,
@@ -141,6 +142,12 @@ export const Competitors = ({
     genderFilter === "both" ? null : genderFilter
   );
 
+  // Get the effective status for the current gender filter
+  const effectiveGenderStatus = inscription
+    ? getGenderStatus(inscription, genderFilter === "both" ? null : genderFilter)
+    : null;
+  const canEditBasedOnStatus = effectiveGenderStatus?.canEdit ?? false;
+
   if (isPending) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -156,7 +163,7 @@ export const Competitors = ({
   if (!competitors?.length && !isPending) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        {inscription?.status !== "open" && (
+        {!canEditBasedOnStatus && (
           <div className="text-xs text-slate-400 italic select-none" dangerouslySetInnerHTML={{__html: t("editRestriction")}} />
         )}
         <p>{t("noCompetitors")}</p>
@@ -166,7 +173,7 @@ export const Competitors = ({
 
   return (
     <div className="space-y-6">
-      {inscription?.status !== "open" && (
+      {!canEditBasedOnStatus && (
         <div className="text-xs text-slate-400 italic select-none" dangerouslySetInnerHTML={{__html: t("editRestriction")}} />
       )}
 
@@ -237,7 +244,7 @@ export const Competitors = ({
                       size="icon"
                       title={t("manage.title")}
                       className="cursor-pointer"
-                      disabled={inscription?.status !== "open"}
+                      disabled={!canEditBasedOnStatus}
                       onClick={() => setOpenDialog(c.competitorid)}
                     >
                       <Settings className="w-5 h-5 text-slate-500" />
@@ -266,7 +273,7 @@ export const Competitors = ({
               key={competitor.competitorid}
               competitor={competitor}
               permissionToEdit={permissionToEdit}
-              inscriptionStatus={inscription?.status || ""}
+              canEditBasedOnStatus={canEditBasedOnStatus}
               onManageRegistrations={(competitorId) => setOpenDialog(competitorId)}
             />
           ))}
