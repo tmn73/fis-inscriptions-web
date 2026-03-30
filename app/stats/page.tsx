@@ -121,7 +121,7 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
   const uid = `sp-${color.replace(/[^a-z0-9]/gi, '')}`
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0">
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0 hidden sm:block">
       <defs>
         <linearGradient id={uid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity={0.12} />
@@ -185,7 +185,7 @@ function SummaryCard({
               {isLoading ? (
                 <div className={`${isLarge ? 'h-10 w-20' : 'h-8 w-16'} bg-muted animate-pulse rounded`} />
               ) : (
-                <p className={`${isLarge ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl'} font-bold tabular-nums tracking-tighter leading-none`}>{value}</p>
+                <p className={`${isLarge ? 'text-2xl sm:text-4xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-bold tabular-nums tracking-tighter leading-none`}>{value}</p>
               )}
               <p className="text-xs text-muted-foreground/60">{subtitle}</p>
             </div>
@@ -484,7 +484,7 @@ export default function StatsPage() {
         </div>
 
         {/* Season selector */}
-        <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1">
+        <div className="flex items-center gap-1.5 bg-muted rounded-lg p-1 overflow-x-auto flex-shrink-0">
           {availableSeasons.map((s: number) => (
             <button
               key={s}
@@ -521,7 +521,7 @@ export default function StatsPage() {
         const courseRegSparkline = sparklines?.map((r: any) => Number(r.course_registrations))
         return (
       <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
           <SummaryCard
             value={stats?.totalInscriptions ?? '-'}
             label={t('summary.inscriptions')}
@@ -741,8 +741,8 @@ export default function StatsPage() {
                         <CardTitle className="text-base">{t('breakdown.byGender')}</CardTitle>
                       </CardHeader>
                       <CardContent className="flex flex-col items-center gap-4">
-                        <div className="relative">
-                          <svg width={180} height={180} viewBox="0 0 180 180">
+                        <div className="relative w-[140px] h-[140px] sm:w-[180px] sm:h-[180px]">
+                          <svg width="100%" height="100%" viewBox="0 0 180 180">
                             <circle cx="90" cy="90" r={radius} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
                             {genderData.map((item: any) => {
                               const pct = total > 0 ? item.count / total : 0
@@ -826,14 +826,14 @@ export default function StatsPage() {
                       {stats.topCompetitors.map((competitor: any, index: number) => (
                         <div
                           key={competitor.competitorid}
-                          className="flex items-center justify-between py-2 border-b last:border-0"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b last:border-0 gap-1 sm:gap-3"
                         >
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-mono text-muted-foreground w-7 text-right">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-sm font-mono text-muted-foreground w-7 text-right shrink-0">
                               {index + 1}.
                             </span>
-                            <div>
-                              <span className="font-medium text-sm">
+                            <div className="min-w-0">
+                              <span className="font-medium text-sm truncate">
                                 {competitor.lastname} {competitor.firstname}
                               </span>
                               <span className="text-xs text-muted-foreground ml-2">
@@ -841,11 +841,11 @@ export default function StatsPage() {
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="tabular-nums">
+                          <div className="flex items-center gap-2 ml-10 sm:ml-0 shrink-0">
+                            <Badge variant="outline" className="tabular-nums text-xs">
                               {competitor.registration_count} {t('competitorsTable.registrations')}
                             </Badge>
-                            <Badge variant="secondary" className="tabular-nums font-bold">
+                            <Badge variant="secondary" className="tabular-nums font-bold text-xs">
                               {competitor.course_count} {t('competitorsTable.courses')}
                             </Badge>
                           </div>
@@ -911,8 +911,8 @@ export default function StatsPage() {
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10">
                       <tr className="border-b bg-muted">
-                        <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
-                        <th className="text-left p-3">
+                        <th className="text-left p-2 sm:p-3 w-8 sm:w-10 text-xs font-semibold text-muted-foreground">#</th>
+                        <th className="text-left p-2 sm:p-3">
                           <SortableHeader
                             label={t('competitorsTable.name')}
                             column="lastName"
@@ -921,7 +921,7 @@ export default function StatsPage() {
                             onSort={handleSort}
                           />
                         </th>
-                        <th className="text-left p-3 hidden md:table-cell">
+                        <th className="text-left p-2 sm:p-3 hidden md:table-cell">
                           <SortableHeader
                             label={t('competitorsTable.nation')}
                             column="nationCode"
@@ -930,7 +930,7 @@ export default function StatsPage() {
                             onSort={handleSort}
                           />
                         </th>
-                        <th className="text-left p-3 hidden lg:table-cell">
+                        <th className="text-left p-2 sm:p-3 hidden lg:table-cell">
                           <SortableHeader
                             label={t('competitorsTable.gender')}
                             column="gender"
@@ -939,7 +939,7 @@ export default function StatsPage() {
                             onSort={handleSort}
                           />
                         </th>
-                        <th className="text-left p-3 hidden lg:table-cell">
+                        <th className="text-left p-2 sm:p-3 hidden lg:table-cell">
                           <SortableHeader
                             label={t('competitorsTable.fisCode')}
                             column="fisCode"
@@ -948,23 +948,27 @@ export default function StatsPage() {
                             onSort={handleSort}
                           />
                         </th>
-                        <th className="text-right p-3">
-                          <SortableHeader
-                            label={t('competitorsTable.registrations')}
-                            column="registrationCount"
-                            currentSort={sortColumn}
-                            currentDirection={sortDirection}
-                            onSort={handleSort}
-                          />
+                        <th className="text-right p-2 sm:p-3">
+                          <div className="flex justify-end">
+                            <SortableHeader
+                              label={t('competitorsTable.registrations')}
+                              column="registrationCount"
+                              currentSort={sortColumn}
+                              currentDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                          </div>
                         </th>
-                        <th className="text-right p-3">
-                          <SortableHeader
-                            label={t('competitorsTable.courses')}
-                            column="courseCount"
-                            currentSort={sortColumn}
-                            currentDirection={sortDirection}
-                            onSort={handleSort}
-                          />
+                        <th className="text-right p-2 sm:p-3">
+                          <div className="flex justify-end">
+                            <SortableHeader
+                              label={t('competitorsTable.courses')}
+                              column="courseCount"
+                              currentSort={sortColumn}
+                              currentDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                          </div>
                         </th>
                       </tr>
                     </thead>
@@ -974,10 +978,10 @@ export default function StatsPage() {
                           key={competitor.competitorId ?? index}
                           className="border-b last:border-0 hover:bg-muted/30 transition-colors"
                         >
-                          <td className="p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
-                          <td className="p-3">
-                            <div>
-                              <span className="font-medium">
+                          <td className="p-2 sm:p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
+                          <td className="p-2 sm:p-3">
+                            <div className="min-w-0">
+                              <span className="font-medium text-sm sm:text-base">
                                 {competitor.lastName} {competitor.firstName}
                               </span>
                               <span className="md:hidden text-xs text-muted-foreground ml-2">
@@ -985,19 +989,19 @@ export default function StatsPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="p-3 hidden md:table-cell text-muted-foreground text-xs">
+                          <td className="p-2 sm:p-3 hidden md:table-cell text-muted-foreground text-xs">
                             {competitor.nationCode}
                           </td>
-                          <td className="p-3 hidden lg:table-cell text-muted-foreground">
+                          <td className="p-2 sm:p-3 hidden lg:table-cell text-muted-foreground">
                             {competitor.gender === 'M' ? t('gender.men') : t('gender.women')}
                           </td>
-                          <td className="p-3 hidden lg:table-cell text-muted-foreground tabular-nums">
+                          <td className="p-2 sm:p-3 hidden lg:table-cell text-muted-foreground tabular-nums">
                             {competitor.fisCode}
                           </td>
-                          <td className="p-3 text-right tabular-nums font-medium">
+                          <td className="p-2 sm:p-3 text-right tabular-nums font-medium">
                             {competitor.registrationCount}
                           </td>
-                          <td className="p-3 text-right tabular-nums font-bold">
+                          <td className="p-2 sm:p-3 text-right tabular-nums font-bold">
                             {competitor.courseCount}
                           </td>
                         </tr>
@@ -1090,11 +1094,11 @@ export default function StatsPage() {
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 z-10">
                         <tr className="border-b bg-muted">
-                          <th className="text-left p-3 w-10 text-xs font-semibold text-muted-foreground">#</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.name')}</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Email</th>
-                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('breakdown.events')}</th>
-                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.competitors')}</th>
+                          <th className="text-left p-2 sm:p-3 w-8 sm:w-10 text-xs font-semibold text-muted-foreground">#</th>
+                          <th className="text-left p-2 sm:p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.name')}</th>
+                          <th className="text-left p-2 sm:p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Email</th>
+                          <th className="text-right p-2 sm:p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('breakdown.events')}</th>
+                          <th className="text-right p-2 sm:p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('competitorsTable.competitors')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1103,20 +1107,20 @@ export default function StatsPage() {
                             key={creator.createdBy}
                             className="border-b last:border-0 hover:bg-muted/30 transition-colors"
                           >
-                            <td className="p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
-                            <td className="p-3 font-medium">
+                            <td className="p-2 sm:p-3 text-muted-foreground tabular-nums text-xs">{index + 1}</td>
+                            <td className="p-2 sm:p-3 font-medium text-sm sm:text-base">
                               {creator.firstName || creator.lastName
                                 ? `${creator.firstName ?? ''} ${creator.lastName ?? ''}`.trim()
                                 : creator.email}
                             </td>
-                            <td className="p-3 text-muted-foreground hidden sm:table-cell">{creator.email}</td>
-                            <td className="p-3 text-right">
-                              <Badge variant="outline" className="tabular-nums">
+                            <td className="p-2 sm:p-3 text-muted-foreground hidden sm:table-cell">{creator.email}</td>
+                            <td className="p-2 sm:p-3 text-right">
+                              <Badge variant="outline" className="tabular-nums text-xs">
                                 {creator.inscriptionCount}
                               </Badge>
                             </td>
-                            <td className="p-3 text-right">
-                              <Badge variant="secondary" className="tabular-nums">
+                            <td className="p-2 sm:p-3 text-right">
+                              <Badge variant="secondary" className="tabular-nums text-xs">
                                 {creator.competitorCount}
                               </Badge>
                             </td>
