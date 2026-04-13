@@ -391,8 +391,23 @@ export const RecipientManager: React.FC<RecipientManagerProps> = ({
       });
       const result = await response.json();
       if (!response.ok) {
+        const extractMessage = (value: unknown): string | null => {
+          if (!value) return null;
+          if (typeof value === "string") return value;
+          if (typeof value === "object" && "message" in value) {
+            const msg = (value as { message?: unknown }).message;
+            if (typeof msg === "string") return msg;
+          }
+          try {
+            return JSON.stringify(value);
+          } catch {
+            return null;
+          }
+        };
         throw new Error(
-          result.details || result.error || t("errors.sendError")
+          extractMessage(result.details) ||
+            extractMessage(result.error) ||
+            t("errors.sendError")
         );
       }
       setSendStatus({

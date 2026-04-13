@@ -234,8 +234,17 @@ export async function POST(request: Request) {
     });
 
     if (emailError) {
+      console.error("Resend email error:", {
+        inscriptionId,
+        gender,
+        to,
+        emailError,
+      });
+      const details =
+        (emailError as { message?: string })?.message ||
+        (typeof emailError === "string" ? emailError : JSON.stringify(emailError));
       return NextResponse.json(
-        {error: "Failed to send email", details: emailError},
+        {error: "Failed to send email", details},
         {status: 500}
       );
     }
