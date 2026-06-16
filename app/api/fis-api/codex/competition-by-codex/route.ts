@@ -10,7 +10,7 @@ export const GET = async (req: NextRequest) => {
 
   // 1. Appel FIS pour récupérer l'eventId
   const fisCodexRes = await fetch(
-    `https://api.fis-ski.com/competitions/find-by-codex/${disciplineCode}/${codex}?season=2026`,
+    `https://api.fis-ski.com/competitions/find-by-codex/${disciplineCode}/${codex}?season=2027`,
     {
       headers: {
         "x-api-key": process.env.FIS_API_KEY!,
