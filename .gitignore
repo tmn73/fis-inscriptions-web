@@ -57,3 +57,7 @@ public/workbox-*.js.map
 
 /db_backups
 .env*.local
+
+# local Claude Code config (.mcp.json holds the database URL)
+/.claude/
+/.mcp.json
