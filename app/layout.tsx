@@ -1,8 +1,8 @@
 import type {Metadata, Viewport} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import {Providers} from "./providers";
-import {Snowflake} from "lucide-react";
 import {Header} from "@/components/ui/Header";
+import {Snowfall} from "@/components/ui/Snowfall";
 import {ClerkProvider} from "@clerk/nextjs";
 import {NetworkStatus} from "@/components/ui/NetworkStatus";
 import "./globals.css";
@@ -91,42 +91,7 @@ export default async function RootLayout({
                   {/* Subtle radial glow */}
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15)_0%,transparent_60%)]" />
 
-                  {/* Snowflakes */}
-                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {Array.from({length: 35}).map((_, i) => {
-                      const initialOpacity = Math.random() * 0.4 + 0.2;
-                      const scale = Math.random() * 0.5 + 0.3;
-                      const duration = Math.random() * 12 + 12;
-                      const delay = Math.random() * -20;
-                      const xAmplitude =
-                        (Math.random() * 60 + 20) *
-                        (Math.random() > 0.5 ? 1 : -1);
-                      const rotation =
-                        (Math.random() * 360 + 180) *
-                        (Math.random() > 0.5 ? 1 : -1);
-
-                      return (
-                        <Snowflake
-                          key={i}
-                          className="absolute text-white/80 animate-snowfall"
-                          style={
-                            {
-                              top: "-10%",
-                              left: `${Math.random() * 100}%`,
-                              "--opacity": initialOpacity,
-                              "--scale": scale,
-                              opacity: initialOpacity,
-                              transform: `scale(${scale})`,
-                              animationDuration: `${duration}s`,
-                              animationDelay: `${delay}s`,
-                              "--x-amplitude": `${xAmplitude}px`,
-                              "--rotation": `${rotation}deg`,
-                            } as React.CSSProperties
-                          }
-                        />
-                      );
-                    })}
-                  </div>
+                  <Snowfall />
 
                   {/* Header content */}
                   <div className="relative z-10">

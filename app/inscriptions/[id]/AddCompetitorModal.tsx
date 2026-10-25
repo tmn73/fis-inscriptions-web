@@ -90,9 +90,15 @@ function useSaveCompetitors(inscriptionId: string) {
   });
 }
 
+const codexForGender = (codexData: CompetitionItem[], gender: "W" | "M") =>
+  codexData
+    .filter((c) =>
+      gender === "W" ? c.genderCode === "W" : c.genderCode === "M"
+    )
+    .map((c) => c.codex);
+
 export default function AddCompetitorModal({
   inscriptionId,
-  defaultCodex,
   gender,
   codexData,
   triggerText,
@@ -113,22 +119,8 @@ export default function AddCompetitorModal({
   const debouncedSearch = useDebounce(search, 400);
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [selectedCodex, setSelectedCodex] = useState<number[]>(() =>
-    codexData
-      .filter((c) =>
-        gender === "W" ? c.genderCode === "W" : c.genderCode === "M"
-      )
-      .map((c) => c.codex)
+    codexForGender(codexData, gender)
   );
-
-  useEffect(() => {
-    setSelectedCodex(
-      codexData
-        .filter((c) =>
-          gender === "W" ? c.genderCode === "W" : c.genderCode === "M"
-        )
-        .map((c) => c.codex)
-    );
-  }, [defaultCodex, gender, codexData]);
 
   const {data: results = [], isLoading: loading} = useCompetitors(
     debouncedSearch,
@@ -156,7 +148,10 @@ export default function AddCompetitorModal({
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (!o) {
+        if (o) {
+          // Start from every codex of this gender each time the dialog opens
+          setSelectedCodex(codexForGender(codexData, gender));
+        } else {
           setSearch("");
           setSelectedId(undefined);
         }

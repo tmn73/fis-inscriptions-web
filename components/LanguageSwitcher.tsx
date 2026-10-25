@@ -33,13 +33,17 @@ const getDefaultLocale = (): Locale => {
   return "en";
 };
 
+const persistLocale = (locale: string) => {
+  document.cookie = `locale=${locale}; path=/; max-age=${60 * 60 * 24 * 365}`;
+};
+
 export const LanguageSwitcher = () => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const currentLocale = getDefaultLocale();
 
   const handleLocaleChange = (newLocale: string) => {
-    document.cookie = `locale=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`;
+    persistLocale(newLocale);
     startTransition(() => {
       router.refresh();
     });

@@ -1,27 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribe(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
 
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Initial state
-    setIsOnline(navigator.onLine);
-
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
-  return isOnline;
+  return useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    // The server cannot know, so assume online to avoid a false offline banner
+    () => true
+  );
 }

@@ -334,11 +334,12 @@ export default function StatsPage() {
   // Merge summary + tab data for easy access
   const stats = useMemo(() => ({ ...summary, ...tabData }), [summary, tabData])
   const availableSeasons: number[] = stats?.availableSeasons ?? [currentSeason]
+  const {competitorsList, byCountry, byCreator} = stats
 
   // Filter + sort competitors for the table
   const filteredCompetitors = useMemo(() => {
-    if (!stats?.competitorsList) return []
-    let list = [...stats.competitorsList]
+    if (!competitorsList) return []
+    let list = [...competitorsList]
 
     if (competitorSearch) {
       const search = competitorSearch.toLowerCase()
@@ -370,23 +371,23 @@ export default function StatsPage() {
     })
 
     return list
-  }, [stats?.competitorsList, competitorSearch, sortColumn, sortDirection])
+  }, [competitorsList, competitorSearch, sortColumn, sortDirection])
 
   // Filter countries for the countries tab
   const filteredCountries = useMemo(() => {
-    if (!stats?.byCountry) return []
-    let list = [...stats.byCountry]
+    if (!byCountry) return []
+    let list = [...byCountry]
     if (countrySearch) {
       const search = countrySearch.toLowerCase()
       list = list.filter((c: any) => c.country?.toLowerCase().includes(search))
     }
     return list.sort((a: any, b: any) => Number(b.count) - Number(a.count))
-  }, [stats?.byCountry, countrySearch])
+  }, [byCountry, countrySearch])
 
   // Filter users for the users tab
   const filteredUsers = useMemo(() => {
-    if (!stats?.byCreator) return []
-    let list = [...stats.byCreator]
+    if (!byCreator) return []
+    let list = [...byCreator]
     if (userSearch) {
       const search = userSearch.toLowerCase()
       list = list.filter(
@@ -397,7 +398,7 @@ export default function StatsPage() {
       )
     }
     return list
-  }, [stats?.byCreator, userSearch])
+  }, [byCreator, userSearch])
 
   // Handlers
   const handleDisciplineToggle = (discipline: string) => {

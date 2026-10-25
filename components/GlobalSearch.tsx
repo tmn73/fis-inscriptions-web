@@ -135,10 +135,13 @@ export function GlobalSearch() {
     }
   }, [isOpen]);
 
-  // Reset selected index when results change
-  useEffect(() => {
+  // Reset selected index when results change. Adjusting state during render
+  // avoids the extra render pass an effect would cause.
+  const [prevResultsLength, setPrevResultsLength] = useState(results.length);
+  if (prevResultsLength !== results.length) {
+    setPrevResultsLength(results.length);
     setSelectedIndex(0);
-  }, [results.length]);
+  }
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback(

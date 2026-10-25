@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState, useEffect} from "react";
+import React, {useEffect} from "react";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,12 @@ const filterOutTRA = (eventData: Competition): Competition => {
   };
 };
 
+type EventDataDifference = {
+  field: string;
+  oldValue: string;
+  newValue: string;
+};
+
 export const UpdateEventDataModal = ({
   isOpen,
   onClose,
@@ -50,16 +56,6 @@ export const UpdateEventDataModal = ({
   const tCommon = useTranslations("common");
 
   const queryClient = useQueryClient();
-  const [differences, setDifferences] = useState<
-    {
-      field: string;
-      oldValue: string;
-      newValue: string;
-    }[]
-  >([]);
-  const [updatedEventData, setUpdatedEventData] = useState<Competition | null>(
-    null
-  );
 
   // Get the first codex from the competitions array
   const codex = inscription.eventData.competitions?.[0]?.codex;
@@ -109,9 +105,10 @@ export const UpdateEventDataModal = ({
     return oldVal !== newVal;
   };
 
-  useEffect(() => {
+  // Differences between the stored event data and the latest FIS data
+  const computeDifferences = (): EventDataDifference[] => {
+    const diffs: EventDataDifference[] = [];
     if (fetchedEventData && inscription.eventData) {
-      const diffs: {field: string; oldValue: string; newValue: string}[] = [];
 
       // Liste complète des champs à comparer
       const fieldsToCompare: (keyof Competition)[] = [
@@ -345,15 +342,13 @@ export const UpdateEventDataModal = ({
           }
         });
       }
-
-      setDifferences(diffs);
-      if (diffs.length > 0) {
-        setUpdatedEventData(fetchedEventData);
-      } else {
-        setUpdatedEventData(null);
-      }
     }
-  }, [fetchedEventData, inscription.eventData]);
+    return diffs;
+  };
+
+  const differences = computeDifferences();
+  const updatedEventData =
+    differences.length > 0 ? (fetchedEventData ?? null) : null;
 
   const updateMutation = useMutation({
     mutationFn: async (newEventData: Competition) => {

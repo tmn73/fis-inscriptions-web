@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import {useSyncExternalStore} from "react";
 import {AlertTriangle, Chrome} from "lucide-react";
 
 type BrowserInfo = {
@@ -24,13 +24,20 @@ export const detectBrowser = (): BrowserInfo => {
   return {isChrome, isSafari, isMac};
 };
 
-export const BrowserWarning = () => {
-  const [showWarning, setShowWarning] = useState(false);
+// The browser never changes during a page view, so there is nothing to subscribe to
+const subscribeToNothing = () => () => {};
 
-  useEffect(() => {
-    const info = detectBrowser();
-    setShowWarning(info.isChrome && info.isMac);
-  }, []);
+const isChromeOnMac = () => {
+  const info = detectBrowser();
+  return info.isChrome && info.isMac;
+};
+
+export const BrowserWarning = () => {
+  const showWarning = useSyncExternalStore(
+    subscribeToNothing,
+    isChromeOnMac,
+    () => false
+  );
 
   if (!showWarning) return null;
 

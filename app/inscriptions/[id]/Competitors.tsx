@@ -298,6 +298,7 @@ export const Competitors = ({
               </DialogDescription>
             </DialogHeader>
             <DesinscriptionCodexList
+              key={openDialog}
               inscriptionId={inscriptionId}
               competitorId={openDialog}
               selectedCodex={selectedCodex}
@@ -385,8 +386,9 @@ function DesinscriptionCodexList({
     });
   }, [allEventCodexes, genderFilterOfCompetitor]);
 
+  // `loading` starts true and the parent keys this component by competitor,
+  // so each competitor gets a fresh loading state without resetting it here
   useEffect(() => {
-    setLoading(true);
     fetch(
       `/api/inscriptions/${inscriptionId}/competitors?competitorId=${competitorId}`
     )

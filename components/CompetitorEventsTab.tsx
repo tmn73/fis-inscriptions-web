@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -95,10 +95,12 @@ export function CompetitorEventsTab() {
     enabled: !!selectedId,
   });
 
-  useEffect(() => {
+  const changeGender = (nextGender: "M" | "W") => {
+    if (nextGender === gender) return;
+    setGender(nextGender);
     setSelectedId(undefined);
     setOpen(false);
-  }, [gender]);
+  };
 
   const maleCount = allResults.filter((c) => c.gender === "M").length;
   const femaleCount = allResults.filter((c) => c.gender === "W").length;
@@ -122,7 +124,7 @@ export function CompetitorEventsTab() {
       <div className="flex justify-center mb-6">
         <div className="inline-flex p-1 bg-slate-100 rounded-xl">
           <button
-            onClick={() => setGender("M")}
+            onClick={() => changeGender("M")}
             className={cn(
               "relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
               gender === "M"
@@ -146,7 +148,7 @@ export function CompetitorEventsTab() {
             )}
           </button>
           <button
-            onClick={() => setGender("W")}
+            onClick={() => changeGender("W")}
             className={cn(
               "relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
               gender === "W"
