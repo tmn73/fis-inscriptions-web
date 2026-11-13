@@ -4,7 +4,7 @@ import {db} from "@/app/db/inscriptionsDB";
 import {getDbTables} from "@/app/lib/getDbTables";
 import {Resend} from "resend";
 import {clerkClient} from "@clerk/clerk-sdk-node";
-import {isNull, eq, sql} from "drizzle-orm";
+import {isNull, eq, sql, and} from "drizzle-orm";
 import {getUserOrganizationCode} from "@/app/lib/getUserOrganization";
 import {checkDuplicateCodex} from "@/app/lib/checkDuplicateCodex";
 import type {Competition} from "@/app/lib/checkDuplicateCodex";
@@ -15,6 +15,13 @@ const inscriptionSchema = z.object({
   eventData: z.any(),
   createdBy: z.string(),
 });
+
+const UNIQUE_VIOLATION = "23505";
+
+function isUniqueViolation(error: unknown): boolean {
+  const err = error as {code?: string; cause?: {code?: string}};
+  return err?.code === UNIQUE_VIOLATION || err?.cause?.code === UNIQUE_VIOLATION;
+}
 
 export async function POST(request: Request) {
   try {
@@ -61,14 +68,39 @@ export async function POST(request: Request) {
     const organizationCode = await getUserOrganizationCode();
     const { inscriptions, organizations } = getDbTables();
 
-    const result = await db
-      .insert(inscriptions)
-      .values({
-        createdBy: newInscription.createdBy,
-        eventId: newInscription.eventId,
-        eventData: newInscription.eventData,
-      })
-      .returning();
+    let result;
+    try {
+      result = await db
+        .insert(inscriptions)
+        .values({
+          createdBy: newInscription.createdBy,
+          eventId: newInscription.eventId,
+          eventData: newInscription.eventData,
+        })
+        .returning();
+    } catch (insertError) {
+      // A concurrent request (double click, retry) already created an active
+      // inscription for this event: the partial unique index rejects this one.
+      if (!isUniqueViolation(insertError)) throw insertError;
+      const existing = await db
+        .select({id: inscriptions.id})
+        .from(inscriptions)
+        .where(
+          and(
+            eq(inscriptions.eventId, newInscription.eventId),
+            isNull(inscriptions.deletedAt)
+          )
+        )
+        .limit(1);
+      return NextResponse.json(
+        {
+          error: "DUPLICATE_EVENT",
+          message: "Cet événement a déjà une inscription",
+          inscriptionId: existing[0]?.id,
+        },
+        {status: 409}
+      );
+    }
 
     // Récupérer le vrai npm Clerk (username ou email)
     let creatorDisplay = newInscription.createdBy;
