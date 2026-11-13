@@ -40,6 +40,7 @@ export const InscriptionFormWrapper = () => {
     error,
   } = useCompetitionByCodex(searchedCodex ? Number(searchedCodex) : 0);
   const {createInscription} = useCreateInscription();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const event = eventUntyped as Competition | null | undefined;
 
@@ -55,6 +56,8 @@ export const InscriptionFormWrapper = () => {
     event.categoryCodes.length === 1;
 
   const onSubmit = async () => {
+    // Guard against double clicks: two clicks must never send two POST requests.
+    if (isSubmitting) return;
     if (!event || isTrainingEvent || !user || (codexCheck !== undefined && codexCheck.exists))
       return;
 
@@ -92,14 +95,18 @@ export const InscriptionFormWrapper = () => {
       createdBy,
     };
 
+    setIsSubmitting(true);
     try {
       const returningInscription: {inscription: Inscription} =
         await createInscription.mutateAsync(newInscription);
       router.push(`/inscriptions/${returningInscription.inscription.id}`);
     } catch (err) {
+      setIsSubmitting(false);
       // Handle duplicate codex error from server
       const error = err as Error & { errorCode?: string; inscriptionId?: number };
-      if (error.errorCode === "DUPLICATE_CODEX" && error.inscriptionId) {
+      const isDuplicate =
+        error.errorCode === "DUPLICATE_CODEX" || error.errorCode === "DUPLICATE_EVENT";
+      if (isDuplicate && error.inscriptionId) {
         setServerError({
           message: error.message,
           inscriptionId: error.inscriptionId,
@@ -250,12 +257,13 @@ export const InscriptionFormWrapper = () => {
               className="bg-[#3d7cf2] hover:bg-[#3369d6] text-white px-8 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               disabled={
                 isLoading ||
+                isSubmitting ||
                 !event ||
                 isTrainingEvent ||
                 (codexCheck !== undefined && codexCheck.exists)
               }
             >
-              Créer la compétition
+              {isSubmitting ? "Création..." : "Créer la compétition"}
             </button>
           </div>
         )}
