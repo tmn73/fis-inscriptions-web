@@ -23,6 +23,7 @@ import {
 } from "@tanstack/react-table";
 import {Badge} from "@/components/ui/badge";
 import {colorBadgePerDiscipline} from "@/app/lib/colorMappers";
+import {sortRacesChronologically} from "@/app/lib/raceOrder";
 import AddCompetitorModal from "./AddCompetitorModal";
 import {usePermissionToEdit} from "./usePermissionToEdit";
 import {
@@ -149,7 +150,7 @@ function DesinscriptionCodexList({
   const relevantEventCodexes = useMemo(() => {
     const competitorGenderUpper = genderFilterOfCompetitor?.toUpperCase();
 
-    return allEventCodexes.filter((eventCodex) => {
+    return sortRacesChronologically(allEventCodexes).filter((eventCodex) => {
       const eventGenderUpper = eventCodex.genderCode?.toUpperCase();
 
       // If competitor's gender is not M or W (e.g. undefined, or some other value if data changes),
@@ -421,7 +422,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
     const competitions = inscription?.eventData.competitions;
     if (!competitions) return []; // No competitions, no sort
 
-    const visibleCompetitionsBasedOnFilter = competitions.filter(
+    const visibleCompetitionsBasedOnFilter = sortRacesChronologically(competitions).filter(
       (comp) => genderFilter === "both" || comp.genderCode === genderFilter
     );
 
@@ -498,8 +499,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
         enableSorting: true,
       }),
       // Dynamic codex columns
-      ...(inscription?.eventData.competitions ?? [])
-        .sort((a, b) => a.codex - b.codex) // Sort by codex ascending
+      ...sortRacesChronologically(inscription?.eventData.competitions ?? [])
         .filter((competition) => {
           if (genderFilter === "both") return true;
           return competition.genderCode === genderFilter;

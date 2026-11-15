@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 
 export const DEFAULT_ORGANIZATION_LOGO = "/pdf/ffs-logo.png";
 
@@ -16,14 +16,31 @@ export const OrganizationLogo = ({src, alt}: OrganizationLogoProps) => {
   const configured = src || DEFAULT_ORGANIZATION_LOGO;
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const current = failedSrc === configured ? DEFAULT_ORGANIZATION_LOGO : configured;
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // The image is part of the server-rendered page: if it fails to load before React takes over, onError never
+  // fires. Check once on mount whether it has already failed.
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!image || !image.complete || image.naturalWidth !== 0 || current === DEFAULT_ORGANIZATION_LOGO) return;
+    let cancelled = false;
+    // Deferred on purpose: no state change synchronously inside the effect.
+    queueMicrotask(() => {
+      if (!cancelled) setFailedSrc(configured);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, current]);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      ref={imageRef}
       src={current}
       alt={alt}
       width={60}
-      height={60}
+      style={{width: 60, height: "auto"}}
       onError={() => {
         if (current !== DEFAULT_ORGANIZATION_LOGO) setFailedSrc(configured);
       }}

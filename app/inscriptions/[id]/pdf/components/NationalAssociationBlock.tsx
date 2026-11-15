@@ -10,8 +10,9 @@ export const NationalAssociationBlock = ({organization}: NationalAssociationBloc
     <div className="w-1/2 p-2">
       <div className="flex">
         <div className="w-16 mr-4">
+          {/* The FFS logo is bundled with the app: it never depends on a remote address saved in the database. */}
           <OrganizationLogo
-            src={organization?.logo}
+            src={organization?.code === "FFS" ? undefined : organization?.logo}
             alt={`${organization?.name || "FFS"} Logo`}
           />
         </div>

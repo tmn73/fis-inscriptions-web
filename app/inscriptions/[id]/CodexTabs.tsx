@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import {sortRacesChronologically} from "@/app/lib/raceOrder";
 import {useQuery} from "@tanstack/react-query";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {Badge} from "@/components/ui/badge";
@@ -56,7 +57,7 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
         : competitionsFromInscription.filter(
             (comp) => comp.genderCode === genderFilter
           );
-    return relevantCompetitions.sort((a, b) => a.codex - b.codex);
+    return sortRacesChronologically(relevantCompetitions);
   }, [competitionsFromInscription, genderFilter]);
 
   const [activeCodex, setActiveCodex] = React.useState<number | undefined>();
