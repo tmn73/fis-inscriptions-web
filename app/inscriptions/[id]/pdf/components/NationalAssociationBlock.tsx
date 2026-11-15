@@ -1,5 +1,5 @@
-import Image from "next/image";
 import React from "react";
+import {OrganizationLogo} from "./OrganizationLogo";
 
 type NationalAssociationBlockProps = {
   organization: any;
@@ -10,11 +10,9 @@ export const NationalAssociationBlock = ({organization}: NationalAssociationBloc
     <div className="w-1/2 p-2">
       <div className="flex">
         <div className="w-16 mr-4">
-          <Image
-            src={organization?.logo || "/pdf/ffs-logo.png"}
+          <OrganizationLogo
+            src={organization?.logo}
             alt={`${organization?.name || "FFS"} Logo`}
-            width={60}
-            height={60}
           />
         </div>
         <div className="flex-1">
