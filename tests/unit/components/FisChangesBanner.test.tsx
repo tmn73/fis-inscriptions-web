@@ -64,6 +64,35 @@ describe("FisChangesBanner", () => {
     expect(screen.getByText("modal-ouvert")).toBeTruthy();
   });
 
+  it("links the event and each race to their official FIS page so a change can be checked", () => {
+    const stored = eventData({
+      id: 63670,
+      disciplineCode: "AL",
+      seasonCode: 2027,
+      competitions: [{id: 1, codex: 457, displayCodex: "456", seasonCode: 2027, eventDescription: "GS", categoryCode: "NJR", date: future}],
+    });
+    state.fisData = {
+      ...stored,
+      startDate: "2099-01-02",
+      competitions: [{...stored.competitions[0], date: "2099-01-01"}],
+    };
+    renderBanner(stored);
+    const base = "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=AL&eventid=63670&seasoncode=2027";
+    const links = screen.getAllByRole("link", {name: /Voir sur le site de la FIS/});
+    // One for the event, one for the race (opened on codex 0456), both in a new tab.
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([base, `${base}&racecodex=0456`]);
+    links.forEach((link) => {
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toContain("noopener");
+    });
+  });
+
+  it("shows no link when the event id or season is unknown", () => {
+    state.fisData = eventData({startDate: "2099-01-02"});
+    renderBanner(eventData());
+    expect(screen.queryByRole("link", {name: /site de la FIS/})).toBeNull();
+  });
+
   it("shows nothing when the FIS data is identical", () => {
     state.fisData = eventData();
     renderBanner(eventData());
