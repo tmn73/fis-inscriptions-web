@@ -351,6 +351,12 @@
     "noData": "No registration data found.",
     "inscriptionNotFound": "Registration not found.",
     "eventDataNotFound": "Event data not found for this registration.",
+    "fisChanges": {
+      "title": "Warning: FIS changes detected",
+      "description": "The FIS calendar differs from the data saved for this event ({count, plural, one {# important change} other {# important changes}}).",
+      "andMore": "{count, plural, one {+ # other change} other {+ # other changes}}",
+      "review": "Review and update"
+    },
     "tabs": {
       "recap": "Summary",
       "recapFull": "Summary",

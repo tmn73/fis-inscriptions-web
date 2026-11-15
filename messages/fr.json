@@ -347,6 +347,12 @@
     "noData": "Aucune donnée d'inscription trouvée.",
     "inscriptionNotFound": "Inscription non trouvée.",
     "eventDataNotFound": "Données d'événement non trouvées pour cette inscription.",
+    "fisChanges": {
+      "title": "Attention : modifications FIS détectées",
+      "description": "Le calendrier de la FIS diffère des données enregistrées pour cet événement ({count, plural, one {# modification importante} other {# modifications importantes}}).",
+      "andMore": "{count, plural, one {+ # autre modification} other {+ # autres modifications}}",
+      "review": "Voir et mettre à jour"
+    },
     "tabs": {
       "recap": "Récap",
       "recapFull": "Récapitulatif",

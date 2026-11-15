@@ -10,7 +10,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {Button} from "@/components/ui/button";
-import {Inscription, Competition, CompetitionItem} from "@/app/types";
+import {Inscription, Competition} from "@/app/types";
+import {
+  computeEventDataDifferences,
+  filterOutTRA,
+  type EventDataDifference,
+} from "@/app/lib/eventDataDiff";
 import {useCompetitionByCodex} from "@/app/fisApi"; // Assuming this hook exists and works as in InscriptionForm
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {Loader2} from "lucide-react";
@@ -27,25 +32,6 @@ interface UpdateEventDataModalProps {
 // const getAddedDiff = (_original: any, _updated: any) : any => ({});
 // const getDeletedDiff = (_original: any, _updated: any) : any => ({});
 // const getUpdatedDiff = (_original: any, _updated: any) : any => ({});
-
-// Fonction utilitaire pour filtrer les compétitions et catégories 'TRA'
-const filterOutTRA = (eventData: Competition): Competition => {
-  return {
-    ...eventData,
-    competitions: Array.isArray(eventData.competitions)
-      ? eventData.competitions.filter((comp) => comp.categoryCode !== "TRA")
-      : [],
-    categoryCodes: Array.isArray(eventData.categoryCodes)
-      ? eventData.categoryCodes.filter((code) => code !== "TRA")
-      : [],
-  };
-};
-
-type EventDataDifference = {
-  field: string;
-  oldValue: string;
-  newValue: string;
-};
 
 export const UpdateEventDataModal = ({
   isOpen,
@@ -78,275 +64,17 @@ export const UpdateEventDataModal = ({
     }
   }, [isOpen, codex, refetchFisData]);
 
-  // Function to compare two values and format them for display
-  const formatValue = (value: unknown): string => {
-    if (value === null || value === undefined) return t("notDefined");
-    if (typeof value === "boolean") return value ? t("yes") : t("no");
-    if (Array.isArray(value)) return value.join(", ");
-    if (typeof value === "object") return JSON.stringify(value);
-    return String(value);
-  };
-
-  // Function to check if two values are different
-  const isDifferent = (oldVal: unknown, newVal: unknown): boolean => {
-    if (oldVal === newVal) return false;
-    if (typeof oldVal !== typeof newVal) return true;
-    if (Array.isArray(oldVal) && Array.isArray(newVal)) {
-      return JSON.stringify(oldVal) !== JSON.stringify(newVal);
-    }
-    if (
-      typeof oldVal === "object" &&
-      oldVal !== null &&
-      typeof newVal === "object" &&
-      newVal !== null
-    ) {
-      return JSON.stringify(oldVal) !== JSON.stringify(newVal);
-    }
-    return oldVal !== newVal;
-  };
-
-  // Differences between the stored event data and the latest FIS data
-  const computeDifferences = (): EventDataDifference[] => {
-    const diffs: EventDataDifference[] = [];
-    if (fetchedEventData && inscription.eventData) {
-
-      // Liste complète des champs à comparer
-      const fieldsToCompare: (keyof Competition)[] = [
-        "id",
-        "name",
-        "organiserNationCode",
-        "place",
-        "placeNationCode",
-        "disciplineCode",
-        "seasonCode",
-        "startDate",
-        "endDate",
-        "timeZone",
-        "comment",
-        "categoryCodes",
-        "eventCodes",
-        "genderCodes",
-        "hasResultsOrStartList",
-        "hasPdfs",
-        "isCancelled",
-        "hasMedals",
-        "hasChanges",
-        "hasPastLiveResults",
-        "hasLiveResults",
-        "hasLiveVideo",
-        "hasLiveGps",
-        "hasActiveLiveResults",
-        "hasActiveLiveVideo",
-        "hasActiveLiveGps",
-        "hasActivePreLiveResults",
-      ];
-
-      // Comparer les champs principaux
-      fieldsToCompare.forEach((field) => {
-        const oldValue = inscription.eventData[field];
-        const newValue = fetchedEventData[field];
-
-        if (isDifferent(oldValue, newValue)) {
-          diffs.push({
-            field: String(field),
-            oldValue: formatValue(oldValue),
-            newValue: formatValue(newValue),
-          });
-        }
-      });
-
-      // Comparer les informations de contact si elles existent
-      if (
-        inscription.eventData.contactInformation ||
-        fetchedEventData.contactInformation
-      ) {
-        const contactFields = [
-          "line1",
-          "line2",
-          "line4",
-          "phone",
-          "emailGeneral",
-          "emailEntries",
-          "website",
-        ] as const;
-
-        contactFields.forEach((field) => {
-          const oldValue = inscription.eventData.contactInformation?.[field];
-          const newValue = fetchedEventData.contactInformation?.[field];
-
-          if (isDifferent(oldValue, newValue)) {
-            diffs.push({
-              field: `Contact - ${field}`,
-              oldValue: formatValue(oldValue),
-              newValue: formatValue(newValue),
-            });
-          }
-        });
-      }
-
-      // Comparer les compétitions
-      if (inscription.eventData.competitions && fetchedEventData.competitions) {
-        // On crée un Map des compétitions par ID pour faciliter la comparaison
-        const oldCompsMap = new Map(
-          inscription.eventData.competitions.map((comp) => [comp.id, comp])
-        );
-        const newCompsMap = new Map(
-          fetchedEventData.competitions.map((comp) => [comp.id, comp])
-        );
-
-        // Comparer les compétitions qui existent dans les deux versions
-        oldCompsMap.forEach((oldComp, compId) => {
-          const newComp = newCompsMap.get(compId);
-          if (newComp) {
-            const competitionFields: (keyof CompetitionItem)[] = [
-              "id",
-              "eventId",
-              "place",
-              "placeNationCode",
-              "seasonCode",
-              "date",
-              "times",
-              "timeZone",
-              "codex",
-              "displayCodex",
-              "status",
-              "categoryCode",
-              "categoryDescription",
-              "eventCode",
-              "eventDescription",
-              "eventDescriptionWithGender",
-              "genderCode",
-              "comment",
-              "hasResults",
-              "hasStartList",
-              "resultsOrStartListModifiedAt",
-              "hasPdfs",
-              "hasChanges",
-              "isCancelled",
-              "unitName",
-              "isValidForFisPoints",
-              "appliedPenalty",
-              "isOfficial",
-              "hasMedals",
-              "hasPastLiveResults",
-              "hasLiveResults",
-              "hasLiveVideo",
-              "hasLiveGps",
-              "hasActiveLiveResults",
-              "hasActiveLiveVideo",
-              "hasActiveLiveGps",
-              "hasActivePreLiveResults",
-              "liveResultsStatus",
-              "liveResultsInformation",
-              "liveResultsUrl",
-            ];
-
-            competitionFields.forEach((field) => {
-              if (isDifferent(oldComp[field], newComp[field])) {
-                diffs.push({
-                  field: `Competition ${compId} (${
-                    oldComp.eventDescription
-                  }) - ${String(field)}`,
-                  oldValue: formatValue(oldComp[field]),
-                  newValue: formatValue(newComp[field]),
-                });
-              }
-            });
-
-            // Comparer le jury
-            if (oldComp.jury || newComp.jury) {
-              const oldJuryMap = new Map(
-                oldComp.jury?.map((j) => [
-                  j.function + j.lastName + j.firstName,
-                  j,
-                ]) || []
-              );
-              const newJuryMap = new Map(
-                newComp.jury?.map((j) => [
-                  j.function + j.lastName + j.firstName,
-                  j,
-                ]) || []
-              );
-
-              oldJuryMap.forEach((oldJury, juryKey) => {
-                const newJury = newJuryMap.get(juryKey);
-                if (newJury) {
-                  [
-                    "function",
-                    "displayFunction",
-                    "lastName",
-                    "firstName",
-                    "nationCode",
-                    "id",
-                  ].forEach((field) => {
-                    const typedField = field as keyof typeof oldJury;
-                    if (isDifferent(oldJury[typedField], newJury[typedField])) {
-                      diffs.push({
-                        field: `Competition ${compId} - Jury ${oldJury.function} - ${field}`,
-                        oldValue: formatValue(oldJury[typedField]),
-                        newValue: formatValue(newJury[typedField]),
-                      });
-                    }
-                  });
-                }
-              });
-            }
-
-            // Comparer le schedule
-            if (oldComp.schedule || newComp.schedule) {
-              oldComp.schedule?.forEach((oldSchedule, scheduleIndex) => {
-                const newSchedule = newComp.schedule?.[scheduleIndex];
-                if (newSchedule) {
-                  ["displayOrder", "startTime", "unitName", "status"].forEach(
-                    (field) => {
-                      const typedField = field as keyof typeof oldSchedule;
-                      if (
-                        isDifferent(
-                          oldSchedule[typedField],
-                          newSchedule[typedField]
-                        )
-                      ) {
-                        diffs.push({
-                          field: `Competition ${compId} - Schedule ${oldSchedule.unitName} - ${field}`,
-                          oldValue: formatValue(oldSchedule[typedField]),
-                          newValue: formatValue(newSchedule[typedField]),
-                        });
-                      }
-                    }
-                  );
-                }
-              });
-            }
-          }
-        });
-
-        // Vérifier s'il y a des nouvelles compétitions
-        newCompsMap.forEach((newComp, compId) => {
-          if (!oldCompsMap.has(compId)) {
-            diffs.push({
-              field: t("newCompetition"),
-              oldValue: t("na"),
-              newValue: `${newComp.eventDescription} (ID: ${compId})`,
-            });
-          }
-        });
-
-        // Vérifier s'il y a des compétitions supprimées
-        oldCompsMap.forEach((oldComp, compId) => {
-          if (!newCompsMap.has(compId)) {
-            diffs.push({
-              field: t("deletedCompetition"),
-              oldValue: `${oldComp.eventDescription} (ID: ${compId})`,
-              newValue: t("na"),
-            });
-          }
-        });
-      }
-    }
-    return diffs;
-  };
-
-  const differences = computeDifferences();
+  const differences: EventDataDifference[] =
+    fetchedEventData && inscription.eventData
+      ? computeEventDataDifferences(inscription.eventData, fetchedEventData, {
+          notDefined: t("notDefined"),
+          yes: t("yes"),
+          no: t("no"),
+          na: t("na"),
+          newCompetition: t("newCompetition"),
+          deletedCompetition: t("deletedCompetition"),
+        })
+      : [];
   const updatedEventData =
     differences.length > 0 ? (fetchedEventData ?? null) : null;
 

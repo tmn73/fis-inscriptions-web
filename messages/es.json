@@ -355,6 +355,12 @@
     "noData": "No se encontraron datos de inscripción.",
     "inscriptionNotFound": "Inscripción no encontrada.",
     "eventDataNotFound": "Datos del evento no encontrados para esta inscripción.",
+    "fisChanges": {
+      "title": "Atención: cambios de la FIS detectados",
+      "description": "El calendario de la FIS difiere de los datos guardados para este evento ({count, plural, one {# cambio importante} other {# cambios importantes}}).",
+      "andMore": "{count, plural, one {+ # cambio más} other {+ # cambios más}}",
+      "review": "Ver y actualizar"
+    },
     "tabs": {
       "recap": "Resumen",
       "recapFull": "Resumen",
