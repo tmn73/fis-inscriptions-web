@@ -23,6 +23,7 @@ import {
 } from "@tanstack/react-table";
 import {Badge} from "@/components/ui/badge";
 import {colorBadgePerDiscipline} from "@/app/lib/colorMappers";
+import {CodexColumnHeader} from "./CodexColumnHeader";
 import AddCompetitorModal from "./AddCompetitorModal";
 import {usePermissionToEdit} from "./usePermissionToEdit";
 import {
@@ -552,38 +553,19 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                 };
 
                 return (
-                  <div
-                    className="flex flex-col items-center justify-center min-w-[80px] select-none cursor-pointer"
-                    onClick={() =>
+                  <CodexColumnHeader
+                    date={competition.date ? formatDate(competition.date) : undefined}
+                    codex={competition.codex}
+                    eventCode={competition.eventCode}
+                    categoryCode={competition.categoryCode}
+                    genderCode={competition.genderCode}
+                    registeredCount={countForThisCodex}
+                    registeredLabel={`${countForThisCodex} ${tTable("registered")}`}
+                    sorted={column.getIsSorted()}
+                    onToggleSort={() =>
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
-                  >
-                    {competition.date && (
-                      <div className="text-xs text-slate-500 font-medium mb-0.5">
-                        {formatDate(competition.date)}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-slate-700">{competition.codex}</span>
-                      <Badge
-                        className={`text-xs px-1.5 py-0.5 ${
-                          colorBadgePerDiscipline[competition.eventCode] || ""
-                        }`}
-                      >
-                        {competition.eventCode}
-                      </Badge>
-                      <span className={`text-xs font-medium ${
-                        competition.genderCode === "M" ? "text-blue-600" : "text-pink-600"
-                      }`}>
-                        {competition.genderCode}
-                      </span>
-                      {column.getIsSorted() === "asc" && <span>↑</span>}
-                      {column.getIsSorted() === "desc" && <span>↓</span>}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      ({countForThisCodex} {tTable("registered")})
-                    </div>
-                  </div>
+                  />
                 );
               },
               cell: (info) => {
