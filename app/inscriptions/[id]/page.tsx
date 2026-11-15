@@ -5,6 +5,7 @@ import {InscriptionDetails} from "./InscriptionDetails";
 import {CodexTabs} from "./CodexTabs";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {RecapEvent} from "./RecapEvent";
+import {FisChangesBanner} from "./FisChangesBanner";
 import {Coaches} from "./Coaches";
 import AddCoachModal from "./AddCoachModal";
 import {useInscription} from "@/app/inscriptions/form/api";
@@ -62,6 +63,7 @@ export default function InscriptionPage({params: paramsPromise}: PageProps) {
   return (
     <div className="container mx-auto py-4 md:py-8">
       <InscriptionDetails id={params.id} />
+      <FisChangesBanner inscription={inscription} />
       <div className="bg-white px-0 py-3 md:py-4 mt-4 md:mt-6">
         <Tabs defaultValue="recap" className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 px-3 md:px-4">
