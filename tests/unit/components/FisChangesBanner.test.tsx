@@ -57,7 +57,9 @@ describe("FisChangesBanner", () => {
     renderBanner(eventData());
     expect(screen.getByRole("alert")).toBeTruthy();
     expect(screen.getByText("Attention : modifications FIS détectées")).toBeTruthy();
-    expect(screen.getByText("startDate")).toBeTruthy();
+    expect(screen.getByText("Date de début")).toBeTruthy();
+    expect(screen.getByText("02/01/2099")).toBeTruthy();
+    expect(screen.queryByText("startDate")).toBeNull();
     fireEvent.click(screen.getByRole("button", {name: "Voir et mettre à jour"}));
     expect(screen.getByText("modal-ouvert")).toBeTruthy();
   });
@@ -83,18 +85,24 @@ describe("FisChangesBanner", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("lists at most 5 changes and counts the others", () => {
+  it("groups changes by race and counts what the short banner leaves out", () => {
+    const races = [1, 2, 3, 4, 5, 6].map((id) => ({
+      id,
+      codex: 400 + id,
+      displayCodex: String(400 + id),
+      eventDescription: "Slalom",
+      eventDescriptionWithGender: `Slalom ${id}`,
+      categoryCode: "NJR",
+      date: future,
+    }));
     state.fisData = eventData({
-      name: "X",
-      place: "X",
-      startDate: "2099-01-02",
-      endDate: "2099-01-03",
-      comment: "x",
-      isCancelled: true,
-      categoryCodes: ["NJR", "FIS"],
+      competitions: races.map((r) => ({...r, date: "2099-01-01"})),
     });
-    renderBanner(eventData());
-    expect(screen.getAllByRole("listitem")).toHaveLength(5);
+    renderBanner(eventData({competitions: races}));
+    // 6 races changed, but only 4 groups are listed; the other 2 changes are counted.
+    expect(screen.getAllByText("Date de la course")).toHaveLength(4);
+    expect(screen.getByText("Slalom 1")).toBeTruthy();
+    expect(screen.getByText("codex 401")).toBeTruthy();
     expect(screen.getByText(/\+ 2 autres modifications/)).toBeTruthy();
   });
 });

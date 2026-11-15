@@ -16,6 +16,9 @@ import {
   filterOutTRA,
   type EventDataDifference,
 } from "@/app/lib/eventDataDiff";
+import {groupByImportance} from "@/app/lib/eventDataDiffPresentation";
+import {ChangeGroupList} from "./ChangeGroupList";
+import {useDiffPresentationLabels} from "./useDiffPresentationLabels";
 import {useCompetitionByCodex} from "@/app/fisApi"; // Assuming this hook exists and works as in InscriptionForm
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {Loader2} from "lucide-react";
@@ -75,6 +78,8 @@ export const UpdateEventDataModal = ({
           deletedCompetition: t("deletedCompetition"),
         })
       : [];
+  const presentationLabels = useDiffPresentationLabels();
+  const {important, other, otherCount} = groupByImportance(differences, presentationLabels);
   const updatedEventData =
     differences.length > 0 ? (fetchedEventData ?? null) : null;
 
@@ -154,28 +159,27 @@ export const UpdateEventDataModal = ({
 
         {!isLoadingFisData && !fisError && differences.length > 0 && (
           <div className="my-4 p-4 border rounded-md bg-gray-50 max-h-[400px] overflow-y-auto">
-            <h3 className="font-semibold mb-4">{t("changesDetected")}</h3>
-            <div className="space-y-4">
-              {differences.map((diff, index) => (
-                <div key={index} className="bg-white p-3 rounded shadow-sm">
-                  <div className="font-medium text-gray-700">{diff.field}</div>
-                  <div className="mt-1 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-red-500 font-medium">
-                        {t("old")}{" "}
-                      </span>
-                      <span className="text-red-700">{diff.oldValue}</span>
-                    </div>
-                    <div>
-                      <span className="text-green-500 font-medium">
-                        {t("new")}{" "}
-                      </span>
-                      <span className="text-green-700">{diff.newValue}</span>
-                    </div>
-                  </div>
+            <h3 className="font-semibold mb-3">{t("changesDetected")}</h3>
+            {important.length > 0 ? (
+              <div className="bg-white p-3 rounded shadow-sm">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                  {t("groups.important")}
                 </div>
-              ))}
-            </div>
+                <ChangeGroupList groups={important} />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600">{t("groups.noImportant")}</p>
+            )}
+            {otherCount > 0 && (
+              <details className="mt-3 bg-white p-3 rounded shadow-sm">
+                <summary className="cursor-pointer text-sm font-medium text-slate-600">
+                  {t("groups.other", {count: otherCount})}
+                </summary>
+                <div className="mt-3">
+                  <ChangeGroupList groups={other} />
+                </div>
+              </details>
+            )}
           </div>
         )}
 

@@ -73,6 +73,8 @@ describe("computeEventDataDifferences", () => {
     );
     expect(added).toContainEqual({
       field: "Nouvelle competition",
+      key: "newCompetition",
+      scope: {kind: "event"},
       oldValue: "N/A",
       newValue: "Slalom (ID: 2)",
       important: true,
@@ -80,9 +82,33 @@ describe("computeEventDataDifferences", () => {
     const removed = computeEventDataDifferences(event(), event({competitions: []}), labels);
     expect(removed).toContainEqual({
       field: "Competition supprimée",
+      key: "deletedCompetition",
+      scope: {kind: "event"},
       oldValue: "Giant Slalom (ID: 1)",
       newValue: "N/A",
       important: true,
+    });
+  });
+});
+
+describe("difference origin", () => {
+  it("tags each difference with its field and where it comes from", () => {
+    const diffs = computeEventDataDifferences(
+      event(),
+      event({
+        endDate: "2026-11-21",
+        contactInformation: {emailEntries: "new@example.com"},
+        competitions: [race({date: "2026-11-18"})],
+      }),
+      labels
+    );
+    expect(diffs.find((d) => d.key === "endDate")?.scope).toEqual({kind: "event"});
+    expect(diffs.find((d) => d.key === "emailEntries")?.scope).toEqual({kind: "contact"});
+    expect(diffs.find((d) => d.key === "date")?.scope).toEqual({
+      kind: "competition",
+      id: 1,
+      label: "Giant Slalom M",
+      codex: "457",
     });
   });
 });

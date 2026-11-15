@@ -1,7 +1,16 @@
 import type {Competition, CompetitionItem} from "@/app/types";
 
+// Where a difference comes from, so it can be shown grouped (event, contact, or one given race).
+export type EventDataDifferenceScope =
+  | {kind: "event"}
+  | {kind: "contact"}
+  | {kind: "competition"; id: number; label: string; codex: string};
+
 export type EventDataDifference = {
   field: string;
+  // Raw field name ("startDate", "emailEntries", "date"...), used to find its readable label.
+  key: string;
+  scope: EventDataDifferenceScope;
   oldValue: string;
   newValue: string;
   // true when the change matters for registrations (dates, place, cancellation, races, entry email...).
@@ -167,6 +176,16 @@ const JURY_FIELDS = [
 
 const SCHEDULE_FIELDS = ["displayOrder", "startTime", "unitName", "status"] as const;
 
+const EVENT_SCOPE: EventDataDifferenceScope = {kind: "event"};
+const CONTACT_SCOPE: EventDataDifferenceScope = {kind: "contact"};
+
+const competitionScope = (comp: CompetitionItem): EventDataDifferenceScope => ({
+  kind: "competition",
+  id: comp.id,
+  label: comp.eventDescriptionWithGender || `${comp.eventDescription} ${comp.genderCode ?? ""}`.trim(),
+  codex: String(comp.displayCodex || comp.codex || comp.id),
+});
+
 // Differences between the event data stored on an inscription and the latest data from the FIS.
 export const computeEventDataDifferences = (
   stored: Competition,
@@ -185,12 +204,16 @@ export const computeEventDataDifferences = (
 
   const push = (
     field: string,
+    key: string,
+    scope: EventDataDifferenceScope,
     oldValue: unknown,
     newValue: unknown,
     important: boolean
   ) => {
     diffs.push({
       field,
+      key,
+      scope,
       oldValue: formatValue(oldValue),
       newValue: formatValue(newValue),
       important,
@@ -199,7 +222,14 @@ export const computeEventDataDifferences = (
 
   EVENT_FIELDS.forEach((field) => {
     if (isDifferent(stored[field], fetched[field])) {
-      push(String(field), stored[field], fetched[field], IMPORTANT_EVENT_FIELDS.has(String(field)));
+      push(
+        String(field),
+        String(field),
+        EVENT_SCOPE,
+        stored[field],
+        fetched[field],
+        IMPORTANT_EVENT_FIELDS.has(String(field))
+      );
     }
   });
 
@@ -208,7 +238,14 @@ export const computeEventDataDifferences = (
       const oldValue = stored.contactInformation?.[field];
       const newValue = fetched.contactInformation?.[field];
       if (isDifferent(oldValue, newValue)) {
-        push(`Contact - ${field}`, oldValue, newValue, IMPORTANT_CONTACT_FIELDS.has(field));
+        push(
+          `Contact - ${field}`,
+          field,
+          CONTACT_SCOPE,
+          oldValue,
+          newValue,
+          IMPORTANT_CONTACT_FIELDS.has(field)
+        );
       }
     });
   }
@@ -220,11 +257,14 @@ export const computeEventDataDifferences = (
     oldComps.forEach((oldComp, compId) => {
       const newComp = newComps.get(compId);
       if (!newComp) return;
+      const scope = competitionScope(oldComp);
 
       COMPETITION_FIELDS.forEach((field) => {
         if (isDifferent(oldComp[field], newComp[field])) {
           push(
             `Competition ${compId} (${oldComp.eventDescription}) - ${String(field)}`,
+            String(field),
+            scope,
             oldComp[field],
             newComp[field],
             IMPORTANT_COMPETITION_FIELDS.has(String(field))
@@ -244,6 +284,8 @@ export const computeEventDataDifferences = (
             if (isDifferent(oldMember[field], newMember[field])) {
               push(
                 `Competition ${compId} - Jury ${oldMember.function} - ${field}`,
+                `jury.${field}`,
+                scope,
                 oldMember[field],
                 newMember[field],
                 false
@@ -261,6 +303,8 @@ export const computeEventDataDifferences = (
             if (isDifferent(oldSchedule[field], newSchedule[field])) {
               push(
                 `Competition ${compId} - Schedule ${oldSchedule.unitName} - ${field}`,
+                `schedule.${field}`,
+                scope,
                 oldSchedule[field],
                 newSchedule[field],
                 IMPORTANT_SCHEDULE_FIELDS.has(field)
@@ -273,13 +317,27 @@ export const computeEventDataDifferences = (
 
     newComps.forEach((newComp, compId) => {
       if (!oldComps.has(compId)) {
-        push(labels.newCompetition, labels.na, `${newComp.eventDescription} (ID: ${compId})`, true);
+        push(
+          labels.newCompetition,
+          "newCompetition",
+          EVENT_SCOPE,
+          labels.na,
+          `${newComp.eventDescription} (ID: ${compId})`,
+          true
+        );
       }
     });
 
     oldComps.forEach((oldComp, compId) => {
       if (!newComps.has(compId)) {
-        push(labels.deletedCompetition, `${oldComp.eventDescription} (ID: ${compId})`, labels.na, true);
+        push(
+          labels.deletedCompetition,
+          "deletedCompetition",
+          EVENT_SCOPE,
+          `${oldComp.eventDescription} (ID: ${compId})`,
+          labels.na,
+          true
+        );
       }
     });
   }

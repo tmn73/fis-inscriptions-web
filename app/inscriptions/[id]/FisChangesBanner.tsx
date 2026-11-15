@@ -8,8 +8,12 @@ import type {Inscription} from "@/app/types";
 import {usePermissionToEdit} from "./usePermissionToEdit";
 import {useFisChanges} from "./useFisChanges";
 import {UpdateEventDataModal} from "./UpdateEventDataModal";
+import {ChangeGroupList} from "./ChangeGroupList";
+import {useDiffPresentationLabels} from "./useDiffPresentationLabels";
+import {groupDifferences} from "@/app/lib/eventDataDiffPresentation";
 
-const MAX_LISTED_CHANGES = 5;
+// The banner stays short: the full list is one click away in the update modal.
+const MAX_LISTED_GROUPS = 4;
 
 interface FisChangesBannerProps {
   inscription: Inscription;
@@ -20,12 +24,16 @@ export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
   const t = useTranslations("inscriptionDetail.fisChanges");
   const canUpdate = usePermissionToEdit(inscription, "actionsBtn", null);
   const {changes} = useFisChanges(inscription, canUpdate);
+  const presentationLabels = useDiffPresentationLabels();
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!canUpdate || changes.length === 0) return null;
 
-  const listed = changes.slice(0, MAX_LISTED_CHANGES);
-  const hidden = changes.length - listed.length;
+  const groups = groupDifferences(changes, presentationLabels);
+  const listed = groups.slice(0, MAX_LISTED_GROUPS);
+  const hidden = groups
+    .slice(MAX_LISTED_GROUPS)
+    .reduce((total, group) => total + group.changes.length, 0);
 
   return (
     <>
@@ -40,16 +48,9 @@ export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
             <p className="text-sm text-yellow-700 mt-1">
               {t("description", {count: changes.length})}
             </p>
-            <ul className="mt-2 space-y-1 text-sm text-yellow-800">
-              {listed.map((change) => (
-                <li key={`${change.field}-${change.oldValue}-${change.newValue}`}>
-                  <span className="font-medium">{change.field}</span> :{" "}
-                  <span className="line-through">{change.oldValue}</span>
-                  {" → "}
-                  <span className="font-semibold">{change.newValue}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-3">
+              <ChangeGroupList groups={listed} />
+            </div>
             {hidden > 0 && (
               <p className="mt-1 text-sm text-yellow-700">
                 {t("andMore", {count: hidden})}
