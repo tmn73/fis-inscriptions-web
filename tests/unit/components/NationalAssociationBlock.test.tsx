@@ -25,4 +25,11 @@ describe("NationalAssociationBlock logo", () => {
     );
     expect(screen.getByAltText("RFEDI Logo").getAttribute("src")).toBe("https://example.com/rfedi.png");
   });
+
+  it("centres the logo vertically against the text block", () => {
+    render(<NationalAssociationBlock organization={organization({})} />);
+    const row = screen.getByAltText("Fédération Française de Ski Logo").parentElement?.parentElement;
+    expect(row?.className).toContain("flex");
+    expect(row?.className).toContain("items-center");
+  });
 });

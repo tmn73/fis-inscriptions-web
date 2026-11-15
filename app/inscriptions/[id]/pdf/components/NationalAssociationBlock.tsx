@@ -8,7 +8,7 @@ type NationalAssociationBlockProps = {
 export const NationalAssociationBlock = ({organization}: NationalAssociationBlockProps) => {
   return (
     <div className="w-1/2 p-2">
-      <div className="flex">
+      <div className="flex items-center">
         <div className="w-16 mr-4">
           {/* The FFS logo is bundled with the app: it never depends on a remote address saved in the database. */}
           <OrganizationLogo
