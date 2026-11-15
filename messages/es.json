@@ -809,7 +809,8 @@
         "codex": "codex {codex}",
         "important": "Cambios importantes",
         "other": "Otros cambios ({count})",
-        "noImportant": "Ningún cambio importante: solo cambiaron detalles menores (resultados en directo, PDF…)."
+        "noImportant": "Ningún cambio importante: solo cambiaron detalles menores (resultados en directo, PDF…).",
+        "viewOnFis": "Ver en el sitio de la FIS"
       },
       "fields": {
         "id": "ID FIS",

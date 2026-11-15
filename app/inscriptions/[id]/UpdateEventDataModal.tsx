@@ -165,7 +165,7 @@ export const UpdateEventDataModal = ({
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-700">
                   {t("groups.important")}
                 </div>
-                <ChangeGroupList groups={important} />
+                <ChangeGroupList groups={important} linkLabel={t("groups.viewOnFis")} />
               </div>
             ) : (
               <p className="text-sm text-slate-600">{t("groups.noImportant")}</p>
@@ -176,7 +176,7 @@ export const UpdateEventDataModal = ({
                   {t("groups.other", {count: otherCount})}
                 </summary>
                 <div className="mt-3">
-                  <ChangeGroupList groups={other} />
+                  <ChangeGroupList groups={other} linkLabel={t("groups.viewOnFis")} />
                 </div>
               </details>
             )}

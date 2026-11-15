@@ -22,6 +22,7 @@ interface FisChangesBannerProps {
 // Warns administrators, as soon as an inscription is opened, that the FIS calendar differs from the stored data.
 export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
   const t = useTranslations("inscriptionDetail.fisChanges");
+  const tModal = useTranslations("modals.updateEvent");
   const canUpdate = usePermissionToEdit(inscription, "actionsBtn", null);
   const {changes} = useFisChanges(inscription, canUpdate);
   const presentationLabels = useDiffPresentationLabels();
@@ -49,7 +50,7 @@ export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
               {t("description", {count: changes.length})}
             </p>
             <div className="mt-3">
-              <ChangeGroupList groups={listed} />
+              <ChangeGroupList groups={listed} linkLabel={tModal("groups.viewOnFis")} />
             </div>
             {hidden > 0 && (
               <p className="mt-1 text-sm text-yellow-700">

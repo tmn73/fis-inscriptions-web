@@ -1,10 +1,12 @@
 import type {Competition, CompetitionItem} from "@/app/types";
+import {fisEventUrl} from "@/app/lib/fisLinks";
 
 // Where a difference comes from, so it can be shown grouped (event, contact, or one given race).
+// `url` is the matching page on the official FIS site, when it can be built.
 export type EventDataDifferenceScope =
-  | {kind: "event"}
+  | {kind: "event"; url?: string}
   | {kind: "contact"}
-  | {kind: "competition"; id: number; label: string; codex: string};
+  | {kind: "competition"; id: number; label: string; codex: string; url?: string};
 
 export type EventDataDifference = {
   field: string;
@@ -176,14 +178,23 @@ const JURY_FIELDS = [
 
 const SCHEDULE_FIELDS = ["displayOrder", "startTime", "unitName", "status"] as const;
 
-const EVENT_SCOPE: EventDataDifferenceScope = {kind: "event"};
 const CONTACT_SCOPE: EventDataDifferenceScope = {kind: "contact"};
 
-const competitionScope = (comp: CompetitionItem): EventDataDifferenceScope => ({
+// Official FIS page of the event, opened on the given race when there is one.
+const eventUrl = (event: Competition, comp?: CompetitionItem): string | undefined =>
+  fisEventUrl({
+    sectorCode: event.disciplineCode,
+    eventId: event.id,
+    seasonCode: comp?.seasonCode ?? event.seasonCode,
+    codex: comp?.displayCodex,
+  });
+
+const competitionScope = (comp: CompetitionItem, event: Competition): EventDataDifferenceScope => ({
   kind: "competition",
   id: comp.id,
   label: comp.eventDescriptionWithGender || `${comp.eventDescription} ${comp.genderCode ?? ""}`.trim(),
   codex: String(comp.displayCodex || comp.codex || comp.id),
+  url: eventUrl(event, comp),
 });
 
 // Differences between the event data stored on an inscription and the latest data from the FIS.
@@ -193,6 +204,7 @@ export const computeEventDataDifferences = (
   labels: EventDataDiffLabels
 ): EventDataDifference[] => {
   const diffs: EventDataDifference[] = [];
+  const EVENT_SCOPE: EventDataDifferenceScope = {kind: "event", url: eventUrl(stored)};
 
   const formatValue = (value: unknown): string => {
     if (value === null || value === undefined) return labels.notDefined;
@@ -257,7 +269,7 @@ export const computeEventDataDifferences = (
     oldComps.forEach((oldComp, compId) => {
       const newComp = newComps.get(compId);
       if (!newComp) return;
-      const scope = competitionScope(oldComp);
+      const scope = competitionScope(oldComp, stored);
 
       COMPETITION_FIELDS.forEach((field) => {
         if (isDifferent(oldComp[field], newComp[field])) {

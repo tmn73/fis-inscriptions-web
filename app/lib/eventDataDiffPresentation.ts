@@ -11,6 +11,8 @@ export type ChangeGroup = {
   id: string;
   title: string;
   subtitle?: string;
+  // Matching page on the official FIS site, to check the change at the source.
+  href?: string;
   changes: PresentedChange[];
 };
 
@@ -46,10 +48,11 @@ export const groupDifferences = (
     if (!group) {
       group =
         scope.kind === "competition"
-          ? {id, title: scope.label, subtitle: labels.codexLabel(scope.codex), changes: []}
+          ? {id, title: scope.label, subtitle: labels.codexLabel(scope.codex), href: scope.url, changes: []}
           : {
               id,
               title: scope.kind === "contact" ? labels.contactTitle : labels.eventTitle,
+              href: scope.kind === "event" ? scope.url : undefined,
               changes: [],
             };
       groups.set(id, group);

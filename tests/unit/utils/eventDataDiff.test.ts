@@ -113,6 +113,32 @@ describe("difference origin", () => {
   });
 });
 
+describe("links to the official FIS site", () => {
+  const withIds = (date: string) =>
+    event({
+      id: 63670,
+      disciplineCode: "AL",
+      seasonCode: 2027,
+      startDate: date,
+      competitions: [race({displayCodex: "456", seasonCode: 2027, date})],
+    });
+  const base = "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=AL&eventid=63670&seasoncode=2027";
+
+  it("links the event to its FIS page and each race to the same page opened on its codex", () => {
+    const diffs = computeEventDataDifferences(withIds("2026-11-19"), withIds("2026-11-18"), labels);
+    expect(diffs.find((d) => d.key === "startDate")?.scope).toEqual({kind: "event", url: base});
+    expect(diffs.find((d) => d.key === "date")?.scope).toMatchObject({
+      kind: "competition",
+      url: `${base}&racecodex=0456`,
+    });
+  });
+
+  it("has no link when the season is unknown", () => {
+    const diffs = computeEventDataDifferences(event(), event({startDate: "2026-11-21"}), labels);
+    expect(diffs.find((d) => d.key === "startDate")?.scope).toEqual({kind: "event", url: undefined});
+  });
+});
+
 describe("getImportantEventDataChanges", () => {
   it("ignores everything that is not important", () => {
     const changes = getImportantEventDataChanges(
