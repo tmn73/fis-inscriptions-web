@@ -160,6 +160,10 @@ export async function POST(request: Request) {
     const signatureUrl = isWomen
       ? (inscriptionPdfTemplate?.signature_urls?.women || "https://i.imgur.com/ISeoDQp.jpeg")
       : (inscriptionPdfTemplate?.signature_urls?.men || `${organizationData.baseUrl}/signatures/signature-hommes.png`);
+    // Femmes : rendu d'origine inchangé. Hommes : largeur forcée (attribut width pour les clients mail qui ignorent le CSS)
+    const signatureImgAttrs = isWomen
+      ? `style="max-width: 300px; width: 100%; height: auto; display: inline-block;"`
+      : `width="400" style="width: 400px; max-width: 100%; height: auto; display: inline-block;"`;
 
     const standardHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f6f7; padding: 24px; color: #222;">
@@ -181,7 +185,7 @@ export async function POST(request: Request) {
           </p>
           <p style="font-size: 16px;">Best regards.</p>
           <div style="text-align: center; margin-top: 32px;">
-            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" width="250" style="width: 250px; max-width: 100%; height: auto; display: inline-block;" />
+            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" ${signatureImgAttrs} />
           </div>
         </div>
       `;
@@ -211,7 +215,7 @@ export async function POST(request: Request) {
           </p>
           <p style="font-size: 16px;">Thank you very much.</p>
           <div style="text-align: center; margin-top: 32px;">
-            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" width="250" style="width: 250px; max-width: 100%; height: auto; display: inline-block;" />
+            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" ${signatureImgAttrs} />
           </div>
         </div>
       `;
