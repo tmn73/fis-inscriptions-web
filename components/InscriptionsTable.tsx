@@ -38,6 +38,7 @@ import {InscriptionWithCounts} from "@/app/types";
 import type {CompetitionItem} from "@/app/types";
 import Image from "next/image";
 import {useCountryInfo} from "@/hooks/useCountryInfo";
+import {useFisPointsList} from "@/hooks/useFisPointsList";
 import {InscriptionCard} from "@/components/InscriptionCard";
 import {ChevronDown, ChevronUp} from "lucide-react";
 import {
@@ -260,19 +261,8 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
   });
 
   // The FIS points list competitors are searched in, shown next to the filters
-  const {data: pointsList} = useQuery<{
-    listid: number;
-    listname: string | null;
-    label: string;
-  } | null>({
-    queryKey: ["fis-points-list"],
-    queryFn: async () => {
-      const res = await fetch("/api/competitors/points-list");
-      if (!res.ok) throw new Error("Erreur API");
-      return res.json();
-    },
-    staleTime: 60 * 60 * 1000,
-  });
+  // (on mobile it sits next to the stat cards instead, see QuickStatsBar)
+  const {data: pointsList} = useFisPointsList();
 
   // Helper to calculate deadline days
   const getDeadlineDays = useCallback((inscription: InscriptionWithCounts) => {
@@ -1274,7 +1264,7 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
           </div>
           {pointsList && (
             <div
-              className="flex flex-col gap-0.5 px-3 py-1.5 border rounded-md bg-background shadow-xs"
+              className="hidden md:flex flex-col gap-0.5 px-3 py-1.5 border rounded-md bg-background shadow-xs"
               title={pointsList.listname ?? undefined}
             >
               <span className="font-medium text-xs text-slate-500">

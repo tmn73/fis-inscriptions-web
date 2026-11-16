@@ -6,6 +6,7 @@ import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
 import {getDeadlineDays} from "@/app/lib/getDeadlineDays";
 import {AlertTriangle, Clock, Send, Calendar, List, XCircle} from "lucide-react";
 import {useTranslations} from "next-intl";
+import {useFisPointsList} from "@/hooks/useFisPointsList";
 
 type StatCardProps = {
   icon: React.ReactNode;
@@ -114,6 +115,8 @@ type QuickStatsBarProps = {
 
 export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps) {
   const t = useTranslations("dashboard.stats");
+  const tFilters = useTranslations("inscriptions.table.filters");
+  const {data: pointsList} = useFisPointsList();
 
   const {data: inscriptions = []} = useQuery<Inscription[]>({
     queryKey: ["inscriptions"],
@@ -240,6 +243,18 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
         onClick={() => onFilterChange?.("all")}
         active={activeFilter === "all"}
       />
+      {/* Mobile only: on desktop the FIS list sits next to the filters */}
+      {pointsList && (
+        <div
+          className="md:hidden flex items-center gap-2.5 px-3 py-2 rounded-md border border-slate-200/60 bg-white"
+          title={pointsList.listname ?? undefined}
+        >
+          <span className="text-xs text-slate-500">{tFilters("fisList")}</span>
+          <span className="text-lg font-semibold tabular-nums text-slate-700">
+            {pointsList.label}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
