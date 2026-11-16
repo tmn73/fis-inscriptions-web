@@ -158,12 +158,10 @@ export async function POST(request: Request) {
       ? (inscriptionPdfTemplate?.contact_email?.women || "jmagnellet@orange.fr")
       : (inscriptionPdfTemplate?.contact_email?.men || "pmartin@ffs.fr");
     const signatureUrl = isWomen
-      ? (inscriptionPdfTemplate?.signature_urls?.women || "https://i.imgur.com/ISeoDQp.jpeg")
+      ? (inscriptionPdfTemplate?.signature_urls?.women || `${organizationData.baseUrl}/signatures/signature-dames.png`)
       : (inscriptionPdfTemplate?.signature_urls?.men || `${organizationData.baseUrl}/signatures/signature-hommes.png`);
-    // Femmes : rendu d'origine inchangé. Hommes : largeur forcée (attribut width pour les clients mail qui ignorent le CSS)
-    const signatureImgAttrs = isWomen
-      ? `style="max-width: 300px; width: 100%; height: auto; display: inline-block;"`
-      : `width="400" style="width: 400px; max-width: 100%; height: auto; display: inline-block;"`;
+    // Largeur forcée (attribut width pour les clients mail qui ignorent le CSS)
+    const signatureImgAttrs = `width="400" style="width: 400px; max-width: 100%; height: auto; display: inline-block;"`;
 
     const standardHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f6f7; padding: 24px; color: #222;">
