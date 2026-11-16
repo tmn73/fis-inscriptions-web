@@ -259,6 +259,21 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
     queryFn: () => fetch("/api/inscriptions").then((res) => res.json()),
   });
 
+  // The FIS points list competitors are searched in, shown next to the filters
+  const {data: pointsList} = useQuery<{
+    listid: number;
+    listname: string | null;
+    label: string;
+  } | null>({
+    queryKey: ["fis-points-list"],
+    queryFn: async () => {
+      const res = await fetch("/api/competitors/points-list");
+      if (!res.ok) throw new Error("Erreur API");
+      return res.json();
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+
   // Helper to calculate deadline days
   const getDeadlineDays = useCallback((inscription: InscriptionWithCounts) => {
     const eventDate = new Date(inscription.eventData.startDate);
@@ -1257,6 +1272,19 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
               className="w-full h-9 text-sm"
             />
           </div>
+          {pointsList && (
+            <div className="flex flex-col gap-1">
+              <span className="font-medium text-xs text-slate-500">
+                {tFilters("fisList")}
+              </span>
+              <span
+                className="h-9 flex items-center px-3 text-sm whitespace-nowrap"
+                title={pointsList.listname ?? undefined}
+              >
+                {pointsList.label}
+              </span>
+            </div>
+          )}
             </div>
           </div>
         </div>
