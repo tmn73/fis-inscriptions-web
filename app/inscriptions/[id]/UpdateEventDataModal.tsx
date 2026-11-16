@@ -133,7 +133,7 @@ export const UpdateEventDataModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {t("title")}
@@ -158,7 +158,7 @@ export const UpdateEventDataModal = ({
         )}
 
         {!isLoadingFisData && !fisError && differences.length > 0 && (
-          <div className="my-4 p-4 border rounded-md bg-gray-50 max-h-[400px] overflow-y-auto">
+          <div className="my-4 p-4 border rounded-md bg-gray-50 max-h-[40dvh] sm:max-h-[400px] overflow-y-auto">
             <h3 className="font-semibold mb-3">{t("changesDetected")}</h3>
             {important.length > 0 ? (
               <div className="bg-white p-3 rounded shadow-sm">

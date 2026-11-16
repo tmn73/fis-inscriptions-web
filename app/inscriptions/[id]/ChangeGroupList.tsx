@@ -12,10 +12,10 @@ export const ChangeGroupList = ({groups, linkLabel}: ChangeGroupListProps) => (
   <div className="space-y-3">
     {groups.map((group) => (
       <div key={group.id}>
-        <div className="text-sm font-semibold text-slate-800">
+        <div className="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold text-slate-800">
           {group.title}
           {group.subtitle && (
-            <span className="ml-2 text-xs font-normal text-slate-500">
+            <span className="text-xs font-normal text-slate-500">
               {group.subtitle}
             </span>
           )}
@@ -24,7 +24,7 @@ export const ChangeGroupList = ({groups, linkLabel}: ChangeGroupListProps) => (
               href={group.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-3 text-xs font-normal text-blue-700 underline hover:text-blue-900"
+              className="text-xs font-normal text-blue-700 underline hover:text-blue-900 whitespace-nowrap"
             >
               {linkLabel} ↗
             </a>
