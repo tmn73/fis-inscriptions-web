@@ -83,7 +83,11 @@
       "competitors": "Coureurs",
       "competitorsDesc": "Athletes uniques",
       "races": "Codex",
-      "racesDesc": "Nombre de codex"
+      "racesDesc": "Nombre de codex",
+      "codexRegistrations": "Inscriptions codex",
+      "codexRegistrationsDesc": "Athlètes inscrits à des codex",
+      "average": "Moy. codex / coureur",
+      "averageDesc": "Codex par athlète en moyenne"
     },
     "breakdown": {
       "byStatus": "Par statut",
@@ -337,7 +341,8 @@
     "eventCount": {
       "event_one": "événement",
       "event_other": "événements",
-      "courses": "courses"
+      "courses": "courses",
+      "codex": "codex"
     },
     "noInscriptions": "Aucune inscription trouvée pour ce compétiteur."
   },
@@ -392,7 +397,9 @@
         "noCompatibleCourses": "Aucune course compatible avec le sexe du compétiteur pour cet événement.",
         "selectCourses": "Sélectionnez les courses pour l'inscription :",
         "selectAll": "Tout sélectionner",
-        "deselectAll": "Tout retirer"
+        "deselectAll": "Tout retirer",
+        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
+        "selectCodex": "Sélectionnez les codex pour l'inscription :"
       }
     },
     "coaches": {
@@ -642,7 +649,9 @@
         "loadingInfo": "Chargement des informations d'inscription...",
         "noCompatibleCourses": "Aucune course compatible avec le sexe du compétiteur pour cet événement.",
         "selectAll": "Tout sélectionner",
-        "deselectAll": "Tout retirer"
+        "deselectAll": "Tout retirer",
+        "noCompatibleCodex": "Aucun codex compatible avec le sexe du compétiteur pour cet événement.",
+        "selectCodex": "Sélectionnez les codex pour l'inscription :"
       },
       "totals": {
         "all": "Nombre total d'inscriptions : {count}",
@@ -657,7 +666,8 @@
         "loadData": "Erreur lors du chargement des données.",
         "loadCompetitors": "Erreur lors du chargement des compétiteurs",
         "updateRegistrations": "Erreur lors de la mise à jour des inscriptions du compétiteur",
-        "noCourses": "Aucune course pour cet évènement."
+        "noCourses": "Aucune course pour cet évènement.",
+        "noCodex": "Aucun codex pour cet événement."
       },
       "loading": "Chargement des données..."
     }
@@ -740,6 +750,7 @@
       "noResults": "Aucun compétiteur trouvé",
       "selected": "Sélectionner un compétiteur",
       "forWhichCourses": "Pour quelles courses ? (courses {gender})",
+      "forWhichCodex": "Pour quels codex ? (courses {gender})",
       "saving": "Ajout..."
     },
     "addCoach": {
