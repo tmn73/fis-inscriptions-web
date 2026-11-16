@@ -748,6 +748,7 @@
       "noResults": "Ningún competidor encontrado",
       "selected": "Seleccionar un competidor",
       "forWhichCodex": "¿Para qué codex? (carreras {gender})",
+      "pointsList": "Lista utilizada: {name}",
       "saving": "Añadiendo..."
     },
     "addCoach": {

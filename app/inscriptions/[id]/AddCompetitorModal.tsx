@@ -45,6 +45,24 @@ function useCompetitors(search: string, gender: "W" | "M") {
   });
 }
 
+// The FIS points list the competitor search runs on, shown in the dialog
+function useFisPointsList(enabled: boolean) {
+  return useQuery<{
+    listid: number;
+    listname: string | null;
+    label: string;
+  } | null>({
+    queryKey: ["fis-points-list"],
+    queryFn: async () => {
+      const res = await fetch("/api/competitors/points-list");
+      if (!res.ok) throw new Error("Erreur API");
+      return res.json();
+    },
+    enabled,
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
 function useSaveCompetitors(inscriptionId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -127,6 +145,8 @@ export default function AddCompetitorModal({
     gender
   );
 
+  const {data: pointsList} = useFisPointsList(open);
+
   const {mutate: saveCompetitors, isPending: saving} =
     useSaveCompetitors(inscriptionId);
 
@@ -170,6 +190,11 @@ export default function AddCompetitorModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
+          {pointsList && (
+            <p className="text-sm text-muted-foreground">
+              {t("pointsList", {name: pointsList.label})}
+            </p>
+          )}
         </DialogHeader>
         <div className="space-y-4">
           {/* Search input for competitors */}

@@ -744,6 +744,7 @@
       "noResults": "No competitor found",
       "selected": "Select a competitor",
       "forWhichCodex": "For which codex? ({gender} races)",
+      "pointsList": "List used: {name}",
       "saving": "Adding..."
     },
     "addCoach": {
