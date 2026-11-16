@@ -19,16 +19,19 @@ export const hasEventEnded = (endDate: string | undefined, now: Date = new Date(
 
 // Compares an inscription with the live FIS calendar as soon as it is opened. Read-only: nothing is saved.
 // A FIS error just means "no warning": the manual update button stays available.
+// "off": no check (no right to update, no codex, event over). "checked": FIS answered, `changes` may be empty.
+export type FisCheckStatus = "off" | "loading" | "error" | "checked";
+
 export const useFisChanges = (
   inscription: Inscription | undefined,
   enabled: boolean
-): {changes: EventDataDifference[]; isLoading: boolean} => {
+): {changes: EventDataDifference[]; isLoading: boolean; status: FisCheckStatus} => {
   const t = useTranslations("modals.updateEvent");
   const codex = inscription?.eventData?.competitions?.[0]?.codex;
   const shouldCheck =
     enabled && !!inscription && !!codex && !hasEventEnded(inscription.eventData?.endDate);
 
-  const {data, isLoading} = useCompetitionByCodex(codex ?? 0, shouldCheck);
+  const {data, isLoading, isError} = useCompetitionByCodex(codex ?? 0, shouldCheck);
   const fetched = data as Competition | null | undefined;
 
   const changes = useMemo(() => {
@@ -43,5 +46,13 @@ export const useFisChanges = (
     });
   }, [shouldCheck, fetched, inscription, t]);
 
-  return {changes, isLoading: shouldCheck && isLoading};
+  const status: FisCheckStatus = !shouldCheck
+    ? "off"
+    : isLoading
+      ? "loading"
+      : isError || !fetched
+        ? "error"
+        : "checked";
+
+  return {changes, isLoading: shouldCheck && isLoading, status};
 };

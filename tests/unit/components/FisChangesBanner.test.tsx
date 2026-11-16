@@ -5,7 +5,7 @@ import {NextIntlClientProvider} from "next-intl";
 import messages from "@/messages/fr.json";
 import {FisChangesBanner} from "@/app/inscriptions/[id]/FisChangesBanner";
 
-const state = vi.hoisted(() => ({canUpdate: true, fisData: undefined as any, lastEnabled: undefined as any}));
+const state = vi.hoisted(() => ({canUpdate: true, fisData: undefined as any, lastEnabled: undefined as any, isLoading: false, isError: false}));
 
 vi.mock("@/app/inscriptions/[id]/usePermissionToEdit", () => ({
   usePermissionToEdit: () => state.canUpdate,
@@ -14,7 +14,11 @@ vi.mock("@/app/inscriptions/[id]/usePermissionToEdit", () => ({
 vi.mock("@/app/fisApi", () => ({
   useCompetitionByCodex: (_codex: number, enabled = true) => {
     state.lastEnabled = enabled;
-    return {data: enabled ? state.fisData : undefined, isLoading: false};
+    return {
+      data: enabled ? state.fisData : undefined,
+      isLoading: enabled && state.isLoading,
+      isError: enabled && state.isError,
+    };
   },
 }));
 
@@ -50,6 +54,8 @@ describe("FisChangesBanner", () => {
     state.canUpdate = true;
     state.fisData = undefined;
     state.lastEnabled = undefined;
+    state.isLoading = false;
+    state.isError = false;
   });
 
   it("warns an administrator when the FIS data changed, then opens the update modal", () => {
@@ -93,10 +99,25 @@ describe("FisChangesBanner", () => {
     expect(screen.queryByRole("link", {name: /site de la FIS/})).toBeNull();
   });
 
-  it("shows nothing when the FIS data is identical", () => {
+  it("says the FIS was checked when the data is identical", () => {
     state.fisData = eventData();
     renderBanner(eventData());
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("Vérifié auprès de la FIS : aucun changement");
+  });
+
+  it("says the check is running while the FIS answers", () => {
+    state.isLoading = true;
+    renderBanner(eventData());
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("Vérification du calendrier FIS en cours");
+  });
+
+  it("says the check failed instead of staying silent when the FIS errors", () => {
+    state.isError = true;
+    renderBanner(eventData());
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("Vérification FIS impossible");
   });
 
   it("does not even query the FIS for someone who cannot update", () => {
@@ -105,6 +126,7 @@ describe("FisChangesBanner", () => {
     renderBanner(eventData());
     expect(state.lastEnabled).toBe(false);
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("does not query the FIS once the event is over", () => {
@@ -112,6 +134,7 @@ describe("FisChangesBanner", () => {
     renderBanner(eventData({startDate: past, endDate: past}));
     expect(state.lastEnabled).toBe(false);
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("groups changes by race and counts what the short banner leaves out", () => {

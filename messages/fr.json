@@ -351,7 +351,10 @@
       "title": "Attention : modifications FIS détectées",
       "description": "Le calendrier de la FIS diffère des données enregistrées pour cet événement ({count, plural, one {# modification importante} other {# modifications importantes}}).",
       "andMore": "{count, plural, one {+ # autre modification} other {+ # autres modifications}}",
-      "review": "Voir et mettre à jour"
+      "review": "Voir et mettre à jour",
+      "checking": "Vérification du calendrier FIS en cours…",
+      "upToDate": "Vérifié auprès de la FIS : aucun changement",
+      "checkFailed": "Vérification FIS impossible pour le moment. Le bouton « Mettre à jour » reste disponible."
     },
     "tabs": {
       "recap": "Récap",

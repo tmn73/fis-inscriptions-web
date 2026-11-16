@@ -355,7 +355,10 @@
       "title": "Warning: FIS changes detected",
       "description": "The FIS calendar differs from the data saved for this event ({count, plural, one {# important change} other {# important changes}}).",
       "andMore": "{count, plural, one {+ # other change} other {+ # other changes}}",
-      "review": "Review and update"
+      "review": "Review and update",
+      "checking": "Checking the FIS calendar…",
+      "upToDate": "Checked against the FIS: no changes",
+      "checkFailed": "FIS check unavailable right now. The “Update” button is still available."
     },
     "tabs": {
       "recap": "Summary",

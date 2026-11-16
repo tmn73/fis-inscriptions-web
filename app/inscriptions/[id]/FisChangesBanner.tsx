@@ -1,7 +1,7 @@
 "use client";
 
 import React, {useState} from "react";
-import {AlertTriangle} from "lucide-react";
+import {AlertTriangle, CheckCircle2, Loader2, CircleAlert} from "lucide-react";
 import {useTranslations} from "next-intl";
 import {Button} from "@/components/ui/button";
 import type {Inscription} from "@/app/types";
@@ -24,11 +24,26 @@ export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
   const t = useTranslations("inscriptionDetail.fisChanges");
   const tModal = useTranslations("modals.updateEvent");
   const canUpdate = usePermissionToEdit(inscription, "actionsBtn", null);
-  const {changes} = useFisChanges(inscription, canUpdate);
+  const {changes, status} = useFisChanges(inscription, canUpdate);
   const presentationLabels = useDiffPresentationLabels();
   const [modalOpen, setModalOpen] = useState(false);
 
-  if (!canUpdate || changes.length === 0) return null;
+  if (!canUpdate || status === "off") return null;
+
+  // A discreet line so that "up to date" can be told apart from "check failed".
+  if (status !== "checked" || changes.length === 0) {
+    const line = {
+      loading: {icon: <Loader2 className="h-4 w-4 animate-spin" />, text: t("checking"), color: "text-gray-500"},
+      error: {icon: <CircleAlert className="h-4 w-4" />, text: t("checkFailed"), color: "text-orange-700"},
+      checked: {icon: <CheckCircle2 className="h-4 w-4" />, text: t("upToDate"), color: "text-green-700"},
+    }[status];
+    return (
+      <p role="status" className={`mt-3 flex items-center gap-2 text-sm ${line.color}`}>
+        {line.icon}
+        <span>{line.text}</span>
+      </p>
+    );
+  }
 
   const groups = groupDifferences(changes, presentationLabels);
   const listed = groups.slice(0, MAX_LISTED_GROUPS);
