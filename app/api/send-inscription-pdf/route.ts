@@ -159,7 +159,7 @@ export async function POST(request: Request) {
       : (inscriptionPdfTemplate?.contact_email?.men || "pmartin@ffs.fr");
     const signatureUrl = isWomen
       ? (inscriptionPdfTemplate?.signature_urls?.women || "https://i.imgur.com/ISeoDQp.jpeg")
-      : (inscriptionPdfTemplate?.signature_urls?.men || "https://i.imgur.com/tSwmL0f.png");
+      : (inscriptionPdfTemplate?.signature_urls?.men || `${organizationData.baseUrl}/signatures/signature-hommes.png`);
 
     const standardHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f6f7; padding: 24px; color: #222;">
