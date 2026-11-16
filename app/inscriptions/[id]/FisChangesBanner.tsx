@@ -33,12 +33,15 @@ export const FisChangesBanner = ({inscription}: FisChangesBannerProps) => {
   // A discreet line so that "up to date" can be told apart from "check failed".
   if (status !== "checked" || changes.length === 0) {
     const line = {
-      loading: {icon: <Loader2 className="h-4 w-4 animate-spin" />, text: t("checking"), color: "text-gray-500"},
-      error: {icon: <CircleAlert className="h-4 w-4" />, text: t("checkFailed"), color: "text-orange-700"},
-      checked: {icon: <CheckCircle2 className="h-4 w-4" />, text: t("upToDate"), color: "text-green-700"},
+      loading: {icon: <Loader2 className="h-5 w-5 animate-spin" />, text: t("checking"), box: "bg-yellow-50 border-yellow-300 text-yellow-800"},
+      error: {icon: <CircleAlert className="h-5 w-5" />, text: t("checkFailed"), box: "bg-orange-50 border-orange-300 text-orange-800"},
+      checked: {icon: <CheckCircle2 className="h-5 w-5" />, text: t("upToDate"), box: "bg-green-50 border-green-300 text-green-800"},
     }[status];
     return (
-      <p role="status" className={`mt-3 flex items-center gap-2 text-sm ${line.color}`}>
+      <p
+        role="status"
+        className={`mt-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium ${line.box}`}
+      >
         {line.icon}
         <span>{line.text}</span>
       </p>

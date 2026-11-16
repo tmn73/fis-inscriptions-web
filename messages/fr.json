@@ -359,8 +359,8 @@
     "tabs": {
       "recap": "Récap",
       "recapFull": "Récapitulatif",
-      "courses": "Courses",
-      "coursesFull": "Par course",
+      "codex": "Courses",
+      "codexFull": "Par course",
       "coaches": "Coachs/Staff",
       "coachesFull": "Coachs/Staff"
     },
