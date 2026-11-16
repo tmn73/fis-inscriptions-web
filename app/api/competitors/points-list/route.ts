@@ -3,10 +3,10 @@ import {desc, isNotNull} from "drizzle-orm";
 import {db} from "@/app/db/inscriptionsDB";
 import {getDbTables} from "@/app/lib/getDbTables";
 
-// "20th FIS points list 2026/27" -> "ListFis 20-27"
+// "20th FIS points list 2026/27" -> "20-27" (shown under a "FIS list" label)
 const shortListLabel = (listname: string | null) => {
   const match = listname?.match(/^(\d+)\D.*?\d{4}\/(\d{2})/);
-  return match ? `ListFis ${match[1]}-${match[2]}` : null;
+  return match ? `${match[1]}-${match[2]}` : null;
 };
 
 // The FIS points list the competitor search runs on: the newest list imported

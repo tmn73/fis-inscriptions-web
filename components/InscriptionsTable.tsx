@@ -1273,14 +1273,14 @@ export function InscriptionsTable({externalFilter}: InscriptionsTableProps) {
             />
           </div>
           {pointsList && (
-            <div className="flex flex-col gap-1">
+            <div
+              className="flex flex-col gap-0.5 px-3 py-1.5 border rounded-md bg-background shadow-xs"
+              title={pointsList.listname ?? undefined}
+            >
               <span className="font-medium text-xs text-slate-500">
                 {tFilters("fisList")}
               </span>
-              <span
-                className="h-9 flex items-center px-3 text-sm whitespace-nowrap"
-                title={pointsList.listname ?? undefined}
-              >
+              <span className="text-sm whitespace-nowrap">
                 {pointsList.label}
               </span>
             </div>

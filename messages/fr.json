@@ -752,7 +752,6 @@
       "selected": "Sélectionner un compétiteur",
       "forWhichCourses": "Pour quelles courses ? (courses {gender})",
       "forWhichCodex": "Pour quels codex ? (courses {gender})",
-      "pointsList": "Liste utilisée : {name}",
       "saving": "Ajout..."
     },
     "addCoach": {
