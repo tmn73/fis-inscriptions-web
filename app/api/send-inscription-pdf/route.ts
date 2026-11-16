@@ -181,7 +181,7 @@ export async function POST(request: Request) {
           </p>
           <p style="font-size: 16px;">Best regards.</p>
           <div style="text-align: center; margin-top: 32px;">
-            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" style="max-width: 300px; width: 100%; height: auto; display: inline-block;" />
+            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" width="250" style="width: 250px; max-width: 100%; height: auto; display: inline-block;" />
           </div>
         </div>
       `;
@@ -211,7 +211,7 @@ export async function POST(request: Request) {
           </p>
           <p style="font-size: 16px;">Thank you very much.</p>
           <div style="text-align: center; margin-top: 32px;">
-            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" style="max-width: 300px; width: 100%; height: auto; display: inline-block;" />
+            <img src="${signatureUrl}" alt="${organizationData.name} Team Email Signature" width="250" style="width: 250px; max-width: 100%; height: auto; display: inline-block;" />
           </div>
         </div>
       `;
