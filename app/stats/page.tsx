@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { getCurrentSeason } from '@/app/lib/dates'
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 const DISCIPLINE_OPTIONS = [
   { value: 'DH', label: 'DH', full: 'Downhill' },
@@ -275,6 +276,7 @@ function SortableHeader({
 
 export default function StatsPage() {
   const t = useTranslations('stats')
+  const dateLocale = useDateLocale();
   const tStatus = useTranslations('inscriptions.status')
   const currentSeason = getCurrentSeason()
 
@@ -869,7 +871,7 @@ export default function StatsPage() {
                       return (
                         <BreakdownBar
                           key={item.month}
-                          label={new Date(item.month).toLocaleDateString('fr-FR', {
+                          label={new Date(item.month).toLocaleDateString(dateLocale, {
                             year: 'numeric',
                             month: 'short',
                           })}

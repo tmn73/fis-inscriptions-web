@@ -11,6 +11,8 @@ import {
 } from "@/app/lib/colorMappers";
 import type { CompetitionItem } from "@/app/types";
 import { format } from "date-fns";
+import {useDateLocale} from "@/app/lib/dateLocale";
+import {useTranslations} from "next-intl";
 
 type CompetitorRow = {
   competitorid: number;
@@ -42,6 +44,8 @@ export function CompetitorCard({
   canEditBasedOnStatus,
   onManageRegistrations,
 }: CompetitorCardProps) {
+  const dateLocale = useDateLocale();
+  const tManage = useTranslations("inscriptionDetail.recap.manage");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const filteredCompetitions = competitions
@@ -129,7 +133,7 @@ export function CompetitorCard({
               <Button
                 variant="ghost"
                 size="sm"
-                title="Gérer les inscriptions"
+                title={tManage("title")}
                 className="h-7 w-7 p-0"
                 disabled={!canEditBasedOnStatus}
                 onClick={(e) => {
@@ -163,7 +167,7 @@ export function CompetitorCard({
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     {competition.date && (
                       <span className="text-slate-400 tabular-nums">
-                        {new Date(competition.date).toLocaleDateString("fr-FR", {
+                        {new Date(competition.date).toLocaleDateString(dateLocale, {
                           day: "2-digit",
                           month: "2-digit",
                         })}

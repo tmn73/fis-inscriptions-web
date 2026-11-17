@@ -15,6 +15,7 @@ import type {InscriptionWithCounts} from "@/app/types";
 import {colorBadgePerDiscipline} from "@/app/lib/colorMappers";
 import type {CompetitionItem} from "@/app/types";
 import {useTranslations} from "next-intl";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 type Competitor = {
   competitorid: number;
@@ -113,6 +114,7 @@ export function QuickViewDrawer({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("common");
+  const dateLocale = useDateLocale();
 
   const {data, isLoading} = useQuery<Competitor[]>({
     queryKey: ["inscription-competitors-all", inscription?.id],
@@ -155,7 +157,7 @@ export function QuickViewDrawer({
           <SheetTitle className="text-base">{formattedPlace}</SheetTitle>
           <SheetDescription className="flex flex-wrap items-center gap-1.5">
             {inscription.eventData.startDate && (
-              <span>{new Date(inscription.eventData.startDate).toLocaleDateString("fr-FR")}</span>
+              <span>{new Date(inscription.eventData.startDate).toLocaleDateString(dateLocale)}</span>
             )}
             {disciplines.map((d: string) => (
               <span

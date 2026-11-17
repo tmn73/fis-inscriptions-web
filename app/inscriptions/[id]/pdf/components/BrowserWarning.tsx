@@ -2,6 +2,7 @@
 
 import {useSyncExternalStore} from "react";
 import {AlertTriangle, Chrome} from "lucide-react";
+import {useTranslations} from "next-intl";
 
 type BrowserInfo = {
   isChrome: boolean;
@@ -33,6 +34,7 @@ const isChromeOnMac = () => {
 };
 
 export const BrowserWarning = () => {
+  const t = useTranslations("browserWarning");
   const showWarning = useSyncExternalStore(
     subscribeToNothing,
     isChromeOnMac,
@@ -47,26 +49,23 @@ export const BrowserWarning = () => {
         <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
           <h3 className="text-sm font-medium text-yellow-800 mb-2">
-            ⚠️ Problème de génération PDF détecté
+            {t("title")}
           </h3>
           <p className="text-sm text-yellow-700 mb-3">
-            Vous utilisez Chrome sur Mac. La génération de PDF peut présenter
-            des problèmes de formatage (tables mal alignées, colonnes
-            manquantes, etc.).
+            {t("body")}
           </p>
           <div className="space-y-2 text-sm text-yellow-700">
-            <p className="font-medium">Solutions recommandées :</p>
+            <p className="font-medium">{t("solutions")}</p>
             <ul className="space-y-1 ml-4">
               <li className="flex items-center space-x-2">
                 <span className="h-4 w-4 text-blue-600">🧭</span>
                 <span>
-                  <strong>Recommandé :</strong> Utilisez Safari sur Mac pour une
-                  génération PDF optimale
+                  <strong>{t("recommended")}</strong> {t("useSafari")}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <Chrome className="h-4 w-4 text-blue-600" />
-                <span>Ou utilisez Chrome sur Windows/Linux</span>
+                <span>{t("orChrome")}</span>
               </li>
             </ul>
           </div>
@@ -79,7 +78,7 @@ export const BrowserWarning = () => {
               }}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 cursor-pointer"
             >
-              🧭 Ouvrir dans Safari
+              {t("openSafari")}
             </button>
           </div>
         </div>

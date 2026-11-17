@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/command";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Check, ChevronsUpDown} from "lucide-react";
+import {useTranslations} from "next-intl";
 
 export interface ComboboxOption {
   value: string;
@@ -33,13 +34,14 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       options,
       value,
       onChange,
-      placeholder = "Sélectionner...",
+      placeholder,
       disabled,
       className,
       renderOption,
     },
     ref
   ) => {
+    const t = useTranslations("combobox");
     const [open, setOpen] = React.useState(false);
     const selected = options.find((o) => o.value === value);
 
@@ -61,7 +63,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                 ? renderOption
                   ? renderOption(selected)
                   : selected.label
-                : placeholder}
+                : (placeholder ?? t("placeholder"))}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </button>
@@ -71,9 +73,9 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
           align="start"
         >
           <Command shouldFilter={true}>
-            <CommandInput placeholder="Rechercher..." className="h-9" />
+            <CommandInput placeholder={t("search")} className="h-9" />
             <CommandList>
-              <CommandEmpty>Aucun résultat</CommandEmpty>
+              <CommandEmpty>{t("noResults")}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem

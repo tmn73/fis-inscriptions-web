@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Settings, ChevronDown } from "lucide-react";
 import { InscriptionCompetitor } from "@/app/types";
 import { format } from "date-fns";
+import {useTranslations} from "next-intl";
 
 interface CompetitorCodexCardProps {
   competitor: InscriptionCompetitor;
@@ -20,6 +21,7 @@ export function CompetitorCodexCard({
   canEditBasedOnStatus,
   onManageRegistrations,
 }: CompetitorCodexCardProps) {
+  const tManage = useTranslations("inscriptionDetail.recap.manage");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const points =
@@ -97,7 +99,7 @@ export function CompetitorCodexCard({
               <Button
                 variant="ghost"
                 size="sm"
-                title="Gérer les inscriptions"
+                title={tManage("title")}
                 className="h-7 w-7 p-0"
                 disabled={!canEditBasedOnStatus}
                 onClick={(e) => {

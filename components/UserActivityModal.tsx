@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
 import {useTranslations} from "next-intl";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 type ActivityItem = {
   id: number;
@@ -59,6 +60,7 @@ type UserActivityModalProps = {
 
 export const UserActivityModal = ({ userId, userName }: UserActivityModalProps) => {
   const t = useTranslations("modals.userActivity");
+  const dateLocale = useDateLocale();
 
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [stats, setStats] = useState<ActivityStats | null>(null);
@@ -95,7 +97,7 @@ export const UserActivityModal = ({ userId, userName }: UserActivityModalProps) 
   }, [isOpen, fetchActivity]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
+    return new Date(dateString).toLocaleDateString(dateLocale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

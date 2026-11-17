@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {Button} from "@/components/ui/button";
 import {useCodexCheck} from "./api";
+import {useTranslations} from "next-intl";
 
 const disciplinesList = ["SL", "GS", "SG", "DH", "AC"];
 const raceLevelsList = ["FIS", "CIT", "NJR", "NJC", "NC", "SAC", "ANC", "ENL"];
@@ -42,6 +43,7 @@ export const CodexField = ({
   fieldsLength: number;
   inscriptionId?: string;
 }) => {
+  const t = useTranslations("codexField");
   const codex = form.watch(`codexNumbers.${index}.number`) as string;
   const {
     data: codexCheck,
@@ -65,10 +67,10 @@ export const CodexField = ({
             name={`codexNumbers.${index}.number`}
             render={({field: itemField}) => (
               <FormItem className="flex-1 relative">
-                <FormLabel>Codex</FormLabel>
+                <FormLabel>{t("codex")}</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <Input placeholder="ex: 1234" {...itemField} />
+                    <Input placeholder={t("placeholder")} {...itemField} />
                     {/* Indicateur visuel à droite */}
                     <span className="absolute right-2 top-1/2 -translate-y-1/2">
                       {codexChecking ? (
@@ -91,14 +93,14 @@ export const CodexField = ({
                   codexCheck?.exists &&
                   codexCheck.inscriptionId && (
                     <div className="text-red-600 text-xs mt-1">
-                      Ce codex est déjà présent dans une{" "}
+                      {t("alreadyPresent")}{" "}
                       <a
                         href={`/inscriptions/${codexCheck.inscriptionId}`}
                         className="underline text-blue-600"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        autre l&apos;inscription
+                        {t("otherInscription")}
                       </a>
                     </div>
                   )}
@@ -110,7 +112,7 @@ export const CodexField = ({
             name={`codexNumbers.${index}.sex`}
             render={({field: sexField}) => (
               <FormItem className="flex-1">
-                <FormLabel>Sexe *</FormLabel>
+                <FormLabel>{t("sex")}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={sexField.onChange}
@@ -119,11 +121,11 @@ export const CodexField = ({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="M" id={`sex-m-${index}`} />
-                      <Label htmlFor={`sex-m-${index}`}>Homme</Label>
+                      <Label htmlFor={`sex-m-${index}`}>{t("male")}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="F" id={`sex-f-${index}`} />
-                      <Label htmlFor={`sex-f-${index}`}>Femme</Label>
+                      <Label htmlFor={`sex-f-${index}`}>{t("female")}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -136,14 +138,14 @@ export const CodexField = ({
             name={`codexNumbers.${index}.discipline`}
             render={({field: disciplineField}) => (
               <FormItem className="flex-1">
-                <FormLabel>Discipline</FormLabel>
+                <FormLabel>{t("discipline")}</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={disciplineField.onChange}
                     value={disciplineField.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Discipline" />
+                      <SelectValue placeholder={t("discipline")} />
                     </SelectTrigger>
                     <SelectContent>
                       {disciplinesList.map((d) => (
@@ -163,14 +165,14 @@ export const CodexField = ({
             name={`codexNumbers.${index}.raceLevel`}
             render={({field: raceLevelField}) => (
               <FormItem className="flex-1">
-                <FormLabel>Race Level</FormLabel>
+                <FormLabel>{t("raceLevel")}</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={raceLevelField.onChange}
                     value={raceLevelField.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Race Level" />
+                      <SelectValue placeholder={t("raceLevel")} />
                     </SelectTrigger>
                     <SelectContent>
                       {raceLevelsList.map((r) => (
@@ -195,7 +197,7 @@ export const CodexField = ({
             onClick={() => remove(index)}
           >
             <MinusCircleIcon className="h-5 w-5 text-red-500 " />
-            Supprimer
+            {t("remove")}
           </Button>
         )}
       </div>

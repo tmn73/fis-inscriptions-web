@@ -3,6 +3,7 @@ import {Combobox, ComboboxOption} from "@/components/ui/combobox";
 import {useQuery} from "@tanstack/react-query";
 import {Loader2} from "lucide-react";
 import {Competitor} from "@/app/types";
+import {useTranslations} from "next-intl";
 
 const MIN_SEARCH_LENGTH = 4;
 
@@ -34,13 +35,14 @@ export default function AsyncCompetitorCombobox({
   value,
   onChange,
   disabled,
-  placeholder = "Sélectionner un compétiteur",
+  placeholder,
 }: {
   value?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
 }) {
+  const t = useTranslations("modals.addCompetitor");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
   const {data: results = [], isLoading} = useCompetitors(debouncedSearch);
@@ -55,7 +57,7 @@ export default function AsyncCompetitorCombobox({
     <div className="relative space-y-2">
       <input
         className="w-full px-3 py-2 border rounded"
-        placeholder="Nom ou prénom (7 caractères min)"
+        placeholder={t("search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         disabled={disabled}
@@ -64,7 +66,7 @@ export default function AsyncCompetitorCombobox({
         options={options}
         value={value || ""}
         onChange={onChange}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("selected")}
         disabled={disabled}
         renderOption={(option) => <span>{option.label}</span>}
         className="w-full"

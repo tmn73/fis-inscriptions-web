@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {useDateLocale} from "@/app/lib/dateLocale";
+import {useTranslations} from "next-intl";
 
 interface CodexTabsProps {
   inscriptionId: string;
@@ -33,6 +35,9 @@ async function fetchInscription(id: string): Promise<Inscription> {
 }
 
 export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
+  const dateLocale = useDateLocale();
+  const t = useTranslations("codexTabs");
+  const tCoaches = useTranslations("inscriptionDetail.coaches");
   const {
     data: inscription,
     isLoading,
@@ -90,19 +95,23 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
   if (!competitionsFromInscription?.length) {
     return (
       <div className="mt-8 text-center">
-        Aucun codex pour cette inscription.
+        {t("noCodexForInscription")}
       </div>
     );
   }
 
   if (filteredAndSortedCompetitions.length === 0) {
     const genderText =
-      genderFilter === "M" ? "hommes" : genderFilter === "W" ? "femmes" : "";
+      genderFilter === "M"
+        ? tCoaches("filterMen")
+        : genderFilter === "W"
+          ? tCoaches("filterWomen")
+          : tCoaches("filterOther");
     return (
       <div className="mt-8 text-center">
         {genderFilter === "both"
-          ? "Aucun codex disponible."
-          : `Aucun codex ne correspond au filtre pour les ${genderText}.`}
+          ? t("noCodex")
+          : t("noCodexFiltered", {gender: genderText})}
       </div>
     );
   }
@@ -143,7 +152,7 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
                 <div className="flex items-center gap-2">
                   {competition.date && (
                     <span className="text-xs text-slate-500">
-                      {new Date(competition.date).toLocaleDateString("fr-FR", {
+                      {new Date(competition.date).toLocaleDateString(dateLocale, {
                         day: "2-digit",
                         month: "2-digit"
                       })}
@@ -188,7 +197,7 @@ export function CodexTabs({inscriptionId, genderFilter}: CodexTabsProps) {
                 <div className="flex flex-col items-center gap-1">
                   {competition.date && (
                     <span className="text-xs text-slate-500 font-medium">
-                      {new Date(competition.date).toLocaleDateString("fr-FR", {
+                      {new Date(competition.date).toLocaleDateString(dateLocale, {
                         day: "2-digit",
                         month: "2-digit",
                         year: "2-digit"

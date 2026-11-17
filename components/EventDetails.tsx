@@ -28,6 +28,8 @@ import {
 import Image from "next/image";
 import {useCompetitionByCodex} from "@/app/fisApi";
 import {useInscription} from "@/app/inscriptions/form/api";
+import {useDateLocale} from "@/app/lib/dateLocale";
+import {useTranslations} from "next-intl";
 
 interface EventDetailsProps {
   codex: number;
@@ -35,6 +37,8 @@ interface EventDetailsProps {
 }
 
 export const EventDetails = ({codex, inscriptionId}: EventDetailsProps) => {
+  const dateLocale = useDateLocale();
+  const tEvent = useTranslations("eventDetails");
   // Si on a un inscriptionId, on utilise les données de la base
   // Sinon, on utilise l'API FIS (cas de la création)
   const {data: inscription} = useInscription(
@@ -49,7 +53,7 @@ export const EventDetails = ({codex, inscriptionId}: EventDetailsProps) => {
 
   // On utilise soit les données de la base, soit les données FIS
   const eventData = inscription?.eventData || fisEvent;
-  if (!eventData) return <div>Aucune donnée disponible</div>;
+  if (!eventData) return <div>{tEvent("noData")}</div>;
 
   return (
     <div className="mt-0">
@@ -69,8 +73,8 @@ export const EventDetails = ({codex, inscriptionId}: EventDetailsProps) => {
               <div className="flex items-center gap-2">
                 <Calendar size={18} />
                 <span>
-                  {formatDate(eventData.startDate)} -{" "}
-                  {formatDate(eventData.endDate)}
+                  {formatDate(eventData.startDate, dateLocale)} -{" "}
+                  {formatDate(eventData.endDate, dateLocale)}
                 </span>
               </div>
             </div>
@@ -177,15 +181,15 @@ export const EventDetails = ({codex, inscriptionId}: EventDetailsProps) => {
                             <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs">
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
-                                {formatDate(competition.date)}
+                                {formatDate(competition.date, dateLocale)}
                               </span>
                               {competition.times &&
                                 competition.times.length > 0 && (
                                   <span className="flex items-center gap-1">
                                     <Clock size={14} />
-                                    {formatTime(competition.times[0])}
+                                    {formatTime(competition.times[0], dateLocale)}
                                     {competition.times.length > 1 &&
-                                      ` - ${formatTime(competition.times[1])}`}
+                                      ` - ${formatTime(competition.times[1], dateLocale)}`}
                                   </span>
                                 )}
                             </CardDescription>
@@ -517,7 +521,7 @@ export const EventDetails = ({codex, inscriptionId}: EventDetailsProps) => {
 };
 
 // Helper function to format date
-const formatDate = (dateString: string | undefined): string => {
+const formatDate = (dateString: string | undefined, locale: string): string => {
   if (!dateString) return "-";
   const options: Intl.DateTimeFormatOptions = {
     day: "numeric",
@@ -525,18 +529,18 @@ const formatDate = (dateString: string | undefined): string => {
     year: "numeric",
   };
   try {
-    return new Date(dateString).toLocaleDateString("fr-FR", options);
+    return new Date(dateString).toLocaleDateString(locale, options);
   } catch {
     return dateString;
   }
 };
 
 // Helper function to format time
-const formatTime = (timeString: string | undefined): string => {
+const formatTime = (timeString: string | undefined, locale: string): string => {
   if (!timeString) return "-";
   try {
     const date = new Date(timeString);
-    return date.toLocaleTimeString("fr-FR", {
+    return date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: "UTC",

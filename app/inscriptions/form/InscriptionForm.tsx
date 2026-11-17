@@ -20,10 +20,18 @@ import {useRouter} from "next/navigation";
 import {Inscription, Competition, CompetitionItem} from "@/app/types";
 import {Card} from "@/components/ui/card";
 import {EventDetails} from "@/components/EventDetails";
+import {useTranslations} from "next-intl";
 
 export const InscriptionFormWrapper = () => {
+  const t = useTranslations("newInscription");
   const {user} = useUser();
   const router = useRouter();
+  const inscriptionFormSchema = z.object({
+    codex: z
+      .string()
+      .min(1, {message: t("codexRequired")})
+      .regex(/^[\d]+$/, {message: t("codexDigitsOnly")}),
+  });
   const form = useForm<z.infer<typeof inscriptionFormSchema>>({
     resolver: zodResolver(inscriptionFormSchema),
     defaultValues: {codex: ""},
@@ -107,7 +115,7 @@ export const InscriptionFormWrapper = () => {
       } else {
         // Generic error
         setServerError({
-          message: error.message || "Erreur lors de la création de l'inscription",
+          message: error.message || t("createError"),
         });
       }
     }
@@ -118,12 +126,10 @@ export const InscriptionFormWrapper = () => {
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="max-w-4xl mx-auto mb-8 text-center">
           <h1 className="text-xl font-semibold text-[#3d7cf2] mb-4">
-            Nouvelle Demande d&apos;Inscription
+            {t("title")}
           </h1>
           <p className="text-sm text-gray-500">
-            Le formulaire d&apos;inscription sera envoyé à l&apos;organisateur
-            au plus tard 36 heures avant le 1er TCM (8 jours pour NJC ou NC,
-            délai règlementaire pour une demande d&apos;invitation en NC)
+            {t("intro")}
           </p>
         </div>
 
@@ -140,14 +146,14 @@ export const InscriptionFormWrapper = () => {
                 name="codex"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel>Codex</FormLabel>
+                    <FormLabel>{t("codexLabel")}</FormLabel>
                     <span className="text-sm text-gray-500 mb-1 block">
-                      Veuillez entrer un des codex de l&apos;événement à ajouter
+                      {t("codexHint")}
                     </span>
                     <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                       <FormControl>
                         <Input
-                          placeholder="ex: 1234"
+                          placeholder={t("codexPlaceholder")}
                           {...field}
                           value={codexInput}
                           onChange={(e) => {
@@ -175,7 +181,7 @@ export const InscriptionFormWrapper = () => {
                         onClick={() => setSearchedCodex(codexInput)}
                         disabled={isLoading}
                       >
-                        Chercher
+                        {t("search")}
                       </button>
                     </div>
                     <FormMessage />
@@ -184,12 +190,12 @@ export const InscriptionFormWrapper = () => {
                       codexCheck.exists &&
                       codexCheck.inscriptionId && (
                         <div className="mt-2 text-red-600">
-                          Ce codex est déjà présent dans une{" "}
+                          {t("alreadyPresent")}{" "}
                           <a
                             href={`/inscriptions/${codexCheck.inscriptionId}`}
                             className="underline text-blue-600"
                           >
-                            inscription existante
+                            {t("existingInscription")}
                           </a>
                           .
                         </div>
@@ -203,23 +209,22 @@ export const InscriptionFormWrapper = () => {
 
         {event && isTrainingEvent && (
           <p className="text-orange-600 mt-4 mb-6">
-            Les compétitions de type &apos;Training&apos; (TRA) uniquement ne
-            peuvent pas être sélectionnées pour une inscription.
+            {t("trainingOnly")}
           </p>
         )}
 
-        {isLoading && <p className="mb-6">Chargement des infos FIS...</p>}
+        {isLoading && <p className="mb-6">{t("loadingFis")}</p>}
         {error && (
           <p className="text-red-500 mb-6">
             {error instanceof Error && error.message === "Codex non trouvé"
-              ? "Codex non trouvé."
-              : "Erreur lors de la récupération de l'événement."}
+              ? t("codexNotFound")
+              : t("eventFetchError")}
           </p>
         )}
 
         {serverError && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-6 max-w-2xl mx-auto">
-            <p className="font-semibold">Erreur lors de la création</p>
+            <p className="font-semibold">{t("createErrorTitle")}</p>
             <p className="mt-1">
               {serverError.message}
               {serverError.inscriptionId && (
@@ -231,7 +236,7 @@ export const InscriptionFormWrapper = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Voir l&apos;inscription existante
+                    {t("viewExisting")}
                   </a>
                 </>
               )}
@@ -255,7 +260,7 @@ export const InscriptionFormWrapper = () => {
                 (codexCheck !== undefined && codexCheck.exists)
               }
             >
-              Créer la compétition
+              {t("createButton")}
             </button>
           </div>
         )}
@@ -263,12 +268,3 @@ export const InscriptionFormWrapper = () => {
     </div>
   );
 };
-
-const inscriptionFormSchema = z.object({
-  codex: z
-    .string()
-    .min(1, {message: "Le codex est requis."})
-    .regex(/^[\d]+$/, {
-      message: "Le codex doit contenir uniquement des chiffres.",
-    }),
-});

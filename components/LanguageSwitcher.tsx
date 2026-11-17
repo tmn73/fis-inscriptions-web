@@ -10,28 +10,16 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import Flag from "react-world-flags";
-import { Languages } from "lucide-react";
+import { useLocale } from "next-intl";
 
-type Locale = "en" | "fr" | "es";
+type Locale = "en" | "fr" | "es" | "it";
 
 const locales: { value: Locale; label: string; countryCode: string }[] = [
   { value: "en", label: "English", countryCode: "GB" },
   { value: "fr", label: "Français", countryCode: "FR" },
   { value: "es", label: "Español", countryCode: "ES" },
+  { value: "it", label: "Italiano", countryCode: "IT" },
 ];
-
-const getDefaultLocale = (): Locale => {
-  if (typeof document !== "undefined") {
-    const cookieValue = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("locale="))
-      ?.split("=")[1];
-    if (cookieValue && ["en", "fr", "es"].includes(cookieValue)) {
-      return cookieValue as Locale;
-    }
-  }
-  return "en";
-};
 
 const persistLocale = (locale: string) => {
   document.cookie = `locale=${locale}; path=/; max-age=${60 * 60 * 24 * 365}`;
@@ -40,7 +28,8 @@ const persistLocale = (locale: string) => {
 export const LanguageSwitcher = () => {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const currentLocale = getDefaultLocale();
+  const currentLocale = useLocale() as Locale;
+  const current = locales.find((l) => l.value === currentLocale) ?? locales[0];
 
   const handleLocaleChange = (newLocale: string) => {
     persistLocale(newLocale);
@@ -56,9 +45,13 @@ export const LanguageSwitcher = () => {
           variant="ghost"
           size="sm"
           className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-white/10"
-          aria-label="Change language"
+          aria-label={`Language: ${current.label}`}
         >
-          <Languages className="h-4 w-4" />
+          <Flag
+            code={current.countryCode}
+            className="rounded flex-shrink-0"
+            style={{ width: 20, height: 20, objectFit: "cover" }}
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px]">

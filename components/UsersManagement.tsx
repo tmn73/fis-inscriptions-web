@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { UserActivityModal } from "@/components/UserActivityModal";
 import { useTranslations } from "next-intl";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 type User = {
   id: string;
@@ -37,6 +38,7 @@ type User = {
 
 export const UsersManagement = () => {
   const t = useTranslations("users");
+  const dateLocale = useDateLocale();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -209,7 +211,7 @@ export const UsersManagement = () => {
   }, [fetchUsers]);
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("fr-FR", {
+    return new Date(timestamp).toLocaleDateString(dateLocale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

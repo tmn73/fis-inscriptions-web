@@ -29,6 +29,7 @@ import {useTranslations} from "next-intl";
 import {Badge} from "@/components/ui/badge";
 import {colorBadgePerRaceLevel} from "@/app/lib/colorMappers";
 import {useUserEmail} from "@/hooks/useUserEmail";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 interface InscriptionDetailsProps {
   id: string;
@@ -38,6 +39,7 @@ export const InscriptionDetails = ({
   id,
 }: InscriptionDetailsProps) => {
   const t = useTranslations("inscriptionDetail.details");
+  const dateLocale = useDateLocale();
 
   const {data: inscription, isLoading, error} = useInscription(id);
   const {user} = useUser();
@@ -123,9 +125,9 @@ export const InscriptionDetails = ({
               <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap mt-1">
                 <span className="flex items-center gap-1.5">
                   <CalendarIcon className="h-3 w-3" />
-                  {parseLocalDate(inscription.eventData.startDate)?.toLocaleDateString("fr-FR")}
+                  {parseLocalDate(inscription.eventData.startDate)?.toLocaleDateString(dateLocale)}
                   {" - "}
-                  {parseLocalDate(inscription.eventData.endDate)?.toLocaleDateString("fr-FR")}
+                  {parseLocalDate(inscription.eventData.endDate)?.toLocaleDateString(dateLocale)}
                 </span>
                 {inscription.createdAt && (
                   <>
@@ -133,7 +135,7 @@ export const InscriptionDetails = ({
                     <span className="text-slate-400">
                       {t("creator.text", {
                         email: creatorEmail || t("creator.unknown"),
-                        date: new Date(inscription.createdAt).toLocaleDateString("fr-FR"),
+                        date: new Date(inscription.createdAt).toLocaleDateString(dateLocale),
                       })}
                     </span>
                   </>

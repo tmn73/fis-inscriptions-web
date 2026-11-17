@@ -357,6 +357,7 @@
     "eventCount": {
       "event_one": "evento",
       "event_other": "eventos",
+      "courses": "carreras",
       "codex": "codex"
     },
     "noInscriptions": "No se encontró inscripción para este competidor."
@@ -409,6 +410,8 @@
         "updating": "Actualizando...",
         "update": "Actualizar inscripciones",
         "loadingInfo": "Cargando información de inscripción...",
+        "noCompatibleCourses": "Ninguna carrera compatible con el género del competidor para este evento.",
+        "selectCourses": "Seleccione las carreras para la inscripción:",
         "noCompatibleCodex": "No hay codex compatible con el sexo del competidor para este evento.",
         "selectCodex": "Seleccione codex para la inscripción:",
         "selectAll": "Seleccionar todo",
@@ -660,6 +663,8 @@
         "update": "Actualizar inscripciones",
         "updating": "Actualizando...",
         "loadingInfo": "Cargando información de inscripción...",
+        "noCompatibleCourses": "Ninguna carrera compatible con el género del competidor para este evento.",
+        "selectCourses": "Seleccione las carreras para la inscripción:",
         "noCompatibleCodex": "Ningún códex compatible con el género del competidor para este evento.",
         "selectAll": "Seleccionar todo",
         "deselectAll": "Quitar todo"
@@ -677,10 +682,65 @@
         "loadData": "Error al cargar los datos.",
         "loadCompetitors": "Error al cargar los competidores",
         "updateRegistrations": "Error al actualizar las inscripciones del competidor",
+        "noCourses": "Ninguna carrera para este evento.",
         "noCodex": "Ningún códex para este evento."
       },
       "loading": "Cargando datos..."
     }
+  },
+  "newInscription": {
+    "title": "Nueva solicitud de inscripción",
+    "intro": "El formulario de inscripción se enviará al organizador como máximo 36 horas antes de la 1.ª reunión de jefes de equipo (TCM) (8 días para NJC o NC, plazo reglamentario para una solicitud de invitación en NC)",
+    "codexLabel": "Codex",
+    "codexHint": "Introduzca uno de los codex del evento que desea añadir",
+    "codexPlaceholder": "ej.: 1234",
+    "search": "Buscar",
+    "alreadyPresent": "Este codex ya está presente en una",
+    "existingInscription": "inscripción existente",
+    "trainingOnly": "Los eventos compuestos únicamente por carreras de tipo 'Training' (TRA) no se pueden seleccionar para una inscripción.",
+    "loadingFis": "Cargando información de la FIS...",
+    "codexNotFound": "Codex no encontrado.",
+    "eventFetchError": "Error al recuperar el evento.",
+    "createErrorTitle": "Error al crear",
+    "createError": "Error al crear la inscripción",
+    "viewExisting": "Ver la inscripción existente",
+    "createButton": "Crear la competición",
+    "codexRequired": "El codex es obligatorio.",
+    "codexDigitsOnly": "El codex debe contener únicamente dígitos."
+  },
+  "codexField": {
+    "codex": "Codex",
+    "placeholder": "ej.: 1234",
+    "alreadyPresent": "Este codex ya está presente en otra",
+    "otherInscription": "inscripción",
+    "sex": "Sexo *",
+    "male": "Hombre",
+    "female": "Mujer",
+    "discipline": "Disciplina",
+    "raceLevel": "Race Level",
+    "remove": "Eliminar"
+  },
+  "browserWarning": {
+    "title": "⚠️ Problema de generación de PDF detectado",
+    "body": "Está utilizando Chrome en Mac. La generación de PDF puede presentar problemas de formato (tablas mal alineadas, columnas que faltan, etc.).",
+    "solutions": "Soluciones recomendadas:",
+    "recommended": "Recomendado:",
+    "useSafari": "Utilice Safari en Mac para una generación de PDF óptima",
+    "orChrome": "O utilice Chrome en Windows/Linux",
+    "openSafari": "🧭 Abrir en Safari"
+  },
+  "codexTabs": {
+    "noCodex": "Ningún codex disponible.",
+    "noCodexForInscription": "Ningún codex para esta inscripción.",
+    "noCodexFiltered": "Ningún codex coincide con el filtro para {gender}."
+  },
+  "combobox": {
+    "placeholder": "Seleccionar...",
+    "search": "Buscar...",
+    "noResults": "Sin resultados"
+  },
+  "eventDetails": {
+    "noData": "No hay datos disponibles"
   },
   "form": {
     "errors": {
@@ -759,6 +819,7 @@
       "searchResults": "Resultados de búsqueda",
       "noResults": "Ningún competidor encontrado",
       "selected": "Seleccionar un competidor",
+      "forWhichCourses": "¿Para qué carreras? (carreras {gender})",
       "forWhichCodex": "¿Para qué codex? (carreras {gender})",
       "saving": "Añadiendo..."
     },

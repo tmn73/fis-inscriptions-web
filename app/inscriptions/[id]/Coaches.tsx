@@ -28,6 +28,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {useTranslations} from "next-intl";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 export const useInscriptionCoaches = (inscriptionId: string) => {
   return useQuery<InscriptionCoach[]>({
@@ -63,6 +64,7 @@ function useDeleteCoach(inscriptionId: string) {
 // Composant bouton WhatsApp séparé
 const WhatsAppButton = ({inscriptionId}: {inscriptionId: string}) => {
   const t = useTranslations("inscriptionDetail.coaches.whatsapp");
+  const dateLocale = useDateLocale();
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const {data: coaches = []} = useInscriptionCoaches(inscriptionId);
   const {data: inscription} = useQuery({
@@ -129,13 +131,13 @@ const WhatsAppButton = ({inscriptionId}: {inscriptionId: string}) => {
     const eventName = eventData?.name || t("defaultEventName");
     const place = eventData?.place || "";
     const startDate = eventData?.startDate
-      ? new Date(eventData.startDate).toLocaleDateString("fr-FR", {
+      ? new Date(eventData.startDate).toLocaleDateString(dateLocale, {
           day: "2-digit",
           month: "2-digit",
         })
       : "";
     const endDate = eventData?.endDate
-      ? new Date(eventData.endDate).toLocaleDateString("fr-FR", {
+      ? new Date(eventData.endDate).toLocaleDateString(dateLocale, {
           day: "2-digit",
           month: "2-digit",
         })
@@ -303,13 +305,13 @@ const WhatsAppButton = ({inscriptionId}: {inscriptionId: string}) => {
                       const place = eventData?.place || "";
                       const startDate = eventData?.startDate
                         ? new Date(eventData.startDate).toLocaleDateString(
-                            "fr-FR",
+                            dateLocale,
                             {day: "2-digit", month: "2-digit"}
                           )
                         : "";
                       const endDate = eventData?.endDate
                         ? new Date(eventData.endDate).toLocaleDateString(
-                            "fr-FR",
+                            dateLocale,
                             {day: "2-digit", month: "2-digit"}
                           )
                         : "";

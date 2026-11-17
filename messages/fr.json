@@ -684,6 +684,60 @@
       "loading": "Chargement des données..."
     }
   },
+  "newInscription": {
+    "title": "Nouvelle Demande d'Inscription",
+    "intro": "Le formulaire d'inscription sera envoyé à l'organisateur au plus tard 36 heures avant le 1er TCM (8 jours pour NJC ou NC, délai règlementaire pour une demande d'invitation en NC)",
+    "codexLabel": "Codex",
+    "codexHint": "Veuillez entrer un des codex de l'événement à ajouter",
+    "codexPlaceholder": "ex: 1234",
+    "search": "Chercher",
+    "alreadyPresent": "Ce codex est déjà présent dans une",
+    "existingInscription": "inscription existante",
+    "trainingOnly": "Les compétitions de type 'Training' (TRA) uniquement ne peuvent pas être sélectionnées pour une inscription.",
+    "loadingFis": "Chargement des infos FIS...",
+    "codexNotFound": "Codex non trouvé.",
+    "eventFetchError": "Erreur lors de la récupération de l'événement.",
+    "createErrorTitle": "Erreur lors de la création",
+    "createError": "Erreur lors de la création de l'inscription",
+    "viewExisting": "Voir l'inscription existante",
+    "createButton": "Créer la compétition",
+    "codexRequired": "Le codex est requis.",
+    "codexDigitsOnly": "Le codex doit contenir uniquement des chiffres."
+  },
+  "codexField": {
+    "codex": "Codex",
+    "placeholder": "ex: 1234",
+    "alreadyPresent": "Ce codex est déjà présent dans une",
+    "otherInscription": "autre inscription",
+    "sex": "Sexe *",
+    "male": "Homme",
+    "female": "Femme",
+    "discipline": "Discipline",
+    "raceLevel": "Race Level",
+    "remove": "Supprimer"
+  },
+  "browserWarning": {
+    "title": "⚠️ Problème de génération PDF détecté",
+    "body": "Vous utilisez Chrome sur Mac. La génération de PDF peut présenter des problèmes de formatage (tables mal alignées, colonnes manquantes, etc.).",
+    "solutions": "Solutions recommandées :",
+    "recommended": "Recommandé :",
+    "useSafari": "Utilisez Safari sur Mac pour une génération PDF optimale",
+    "orChrome": "Ou utilisez Chrome sur Windows/Linux",
+    "openSafari": "🧭 Ouvrir dans Safari"
+  },
+  "codexTabs": {
+    "noCodex": "Aucun codex disponible.",
+    "noCodexForInscription": "Aucun codex pour cette inscription.",
+    "noCodexFiltered": "Aucun codex ne correspond au filtre pour {gender}."
+  },
+  "combobox": {
+    "placeholder": "Sélectionner...",
+    "search": "Rechercher...",
+    "noResults": "Aucun résultat"
+  },
+  "eventDetails": {
+    "noData": "Aucune donnée disponible"
+  },
   "form": {
     "errors": {
       "required": "Ce champ est obligatoire",

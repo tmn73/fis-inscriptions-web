@@ -42,6 +42,7 @@ import {CompetitorCard} from "./CompetitorCard";
 import {useTranslations} from "next-intl";
 import {format} from "date-fns";
 import {getGenderStatus} from "@/app/lib/genderStatus";
+import {useDateLocale} from "@/app/lib/dateLocale";
 
 type InscriptionCompetitorWithCodex = InscriptionCompetitor & {
   codexNumbers: string[];
@@ -373,6 +374,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
   genderFilter,
 }) => {
   const t = useTranslations("inscriptionDetail.recap");
+  const dateLocale = useDateLocale();
   const tTable = useTranslations("inscriptionDetail.recap.table");
   const tAdd = useTranslations("inscriptionDetail.recap.addCompetitor");
   const tGenderButtons = useTranslations("inscriptionDetail.recap.genderButtons");
@@ -545,7 +547,7 @@ export const RecapEvent: React.FC<RecapEventProps> = ({
                 const formatDate = (dateStr: string) => {
                   if (!dateStr) return "";
                   const date = new Date(dateStr);
-                  return date.toLocaleDateString("fr-FR", {
+                  return date.toLocaleDateString(dateLocale, {
                     day: "2-digit",
                     month: "2-digit",
                     year: "2-digit"

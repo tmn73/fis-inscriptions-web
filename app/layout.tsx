@@ -6,19 +6,29 @@ import {Snowfall} from "@/components/ui/Snowfall";
 import {ClerkProvider} from "@clerk/nextjs";
 import {NetworkStatus} from "@/components/ui/NetworkStatus";
 import "./globals.css";
-import {frFR} from "@clerk/localizations";
+import {enUS, esES, frFR, itIT} from "@clerk/localizations";
 import {NextIntlClientProvider} from "next-intl";
-import {getMessages} from "next-intl/server";
+import {getLocale, getMessages} from "next-intl/server";
 import {Analytics} from "@vercel/analytics/next";
 
 // Component to always provide ClerkProvider with fallback key for build
-function ConditionalClerkProvider({children}: {children: React.ReactNode}) {
+const CLERK_LOCALIZATIONS = {fr: frFR, en: enUS, es: esES, it: itIT};
+
+function ConditionalClerkProvider({
+  children,
+  locale,
+}: {
+  children: React.ReactNode;
+  locale: string;
+}) {
   const publishableKey =
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
     "pk_test_Y29uY2lzZS1xdWFpbC0zNC5jbGVyay5hY2NvdW50cy5kZXYk";
 
   return (
-    <ClerkProvider localization={frFR} publishableKey={publishableKey}>
+    <ClerkProvider
+      localization={CLERK_LOCALIZATIONS[locale as keyof typeof CLERK_LOCALIZATIONS] ?? enUS}
+      publishableKey={publishableKey}>
       {children}
     </ClerkProvider>
   );
@@ -73,13 +83,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const messages = await getMessages();
+  const locale = await getLocale();
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ConditionalClerkProvider>
+        <ConditionalClerkProvider locale={locale}>
           <NextIntlClientProvider messages={messages}>
             <Providers>
               <div className="min-h-screen bg-slate-50 pb-10">

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import {format, parseISO} from "date-fns";
-import {fr} from "date-fns/locale";
+import {useDateFnsLocale} from "@/app/lib/dateLocale";
 import {InscriptionWithCounts} from "@/app/types";
 import type {CompetitionItem} from "@/app/types";
 import Image from "next/image";
@@ -145,6 +145,7 @@ const DeadlineBadge = ({inscription}: {inscription: InscriptionWithCounts}) => {
 };
 
 export function InscriptionCard({inscription}: {inscription: InscriptionWithCounts}) {
+  const dateFnsLocale = useDateFnsLocale();
   const {flagUrl, countryLabel} = useCountryInfo(
     inscription.eventData.placeNationCode ||
     inscription.eventData.organiserNationCode ||
@@ -179,8 +180,8 @@ export function InscriptionCard({inscription}: {inscription: InscriptionWithCoun
 
   const eventDate = parseISO(inscription.eventData.startDate);
   const day = format(eventDate, "d");
-  const month = format(eventDate, "MMM", {locale: fr});
-  const weekday = format(eventDate, "EEE", {locale: fr});
+  const month = format(eventDate, "MMM", {locale: dateFnsLocale});
+  const weekday = format(eventDate, "EEE", {locale: dateFnsLocale});
 
   const place = inscription.eventData.place || "—";
   const formattedPlace = place.charAt(0).toUpperCase() + place.slice(1).toLowerCase();

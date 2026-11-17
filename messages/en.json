@@ -353,6 +353,7 @@
     "eventCount": {
       "event_one": "event",
       "event_other": "events",
+      "courses": "courses",
       "codex": "codex"
     },
     "noInscriptions": "No registration found for this competitor."
@@ -405,6 +406,8 @@
         "updating": "Updating...",
         "update": "Update registrations",
         "loadingInfo": "Loading registration information...",
+        "noCompatibleCourses": "No course compatible with the competitor's gender for this event.",
+        "selectCourses": "Select the courses for registration:",
         "noCompatibleCodex": "No codex compatible with the competitor's gender for this event.",
         "selectCodex": "Select codex for registration:",
         "selectAll": "Select all",
@@ -656,6 +659,8 @@
         "update": "Update registrations",
         "updating": "Updating...",
         "loadingInfo": "Loading registration information...",
+        "noCompatibleCourses": "No course compatible with the competitor's gender for this event.",
+        "selectCourses": "Select the courses for registration:",
         "noCompatibleCodex": "No codex compatible with the competitor's gender for this event.",
         "selectAll": "Select all",
         "deselectAll": "Remove all"
@@ -673,10 +678,65 @@
         "loadData": "Error loading data.",
         "loadCompetitors": "Error loading competitors",
         "updateRegistrations": "Error updating competitor registrations",
+        "noCourses": "No course for this event.",
         "noCodex": "No codex for this event."
       },
       "loading": "Loading data..."
     }
+  },
+  "newInscription": {
+    "title": "New Registration Request",
+    "intro": "The registration form will be sent to the organizer at the latest 36 hours before the 1st TCM (8 days for NJC or NC, regulatory deadline for an invitation request in NC)",
+    "codexLabel": "Codex",
+    "codexHint": "Please enter one of the event's codex numbers to add",
+    "codexPlaceholder": "e.g. 1234",
+    "search": "Search",
+    "alreadyPresent": "This codex is already present in an",
+    "existingInscription": "existing registration",
+    "trainingOnly": "Events consisting only of 'Training' (TRA) races cannot be selected for a registration.",
+    "loadingFis": "Loading FIS info...",
+    "codexNotFound": "Codex not found.",
+    "eventFetchError": "Error while retrieving the event.",
+    "createErrorTitle": "Error while creating",
+    "createError": "Error while creating the registration",
+    "viewExisting": "View the existing registration",
+    "createButton": "Create the competition",
+    "codexRequired": "The codex is required.",
+    "codexDigitsOnly": "The codex must contain only digits."
+  },
+  "codexField": {
+    "codex": "Codex",
+    "placeholder": "e.g. 1234",
+    "alreadyPresent": "This codex is already present in another",
+    "otherInscription": "registration",
+    "sex": "Gender *",
+    "male": "Male",
+    "female": "Female",
+    "discipline": "Discipline",
+    "raceLevel": "Race Level",
+    "remove": "Delete"
+  },
+  "browserWarning": {
+    "title": "⚠️ PDF generation problem detected",
+    "body": "You are using Chrome on Mac. PDF generation may have formatting problems (misaligned tables, missing columns, etc.).",
+    "solutions": "Recommended solutions:",
+    "recommended": "Recommended:",
+    "useSafari": "Use Safari on Mac for optimal PDF generation",
+    "orChrome": "Or use Chrome on Windows/Linux",
+    "openSafari": "🧭 Open in Safari"
+  },
+  "codexTabs": {
+    "noCodex": "No codex available.",
+    "noCodexForInscription": "No codex for this registration.",
+    "noCodexFiltered": "No codex matches the filter for {gender}."
+  },
+  "combobox": {
+    "placeholder": "Select...",
+    "search": "Search...",
+    "noResults": "No results"
+  },
+  "eventDetails": {
+    "noData": "No data available"
   },
   "form": {
     "errors": {
@@ -755,6 +815,7 @@
       "searchResults": "Search results",
       "noResults": "No competitor found",
       "selected": "Select a competitor",
+      "forWhichCourses": "For which courses? ({gender} races)",
       "forWhichCodex": "For which codex? ({gender} races)",
       "saving": "Adding..."
     },
