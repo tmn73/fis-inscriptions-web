@@ -4,9 +4,11 @@ import {useQuery} from "@tanstack/react-query";
 import {Inscription} from "@/app/types";
 import {getEffectiveStatusForFilter} from "@/app/lib/genderStatus";
 import {getDeadlineDays} from "@/app/lib/getDeadlineDays";
-import {AlertTriangle, Clock, Send, Calendar, List, XCircle} from "lucide-react";
+import {AlertTriangle, Clock, Send, Calendar, List, XCircle, RefreshCw} from "lucide-react";
 import {useTranslations} from "next-intl";
 import {useFisPointsList} from "@/hooks/useFisPointsList";
+import {useUpdateFisList} from "@/components/FisListUpdateButton";
+import {useRole, isAdminRole} from "@/app/lib/useRole";
 
 type StatCardProps = {
   icon: React.ReactNode;
@@ -117,6 +119,9 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
   const t = useTranslations("dashboard.stats");
   const tFilters = useTranslations("inscriptions.table.filters");
   const {data: pointsList} = useFisPointsList();
+  const tFisUpdate = useTranslations("navigation.fisListUpdate");
+  const canUpdateFisList = isAdminRole(useRole());
+  const {mutate: updateFisList, isPending: updatingFisList} = useUpdateFisList();
 
   const {data: inscriptions = []} = useQuery<Inscription[]>({
     queryKey: ["inscriptions"],
@@ -243,17 +248,28 @@ export function QuickStatsBar({onFilterChange, activeFilter}: QuickStatsBarProps
         onClick={() => onFilterChange?.("all")}
         active={activeFilter === "all"}
       />
-      {/* Mobile only: on desktop the FIS list sits next to the filters */}
+      {/* Mobile only: on desktop the FIS list sits next to the filters.
+          Admins tap it to import the newest FIS list right away. */}
       {pointsList && (
-        <div
-          className="md:hidden flex items-center gap-2.5 px-3 py-2 rounded-md border border-slate-200/60 bg-white"
-          title={pointsList.listname ?? undefined}
+        <button
+          type="button"
+          disabled={!canUpdateFisList || updatingFisList}
+          onClick={() => updateFisList()}
+          className={`md:hidden flex items-center gap-2.5 px-3 py-2 rounded-md border border-slate-200/60 bg-white disabled:opacity-100 ${
+            canUpdateFisList ? "cursor-pointer hover:bg-slate-50/50" : "cursor-default"
+          }`}
+          title={canUpdateFisList ? tFisUpdate("hint") : pointsList.listname ?? undefined}
         >
           <span className="text-xs text-slate-500">{tFilters("fisList")}</span>
           <span className="text-lg font-semibold tabular-nums text-slate-700">
             {pointsList.label}
           </span>
-        </div>
+          {canUpdateFisList && (
+            <RefreshCw
+              className={`w-4 h-4 text-slate-400 ${updatingFisList ? "animate-spin" : ""}`}
+            />
+          )}
+        </button>
       )}
     </div>
   );

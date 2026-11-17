@@ -322,12 +322,6 @@ export const Header = () => {
                       </Button>
                     </Link>
                   )}
-                  {showAdminItems && (
-                    <FisListUpdateButton
-                      variant="sheet"
-                      onDone={() => setMobileMenuOpen(false)}
-                    />
-                  )}
                 </SignedIn>
               </nav>
             </SheetContent>

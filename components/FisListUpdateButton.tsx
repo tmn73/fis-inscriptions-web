@@ -4,7 +4,6 @@ import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {RefreshCw} from "lucide-react";
 import {useTranslations} from "next-intl";
 import {useToast} from "@/components/ui/use-toast";
-import {Button} from "@/components/ui/button";
 import {DropdownMenuItem} from "@/components/ui/dropdown-menu";
 import type {FisImportResult} from "@/app/lib/fisPointsListImport";
 
@@ -14,7 +13,7 @@ const shortLabel = (r: FisImportResult) => {
   return match ? `${match[1]}-${match[2]}` : String(r.listid);
 };
 
-function useUpdateFisList() {
+export function useUpdateFisList() {
   const t = useTranslations("navigation.fisListUpdate");
   const {toast} = useToast();
   const queryClient = useQueryClient();
@@ -47,17 +46,16 @@ function useUpdateFisList() {
 }
 
 // Admin action that imports the newest FIS points list right away, without
-// waiting for the nightly job. One per menu layout of the header.
+// waiting for the nightly job. Used in the desktop and tablet menus; on mobile the FIS list card in
+// QuickStatsBar does the same.
 export function FisListUpdateButton({
   variant,
-  onDone,
 }: {
-  variant: "nav" | "dropdown" | "sheet";
-  onDone?: () => void;
+  variant: "nav" | "dropdown";
 }) {
   const t = useTranslations("navigation.fisListUpdate");
   const {mutate, isPending} = useUpdateFisList();
-  const run = () => mutate(undefined, {onSettled: onDone});
+  const run = () => mutate();
   const label = isPending ? t("running") : t("label");
   const icon = (
     <RefreshCw className={`h-3.5 w-3.5 ${isPending ? "animate-spin" : ""}`} />
@@ -76,20 +74,6 @@ export function FisListUpdateButton({
         <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
         {label}
       </DropdownMenuItem>
-    );
-  }
-
-  if (variant === "sheet") {
-    return (
-      <Button
-        variant="ghost"
-        className="w-full justify-start hover:bg-accent"
-        disabled={isPending}
-        onClick={run}
-      >
-        <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
-        {label}
-      </Button>
     );
   }
 

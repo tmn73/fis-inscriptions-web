@@ -304,6 +304,16 @@ const main = async () => {
     lastValidCsv = next.csv;
   }
 
+  // Nothing new since the last import: the robot runs every hour on
+  // Tuesdays, so most runs end here without rewriting 11 000 rows.
+  // FORCE_IMPORT=1 re-imports the current list anyway.
+  if (lastValidListId === knownListId && process.env.FORCE_IMPORT !== "1") {
+    console.log(
+      `Listid ${knownListId} is still the latest FIS points list: nothing to import.`
+    );
+    return;
+  }
+
   fs.writeFileSync(CSV_FILENAME, lastValidCsv, "utf8");
   writeLastListId(lastValidListId);
   console.log(
