@@ -19,6 +19,7 @@ import { useRole, isAdminRole, isSuperAdminRole } from "@/app/lib/useRole";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { useOrganization } from "@/hooks/useOrganization";
+import { FisListUpdateButton } from "@/components/FisListUpdateButton";
 import {
   Sheet,
   SheetContent,
@@ -151,6 +152,7 @@ export const Header = () => {
                     active={isActive("/admin/organization")}
                   />
                 )}
+                {showAdminItems && <FisListUpdateButton variant="nav" />}
               </SignedIn>
             </div>
 
@@ -210,6 +212,9 @@ export const Header = () => {
                             Config
                           </Link>
                         </DropdownMenuItem>
+                      )}
+                      {showAdminItems && (
+                        <FisListUpdateButton variant="dropdown" />
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -316,6 +321,12 @@ export const Header = () => {
                         Config
                       </Button>
                     </Link>
+                  )}
+                  {showAdminItems && (
+                    <FisListUpdateButton
+                      variant="sheet"
+                      onDone={() => setMobileMenuOpen(false)}
+                    />
                   )}
                 </SignedIn>
               </nav>

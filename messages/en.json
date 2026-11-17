@@ -49,7 +49,18 @@
     "stats": "Stats",
     "users": "Users",
     "profile": "Profile",
-    "organizationConfig": "Configuration"
+    "organizationConfig": "Configuration",
+    "fisListUpdate": {
+      "label": "Update FIS list",
+      "short": "Update FIS list",
+      "running": "Updating…",
+      "hint": "Import the latest published FIS list now",
+      "updated": "FIS list {label} imported",
+      "updatedDescription": "{count} athletes updated",
+      "upToDate": "Already up to date: list {label}",
+      "upToDateDescription": "FIS has not published a newer list",
+      "error": "Updating the FIS list failed"
+    }
   },
   "stats": {
     "title": "Statistics",
